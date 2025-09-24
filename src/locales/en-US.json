@@ -1,0 +1,358 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "search": "Search",
+    "clear": "Clear",
+    "close": "Close",
+    "open": "Open",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "remove": "Remove",
+    "enable": "Enable",
+    "disable": "Disable",
+    "refresh": "Refresh",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "selectAll": "Select All",
+    "undo": "Undo",
+    "retry": "Retry",
+    "tabs": "Tabs",
+    "bookmarks": "Bookmarks"
+  },
+  "app": {
+    "title": "TabMaster Pro",
+    "description": "Professional tab management master for your browser"
+  },
+  "header": {
+    "stats": "{tabCount} tabs · {groupCount} groups",
+    "autoSortEnabled": "Auto-sort enabled",
+    "autoSortDisabled": "Auto-sort disabled",
+    "toggleTheme": "Toggle theme",
+    "toggleLanguage": "Toggle language",
+    "openSettings": "Open settings"
+  },
+  "search": {
+    "placeholder": "Search tabs or bookmarks...",
+    "noResults": "No matching results found",
+    "searchResults": "Search Results",
+    "bookmarkResults": "Bookmark Search Results",
+    "filters": {
+      "all": "All",
+      "pinned": "Pinned",
+      "grouped": "Grouped",
+      "audible": "Audible",
+      "duplicate": "Duplicates"
+    }
+  },
+  "tabs": {
+    "tabCount": "{count} tabs",
+    "noTabs": "No tabs available",
+    "closeSuccess": "Tab closed: {title}",
+    "closeError": "Failed to close tab",
+    "accessDenied": "Cannot access tab",
+    "notFound": "Tab not found",
+    "switchTo": "Switch to tab",
+    "close": "Close tab",
+    "closeOthers": "Close other tabs",
+    "closeDuplicates": "Close duplicate tabs",
+    "pinTab": "Pin tab",
+    "unpinTab": "Unpin tab",
+    "muteTab": "Mute tab",
+    "unmuteTab": "Unmute tab",
+    "reloadTab": "Reload tab",
+    "copyUrl": "Copy URL",
+    "active": "Active",
+    "inactive": "Inactive",
+    "loading": "Loading",
+    "pinned": "Pinned",
+    "audible": "Audible",
+    "muted": "Muted",
+    "crashed": "Crashed",
+    "suspended": "Suspended",
+    "discarded": "Discarded"
+  },
+  "groups": {
+    "groupCount": "{count} groups",
+    "noGroups": "No groups available",
+    "createGroup": "Create group",
+    "smartGroup": "Smart grouping",
+    "ungroupAll": "Ungroup all",
+    "groupByDomain": "Group by domain",
+    "groupByTitle": "Group by title",
+    "groupSuccess": "Group created successfully",
+    "groupError": "Failed to create group",
+    "ungroupSuccess": "Ungrouping completed",
+    "ungroupError": "Failed to ungroup",
+    "groupName": "Group name",
+    "groupColor": "Group color",
+    "editGroup": "Edit group",
+    "deleteGroup": "Delete group",
+    "addToGroup": "Add to group",
+    "removeFromGroup": "Remove from group"
+  },
+  "bookmarks": {
+    "searchResults": "Bookmark Search Results",
+    "noBookmarks": "No bookmarks found",
+    "untitledBookmark": "Untitled Bookmark",
+    "openBookmark": "Open bookmark",
+    "openInNewTab": "Open in new tab",
+    "openInBackground": "Open in background",
+    "copyBookmarkUrl": "Copy bookmark URL",
+    "searchFailed": "Bookmark search failed",
+    "groups": {
+      "domain": "By Domain",
+      "folder": "By Folder",
+      "recent": "Recently Visited",
+      "frequent": "Frequently Visited"
+    },
+    "showMore": "Show more groups ({count})",
+    "showLess": "Show less"
+  },
+  "toolbar": {
+    "sort": "Sort",
+    "group": "Smart group",
+    "ungroup": "Ungroup",
+    "multiSelect": "Multi-select",
+    "sortBy": {
+      "domain": "By domain",
+      "title": "By title",
+      "url": "By URL",
+      "lastAccessed": "By time",
+      "index": "By position"
+    }
+  },
+  "selection": {
+    "selected": "{count} tabs selected",
+    "selectAll": "Select all",
+    "clearSelection": "Clear selection",
+    "batchClose": "Close selected",
+    "batchGroup": "Group selected",
+    "batchPin": "Pin selected",
+    "batchUnpin": "Unpin selected"
+  },
+  "keyboard": {
+    "navigation": "Keyboard Navigation",
+    "shortcuts": {
+      "search": "Focus search",
+      "up": "Navigate up",
+      "down": "Navigate down",
+      "enter": "Open selected",
+      "escape": "Clear search/Cancel",
+      "delete": "Close selected tab",
+      "selectAll": "Select all",
+      "multiSelect": "Toggle multi-select"
+    }
+  },
+  "settings": {
+    "title": "Extension Settings",
+    "general": "General",
+    "sortSettings": "Sort Settings",
+    "groupSettings": "Group Settings",
+    "defaultBehavior": "Default Behavior",
+    "interfaceSettings": "Interface Settings",
+    "autoSort": "Auto-sort",
+    "autoSortDescription": "Automatically sort tabs by rules when opening new tabs",
+    "autoSortDelay": "Auto-sort Delay",
+    "autoSortDelayDescription": "How long to wait before executing auto-sort, to avoid frequent operations",
+    "autoGroup": "Auto-group",
+    "autoGroupDescription": "Automatically add new tabs to groups with the same domain",
+    "defaultSortRule": "Default sort rule",
+    "themeStyle": "Theme Style",
+    "theme": "Theme",
+    "language": "Language",
+    "shortcuts": "Shortcuts",
+    "about": "About",
+    "version": "Version",
+    "feedback": "Feedback",
+    "privacy": "Privacy Policy",
+    "resetDefaults": "Reset Defaults",
+    "confirmReset": "Are you sure you want to reset all settings to default values?",
+    "developmentInProgress": "Settings feature is under development...",
+    "themes": {
+      "light": "Light Mode",
+      "dark": "Dark Mode",
+      "auto": "Follow System"
+    },
+    "sortOptions": "Sort Options",
+    "sortPreview": "Sort Preview",
+    "ascending": "Ascending Order",
+    "ascendingDesc": "A-Z, 0-9, Old to New",
+    "descending": "Descending Order",
+    "descendingDesc": "Z-A, 9-0, New to Old",
+    "caseSensitive": "Case Sensitive",
+    "caseSensitiveDesc": "Uppercase letters first",
+    "groupSimilar": "Group Similar",
+    "groupSimilarDesc": "Related content together",
+    "autoGroupRules": "Auto Group Rules",
+    "enableAutoGroup": "Enable Auto Group",
+    "autoGroupDesc": "Automatically add new tabs to groups with the same domain",
+    "colorStrategy": "Color Strategy",
+    "colorAuto": "Auto Selection",
+    "colorAutoDesc": "System automatically assigns colors",
+    "colorFixed": "Fixed Color",
+    "colorFixedDesc": "Use the same color",
+    "groupLimits": "Group Limits",
+    "minTabsPerGroup": "Min Tabs per Group",
+    "minTabsPerGroupDesc": "Minimum number of tabs required to create a group",
+    "maxGroupsPerWindow": "Max Groups per Window",
+    "maxGroupsPerWindowDesc": "Maximum number of groups allowed per window",
+    "groupColors": "Group Colors",
+    "minGroupSize": "Min Group Size",
+    "minGroupSizeDesc": "Don't create groups with fewer than this number",
+    "maxGroupsPerWindowLabel": "Max Groups per Window",
+    "maxGroupsPerWindowLabelDesc": "Maximum number of groups per window",
+    "randomColor": "Random Color",
+    "tabsSuffix": "tabs",
+    "groupsSuffix": "groups",
+    "colorLabels": {
+      "grey": "Grey",
+      "blue": "Blue",
+      "red": "Red",
+      "yellow": "Yellow",
+      "green": "Green",
+      "pink": "Pink",
+      "purple": "Purple",
+      "cyan": "Cyan"
+    },
+    "keyboardShortcuts": "Keyboard Shortcuts",
+    "shortcutsDesc": "Use keyboard shortcuts to manage tabs more efficiently",
+    "customizeShortcuts": "Customize Shortcuts",
+    "usageTips": "Usage Tips",
+    "shortcutTips": {
+      "customization": "Shortcuts can be customized in Chrome extension management page",
+      "conflicts": "Some shortcuts may conflict with system or other apps, adjust as needed",
+      "incognito": "In incognito mode, extension needs to be enabled separately to use shortcuts"
+    },
+    "shortcutActions": {
+      "openManager": "Open Tab Manager",
+      "quickSort": "Quick Sort",
+      "smartGroup": "Smart Group",
+      "ungroup": "Ungroup"
+    },
+    "shortcutDescriptions": {
+      "openManager": "Quickly open tab management popup",
+      "quickSort": "Sort all tabs by current rules",
+      "smartGroup": "Auto create groups by domain",
+      "ungroup": "Ungroup all tab groups"
+    },
+    "extensionName": "Chrome Tab Manager",
+    "currentVersion": "Version",
+    "stableRelease": "Stable Release",
+    "extensionDesc": "A powerful and elegant Chrome extension that helps you efficiently manage tabs. Through smart sorting, automatic grouping, batch operations and other features, make your browsing experience smoother and more organized.",
+    "features": "Key Features",
+    "coreFeatures": "Core Features",
+    "developer": "Developer",
+    "developerInfo": "Developer Info",
+    "license": "License",
+    "mitLicense": "MIT License",
+    "featureList": {
+      "smartSort": "Smart Sort",
+      "autoGroup": "Auto Group",
+      "quickActions": "Quick Actions",
+      "autoMode": "Auto Mode",
+      "batchManagement": "Batch Management",
+      "searchFilter": "Search Filter"
+    },
+    "featureDescriptions": {
+      "smartSort": "Multiple sorting rules",
+      "autoGroup": "Smart domain grouping",
+      "quickActions": "Keyboard shortcuts",
+      "autoMode": "Real-time sorting",
+      "batchManagement": "Multi-selection ops",
+      "searchFilter": "Quick locate"
+    },
+    "stats": {
+      "activeUsers": "Active Users",
+      "userRating": "User Rating",
+      "versionUpdates": "Version Updates"
+    },
+    "links": {
+      "viewSource": "View Source",
+      "sourceDesc": "Star & Fork on GitHub",
+      "feedback": "Feedback",
+      "feedbackDesc": "Report issues or suggestions"
+    },
+    "developerBio": "Full-stack Developer · Open Source Enthusiast",
+    "techStack": "Tech Stack",
+    "builtWith": "Built with Chrome Extension Manifest V3",
+    "copyright": "© 2024 Tab Manager. MIT License.",
+    "languageSettings": "Language Settings",
+    "selectLanguage": "Select Language",
+    "languages": {
+      "zh-CN": "简体中文",
+      "en-US": "English"
+    }
+  },
+  "errors": {
+    "unknown": "Unknown error",
+    "network": "Network error",
+    "permission": "Permission denied",
+    "timeout": "Request timeout",
+    "invalidUrl": "Invalid URL",
+    "chromeApi": "Chrome extension API error",
+    "runtime": "Runtime error",
+    "configLoad": "Failed to load configuration",
+    "statsLoad": "Failed to load statistics",
+    "sortOperation": "Sort operation failed",
+    "groupOperation": "Group operation failed",
+    "batchOperation": "Batch operation failed",
+    "sortFailed": "Sort failed",
+    "groupFailed": "Group failed",
+    "batchCloseFailed": "Batch close failed",
+    "batchGroupFailed": "Batch group failed",
+    "noValidTabsToGroup": "No valid tabs to group",
+    "settingsFailed": "Settings failed"
+  },
+  "messages": {
+    "welcome": "Welcome to Chrome Tab Manager!",
+    "firstTime": "This is your first time using this extension",
+    "tourStart": "Start tutorial",
+    "tourSkip": "Skip tutorial",
+    "updateAvailable": "Update available",
+    "updateNow": "Update now",
+    "updateLater": "Update later",
+    "operationSuccess": "Operation completed successfully",
+    "operationFailed": "Operation failed, please try again",
+    "sortSuccess": "Sort completed",
+    "batchCloseSuccess": "Closed {count} tabs",
+    "batchGroupSuccess": "Grouped {count} tabs",
+    "autoSortEnabled": "Auto-sort enabled",
+    "autoSortDisabled": "Auto-sort disabled",
+    "networkError": "Network connection error, please check your network",
+    "permissionRequired": "Additional permissions required for this operation"
+  },
+  "tour": {
+    "welcome": {
+      "title": "Welcome to Tab Manager",
+      "description": "Let's quickly explore the main features"
+    },
+    "search": {
+      "title": "Smart Search",
+      "description": "Search tab titles, URLs, and bookmarks"
+    },
+    "keyboard": {
+      "title": "Keyboard Navigation",
+      "description": "Use arrow keys to navigate, Enter to open, ESC to clear"
+    },
+    "groups": {
+      "title": "Smart Grouping",
+      "description": "Automatically group tabs by domain for better organization"
+    },
+    "settings": {
+      "title": "Personalization",
+      "description": "Customize sort rules, themes, and other options in settings"
+    },
+    "complete": {
+      "title": "Get Started",
+      "description": "You're all set! Start managing your tabs efficiently."
+    },
+    "previous": "Previous",
+    "next": "Next",
+    "skip": "Skip tutorial",
+    "finish": "Finish"
+  }
+}

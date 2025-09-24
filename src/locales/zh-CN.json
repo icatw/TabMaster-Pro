@@ -1,0 +1,358 @@
+{
+  "common": {
+    "confirm": "确认",
+    "cancel": "取消",
+    "loading": "加载中...",
+    "search": "搜索",
+    "clear": "清除",
+    "close": "关闭",
+    "open": "打开",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "remove": "移除",
+    "enable": "启用",
+    "disable": "禁用",
+    "refresh": "刷新",
+    "expand": "展开",
+    "collapse": "收起",
+    "selectAll": "全选",
+    "undo": "撤销",
+    "retry": "重试",
+    "tabs": "标签页",
+    "bookmarks": "书签"
+  },
+  "app": {
+    "title": "TabMaster Pro",
+    "description": "智能管理和组织浏览器标签页"
+  },
+  "header": {
+    "stats": "{tabCount} 个标签 · {groupCount} 个分组",
+    "autoSortEnabled": "自动排序已启用",
+    "autoSortDisabled": "自动排序已禁用",
+    "toggleTheme": "切换主题",
+    "toggleLanguage": "切换语言",
+    "openSettings": "打开设置"
+  },
+  "search": {
+    "placeholder": "搜索标签页或书签...",
+    "noResults": "没有找到匹配结果",
+    "searchResults": "搜索结果",
+    "bookmarkResults": "书签搜索结果",
+    "filters": {
+      "all": "全部",
+      "pinned": "已固定",
+      "grouped": "已分组",
+      "audible": "播放中",
+      "duplicate": "重复标签"
+    }
+  },
+  "tabs": {
+    "tabCount": "{count} 个标签",
+    "noTabs": "暂无标签页",
+    "closeSuccess": "已关闭标签页: {title}",
+    "closeError": "关闭标签页失败",
+    "accessDenied": "无法访问标签页",
+    "notFound": "标签页未找到",
+    "switchTo": "切换到标签页",
+    "close": "关闭标签页",
+    "closeOthers": "关闭其他标签页",
+    "closeDuplicates": "关闭重复标签页",
+    "pinTab": "固定标签页",
+    "unpinTab": "取消固定",
+    "muteTab": "静音标签页",
+    "unmuteTab": "取消静音",
+    "reloadTab": "重新加载",
+    "copyUrl": "复制链接",
+    "active": "当前活动",
+    "inactive": "非活动",
+    "loading": "加载中",
+    "pinned": "已固定",
+    "audible": "有声音",
+    "muted": "已静音",
+    "crashed": "已崩溃",
+    "suspended": "已暂停",
+    "discarded": "已丢弃"
+  },
+  "groups": {
+    "groupCount": "{count} 个分组",
+    "noGroups": "暂无分组",
+    "createGroup": "创建分组",
+    "smartGroup": "智能分组",
+    "ungroupAll": "取消所有分组",
+    "groupByDomain": "按域名分组",
+    "groupByTitle": "按标题分组",
+    "groupSuccess": "分组创建成功",
+    "groupError": "分组创建失败",
+    "ungroupSuccess": "取消分组完成",
+    "ungroupError": "取消分组失败",
+    "groupName": "分组名称",
+    "groupColor": "分组颜色",
+    "editGroup": "编辑分组",
+    "deleteGroup": "删除分组",
+    "addToGroup": "添加到分组",
+    "removeFromGroup": "从分组中移除"
+  },
+  "bookmarks": {
+    "searchResults": "书签搜索结果",
+    "noBookmarks": "没有找到书签",
+    "untitledBookmark": "未命名书签",
+    "openBookmark": "打开书签",
+    "openInNewTab": "在新标签页中打开",
+    "openInBackground": "在后台打开",
+    "copyBookmarkUrl": "复制书签链接",
+    "searchFailed": "书签搜索失败",
+    "groups": {
+      "domain": "按域名分组",
+      "folder": "按文件夹分组",
+      "recent": "最近访问",
+      "frequent": "经常访问"
+    },
+    "showMore": "展开更多分组 ({count})",
+    "showLess": "收起分组"
+  },
+  "toolbar": {
+    "sort": "排序",
+    "group": "智能分组",
+    "ungroup": "取消分组",
+    "multiSelect": "多选",
+    "sortBy": {
+      "domain": "按域名",
+      "title": "按标题",
+      "url": "按URL",
+      "lastAccessed": "按时间",
+      "index": "按位置"
+    }
+  },
+  "selection": {
+    "selected": "已选择 {count} 个",
+    "selectAll": "全选",
+    "clearSelection": "清除选择",
+    "batchClose": "批量关闭",
+    "batchGroup": "批量分组",
+    "batchPin": "批量固定",
+    "batchUnpin": "批量取消固定"
+  },
+  "keyboard": {
+    "navigation": "键盘导航",
+    "shortcuts": {
+      "search": "聚焦搜索框",
+      "up": "向上导航",
+      "down": "向下导航",
+      "enter": "打开选中项",
+      "escape": "清除搜索/取消选择",
+      "delete": "关闭选中标签",
+      "selectAll": "全选",
+      "multiSelect": "切换多选模式"
+    }
+  },
+  "settings": {
+    "title": "扩展设置",
+    "general": "常规设置",
+    "sortSettings": "排序设置",
+    "groupSettings": "分组设置",
+    "defaultBehavior": "默认行为",
+    "interfaceSettings": "界面设置",
+    "autoSort": "自动排序",
+    "autoSortDescription": "打开新标签页时自动按规则排序",
+    "autoSortDelay": "自动排序延迟",
+    "autoSortDelayDescription": "等待多久后执行自动排序，避免频繁操作",
+    "autoGroup": "自动分组",
+    "autoGroupDescription": "新标签页自动加入相同域名的分组",
+    "defaultSortRule": "默认排序规则",
+    "themeStyle": "主题风格",
+    "theme": "主题设置",
+    "language": "语言设置",
+    "shortcuts": "快捷键设置",
+    "about": "关于扩展",
+    "version": "版本",
+    "feedback": "反馈建议",
+    "privacy": "隐私政策",
+    "resetDefaults": "重置默认",
+    "confirmReset": "确定要重置所有设置为默认值吗？",
+    "developmentInProgress": "设置功能正在开发中...",
+    "themes": {
+      "light": "浅色模式",
+      "dark": "深色模式",
+      "auto": "跟随系统"
+    },
+    "sortOptions": "排序选项",
+    "sortPreview": "排序预览",
+    "ascending": "升序排列",
+    "ascendingDesc": "A-Z、0-9、旧到新",
+    "descending": "降序排列",
+    "descendingDesc": "Z-A、9-0、新到旧",
+    "caseSensitive": "区分大小写",
+    "caseSensitiveDesc": "大写字母优先",
+    "groupSimilar": "相似分组",
+    "groupSimilarDesc": "相关内容聚集",
+    "autoGroupRules": "自动分组规则",
+    "enableAutoGroup": "启用自动分组",
+    "autoGroupDesc": "新标签页自动加入相同域名的分组",
+    "colorStrategy": "颜色策略",
+    "colorAuto": "自动选择",
+    "colorAutoDesc": "系统自动分配颜色",
+    "colorFixed": "固定颜色",
+    "colorFixedDesc": "使用相同颜色",
+    "groupLimits": "分组限制",
+    "minTabsPerGroup": "最少标签数",
+    "minTabsPerGroupDesc": "创建分组需要的最少标签数量",
+    "maxGroupsPerWindow": "最大分组数",
+    "maxGroupsPerWindowDesc": "每个窗口最多允许的分组数量",
+    "groupColors": "分组颜色",
+    "minGroupSize": "最小分组数量",
+    "minGroupSizeDesc": "少于此数量不创建分组",
+    "maxGroupsPerWindowLabel": "最大分组数量",
+    "maxGroupsPerWindowLabelDesc": "每个窗口的最大分组数",
+    "randomColor": "随机颜色",
+    "tabsSuffix": "个标签页",
+    "groupsSuffix": "个分组",
+    "colorLabels": {
+      "grey": "灰色",
+      "blue": "蓝色",
+      "red": "红色",
+      "yellow": "黄色",
+      "green": "绿色",
+      "pink": "粉色",
+      "purple": "紫色",
+      "cyan": "青色"
+    },
+    "keyboardShortcuts": "键盘快捷键",
+    "shortcutsDesc": "使用键盘快捷键可以更高效地管理标签页",
+    "customizeShortcuts": "自定义快捷键",
+    "usageTips": "使用提示",
+    "shortcutTips": {
+      "customization": "快捷键可以在 Chrome 扩展管理页面中自定义修改",
+      "conflicts": "部分快捷键可能与系统或其他应用冲突，请根据需要调整",
+      "incognito": "在隐身模式下，需要单独启用扩展才能使用快捷键"
+    },
+    "shortcutActions": {
+      "openManager": "打开标签管理器",
+      "quickSort": "快速排序",
+      "smartGroup": "智能分组",
+      "ungroup": "取消分组"
+    },
+    "shortcutDescriptions": {
+      "openManager": "快速打开标签管理弹窗",
+      "quickSort": "按当前规则排序所有标签页",
+      "smartGroup": "按域名自动创建分组",
+      "ungroup": "取消所有标签页分组"
+    },
+    "extensionName": "Chrome 标签管理器",
+    "currentVersion": "版本",
+    "stableRelease": "稳定版",
+    "extensionDesc": "一个强大而优雅的 Chrome 扩展，帮助您高效管理标签页。通过智能排序、自动分组、批量操作等功能，让您的浏览体验更加流畅有序。",
+    "features": "主要功能",
+    "coreFeatures": "核心功能",
+    "developer": "开发者",
+    "developerInfo": "开发者信息",
+    "license": "许可证",
+    "mitLicense": "MIT 许可证",
+    "featureList": {
+      "smartSort": "智能排序",
+      "autoGroup": "自动分组",
+      "quickActions": "快捷操作",
+      "autoMode": "自动模式",
+      "batchManagement": "批量管理",
+      "searchFilter": "搜索过滤"
+    },
+    "featureDescriptions": {
+      "smartSort": "多种排序规则",
+      "autoGroup": "域名智能归类",
+      "quickActions": "键盘快捷键",
+      "autoMode": "实时排序管理",
+      "batchManagement": "多选操作",
+      "searchFilter": "快速定位"
+    },
+    "stats": {
+      "activeUsers": "活跃用户",
+      "userRating": "用户评分",
+      "versionUpdates": "版本更新"
+    },
+    "links": {
+      "viewSource": "查看源码",
+      "sourceDesc": "Star & Fork on GitHub",
+      "feedback": "反馈建议",
+      "feedbackDesc": "报告问题或提出建议"
+    },
+    "developerBio": "全栈开发者 · 开源爱好者",
+    "techStack": "技术栈",
+    "builtWith": "基于 Chrome Extension Manifest V3 开发",
+    "copyright": "© 2024 Tab Manager. MIT License.",
+    "languageSettings": "语言设置",
+    "selectLanguage": "选择语言",
+    "languages": {
+      "zh-CN": "简体中文",
+      "en-US": "English"
+    }
+  },
+  "errors": {
+    "unknown": "未知错误",
+    "network": "网络错误",
+    "permission": "权限不足",
+    "timeout": "请求超时",
+    "invalidUrl": "无效的URL",
+    "chromeApi": "Chrome扩展API错误",
+    "runtime": "运行时错误",
+    "configLoad": "配置加载失败",
+    "statsLoad": "统计信息加载失败",
+    "sortOperation": "排序操作失败",
+    "groupOperation": "分组操作失败",
+    "batchOperation": "批量操作失败",
+    "sortFailed": "排序失败",
+    "groupFailed": "分组失败",
+    "batchCloseFailed": "批量关闭失败",
+    "batchGroupFailed": "批量分组失败",
+    "noValidTabsToGroup": "没有有效的标签页可以分组",
+    "settingsFailed": "设置失败"
+  },
+  "messages": {
+    "welcome": "欢迎使用Chrome标签管理器！",
+    "firstTime": "这是您第一次使用此扩展",
+    "tourStart": "开始使用教程",
+    "tourSkip": "跳过教程",
+    "updateAvailable": "发现新版本",
+    "updateNow": "立即更新",
+    "updateLater": "稍后更新",
+    "operationSuccess": "操作成功完成",
+    "operationFailed": "操作失败，请重试",
+    "sortSuccess": "排序完成",
+    "batchCloseSuccess": "已关闭 {count} 个标签页",
+    "batchGroupSuccess": "已将 {count} 个标签页分组",
+    "autoSortEnabled": "自动排序已开启",
+    "autoSortDisabled": "自动排序已关闭",
+    "networkError": "网络连接异常，请检查网络设置",
+    "permissionRequired": "需要额外权限才能完成此操作"
+  },
+  "tour": {
+    "welcome": {
+      "title": "欢迎使用标签管理器",
+      "description": "让我们快速了解一下主要功能"
+    },
+    "search": {
+      "title": "智能搜索",
+      "description": "可以搜索标签页标题、URL和书签"
+    },
+    "keyboard": {
+      "title": "键盘导航",
+      "description": "使用上下箭头键导航，回车打开，ESC清除"
+    },
+    "groups": {
+      "title": "智能分组",
+      "description": "按域名自动分组，提高标签页组织效率"
+    },
+    "settings": {
+      "title": "个性化设置",
+      "description": "在设置中调整排序规则、主题等选项"
+    },
+    "complete": {
+      "title": "开始使用",
+      "description": "您已经了解了基本功能，开始管理您的标签页吧！"
+    },
+    "previous": "上一步",
+    "next": "下一步",
+    "skip": "跳过教程",
+    "finish": "完成"
+  }
+}
