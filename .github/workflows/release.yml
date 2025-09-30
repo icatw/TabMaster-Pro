@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'  # 触发条件：推送版本标签 (如 v0.1, v1.0.0)
 
+permissions:
+  contents: write
+  packages: write
+  pull-requests: read
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
