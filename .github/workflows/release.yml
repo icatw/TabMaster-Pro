@@ -16,14 +16,18 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '20.18.1'
         cache: 'npm'
 
     - name: Install dependencies
       run: npm ci
+      env:
+        NODE_OPTIONS: '--max-old-space-size=4096'
 
     - name: Build extension
       run: npm run build
+      env:
+        NODE_OPTIONS: '--max-old-space-size=4096'
 
     - name: Create release package
       run: |
@@ -71,7 +75,7 @@ jobs:
           ### 🔧 技术信息 / Technical Info
           - **构建时间** / Build Time: ${{ github.run_id }}
           - **提交哈希** / Commit: ${{ github.sha }}
-          - **Node.js版本** / Node.js Version: 20
+          - **Node.js版本** / Node.js Version: 20.18.1
           - **构建工具** / Build Tool: Vite + npm
         draft: false
         prerelease: false
