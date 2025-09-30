@@ -1,0 +1,94 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # 触发条件：推送版本标签 (如 v1.0.0)
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Build extension
+      run: pnpm build
+
+    - name: Create release package
+      run: |
+        cd dist
+        zip -r ../TabMaster-Pro-${{ github.ref_name }}.zip .
+        cd ..
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # 获取上一个标签
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+        if [ -z "$PREV_TAG" ]; then
+          # 如果没有上一个标签，获取所有提交
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --reverse)
+        else
+          # 获取两个标签之间的提交
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD --reverse)
+        fi
+
+        # 保存到环境变量
+        echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: TabMaster-Pro-${{ github.ref_name }}.zip
+        body: |
+          ## TabMaster Pro ${{ github.ref_name }}
+
+          ### 🚀 更新内容 / What's Changed
+          ${{ steps.changelog.outputs.CHANGELOG }}
+
+          ### 📦 安装方法 / Installation
+          1. 下载 `TabMaster-Pro-${{ github.ref_name }}.zip` / Download the ZIP file
+          2. 解压文件 / Extract the archive
+          3. 打开 Chrome 扩展管理页面 `chrome://extensions/` / Open Chrome extensions page
+          4. 开启开发者模式 / Enable Developer mode
+          5. 点击"加载已解压的扩展程序" / Click "Load unpacked"
+          6. 选择解压后的文件夹 / Select the extracted folder
+
+          ### 🔧 技术信息 / Technical Info
+          - **构建时间** / Build Time: ${{ github.run_id }}
+          - **提交哈希** / Commit: ${{ github.sha }}
+          - **Node.js版本** / Node.js Version: 18
+          - **构建工具** / Build Tool: Vite + pnpm
+        draft: false
+        prerelease: false
+        generate_release_notes: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-build-${{ github.ref_name }}
+        path: |
+          dist/
+          TabMaster-Pro-${{ github.ref_name }}.zip
+        retention-days: 30
