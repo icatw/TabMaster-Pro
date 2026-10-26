@@ -515,7 +515,7 @@ const emit = defineEmits<{
   'selection-cleared': []
 }>()
 
-const isExpanded = ref(true)
+const isExpanded = ref(false)
 const listName = ref('')
 const lists = ref<SavedTabList[]>([])
 const searchQuery = ref('')
