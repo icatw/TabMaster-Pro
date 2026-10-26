@@ -169,6 +169,39 @@ export function normalizeSavedTabsData(
   }
 }
 
+export function validateSavedTabsImport(value: unknown): SavedTabsData {
+  if (!isRecord(value) || value.version !== SAVED_TABS_SCHEMA_VERSION || !Array.isArray(value.lists)) {
+    throw new Error('Unsupported or invalid saved-tabs backup file')
+  }
+  if (value.lists.length > 500) throw new Error('Backup contains too many lists')
+
+  for (const rawList of value.lists) {
+    if (!isRecord(rawList) || typeof rawList.name !== 'string' || !Array.isArray(rawList.items)) {
+      throw new Error('Backup contains an invalid list')
+    }
+    if (rawList.items.length > 5000) throw new Error('Backup list contains too many tabs')
+    for (const rawItem of rawList.items) {
+      if (!isRecord(rawItem) || typeof rawItem.url !== 'string' || !isRestorableSavedUrl(rawItem.url)) {
+        throw new Error('Backup contains an invalid or unsupported URL')
+      }
+    }
+  }
+
+  const normalized = normalizeSavedTabsData(value)
+  if (normalized.lists.length !== value.lists.length) {
+    throw new Error('Backup contains empty or malformed lists')
+  }
+  return normalized
+}
+
+function isRestorableSavedUrl(value: string): boolean {
+  try {
+    return ['http:', 'https:', 'file:', 'ftp:'].includes(new URL(value).protocol)
+  } catch {
+    return false
+  }
+}
+
 export function createSavedTabList(
   items: SavedTabItem[],
   name: string,

@@ -18,7 +18,7 @@ TabMaster Pro 帮你在整理当前标签页和保存稍后阅读内容之间顺
 
 搜索并管理已打开的标签页和书签。按域名、标题、网址、最后访问时间或标签顺序整理窗口；也可以按域名创建标签组。多选功能支持批量关闭和分组，键盘用户可以完成导航、打开、选择和关闭操作。
 
-Saved Lists 提供类似 OneTab 的标签收集流程。你可以保存整个当前窗口，也可以多选标签后一键保存并关闭。每个列表都可重命名、删除、整组恢复或单项恢复。扩展会先确认标签网址已保存，再执行支持的关闭操作；保存失败时不会关闭标签。
+Saved Lists 提供类似 OneTab 的标签收集流程。你可以保存整个当前窗口，也可以多选标签后一键保存并关闭。每个列表都可重命名、删除、整组恢复或单项恢复。扩展会先确认标签网址已保存，再执行支持的关闭操作；保存失败时不会关闭标签。重复检测会在当前窗口按完整网址分组，并优先建议保留活动、有声音或固定的标签；关闭前会先把其余标签保存为列表。你也可以导出本地 JSON 备份，并在预览后导入，导入不会覆盖现有列表。
 
 使用方法：点击工具栏中的 TabMaster Pro 图标；选择“保存当前窗口”，或进入多选模式选中标签后点击“保存并关闭已选标签”。Saved Lists 会保留在扩展弹窗中，浏览器重启后仍可恢复。
 
@@ -138,7 +138,7 @@ TODO — 上架前托管公开隐私政策并填入 URL。政策需要说明标�
 | Version | Date | Changes | Status |
 |---|---|---|---|
 | 0.1.0 | Unreleased | Initial development version | Draft |
-| Next | 2026-10-26 | Refined popup and options UI with a neutral ink palette, consistent light/dark surfaces, stronger focus states, and semantic status colors. Refresh store screenshots before submission. | In progress |
+| Next | 2026-10-26 | Added exact-URL duplicate review with save-before-close behavior, and local JSON backup import/export that merges without replacing existing lists. Refresh store screenshots before submission. | In progress |
 
 ## Review Notes
 
