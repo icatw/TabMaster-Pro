@@ -1,5 +1,6 @@
 import type {
   APIResponse,
+  AIProviderSettings,
   ExtensionConfig,
   GroupOptions,
   SavedTabReference,
@@ -13,6 +14,7 @@ import {
 } from '@/shared/constants'
 import { SavedTabsService } from '@/shared/services/SavedTabsService'
 import { AutoCollectionService } from '@/shared/services/AutoCollectionService'
+import { AIService } from '@/shared/services/AIService'
 import { GroupService } from '@/shared/utils/groups'
 import { StorageService } from '@/shared/utils/storage'
 import { TabService } from '@/shared/utils/tabs'
@@ -207,6 +209,13 @@ async function handleMessage(message: {
     return response(await SavedTabsService.cleanupLists(
       (payload as CleanupSavedListsPayload).ids,
       (payload as CleanupSavedListsPayload).olderThan
+    ))
+  case MESSAGE_TYPES.TEST_AI_PROVIDER:
+    return response(await AIService.testProvider(payload as AIProviderSettings))
+  case MESSAGE_TYPES.SUMMARIZE_SAVED_LIST:
+    return response(await AIService.summarizeSavedList(
+      (payload as { id: string, locale?: 'zh-CN' | 'en-US' }).id,
+      (payload as { id: string, locale?: 'zh-CN' | 'en-US' }).locale ?? 'zh-CN'
     ))
   default:
     return response(undefined, false, `Unknown message type: ${type}`)

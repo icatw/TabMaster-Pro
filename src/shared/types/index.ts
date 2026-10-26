@@ -28,6 +28,15 @@ export interface GroupOptions {
  */
 export type ThemeMode = 'light' | 'dark' | 'auto'
 
+export type AIProviderKind = 'openai-compatible' | 'chrome-built-in'
+
+export interface AIProviderSettings {
+  provider: AIProviderKind
+  endpoint: string
+  model: string
+  apiKey: string
+}
+
 /**
  * 扩展配置
  */

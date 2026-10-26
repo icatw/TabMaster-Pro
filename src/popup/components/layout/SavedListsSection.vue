@@ -201,6 +201,16 @@
             <div class="list-actions">
               <button
                 type="button"
+                class="icon-button ai-button"
+                :disabled="summarizingListId === result.list.id"
+                :aria-label="$t('savedTabs.summarizeListNamed', { name: result.list.name })"
+                :title="$t('savedTabs.summarizeListNamed', { name: result.list.name })"
+                @click="summarizeList(result.list)"
+              >
+                {{ summarizingListId === result.list.id ? '…' : 'AI' }}
+              </button>
+              <button
+                type="button"
                 class="icon-button restore"
                 :disabled="busyListId === result.list.id"
                 :aria-label="$t('savedTabs.restoreListNamed', { name: result.list.name })"
@@ -237,6 +247,14 @@
               </button>
             </div>
           </div>
+
+          <p
+            v-if="summaries[result.list.id]?.updatedAt === result.list.updatedAt"
+            class="ai-summary"
+            aria-live="polite"
+          >
+            {{ summaries[result.list.id].text }}
+          </p>
 
           <ul
             v-if="isListExpanded(result.list.id)"
@@ -536,6 +554,8 @@ const cleanupAgeDays = ref(90)
 const selectedCleanupIds = ref<string[]>([])
 const isCleaningUp = ref(false)
 const isRestoringSelection = ref(false)
+const summarizingListId = ref<string | null>(null)
+const summaries = ref<Record<string, { text: string, updatedAt: number }>>({})
 
 const filteredLists = computed(() => filterSavedTabLists(lists.value, searchQuery.value))
 const stats = computed(() => getSavedListStats(lists.value))
@@ -596,6 +616,28 @@ async function loadLists() {
     emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.loadFailed'), 'error')
   } finally {
     isLoading.value = false
+  }
+}
+
+async function summarizeList(list: SavedTabList) {
+  if (summarizingListId.value) return
+  summarizingListId.value = list.id
+  try {
+    const response = await send<string>(MESSAGE_TYPES.SUMMARIZE_SAVED_LIST, {
+      id: list.id,
+      locale: getCurrentLocale()
+    })
+    if (!response.success || !response.data) {
+      throw new Error(response.error || i18n.global.t('savedTabs.summaryFailed'))
+    }
+    summaries.value = {
+      ...summaries.value,
+      [list.id]: { text: response.data, updatedAt: list.updatedAt }
+    }
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.summaryFailed'), 'error')
+  } finally {
+    summarizingListId.value = null
   }
 }
 
@@ -1365,6 +1407,24 @@ onMounted(loadLists)
   display: flex;
   align-items: center;
   gap: 2px;
+}
+
+.ai-button {
+  width: 32px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ai-summary {
+  margin: 0 8px 8px 44px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--border-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-line;
 }
 
 .saved-items {

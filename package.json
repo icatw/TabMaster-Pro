@@ -1,6 +1,6 @@
 {
   "name": "tabmaster-pro",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TabMaster Pro - 专业的标签页管理大师，让您的浏览器标签页井然有序",
   "type": "module",
   "scripts": {

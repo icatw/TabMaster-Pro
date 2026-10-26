@@ -22,7 +22,7 @@ Saved Lists 提供类似 OneTab 的标签收集流程。你可以保存整个当
 
 使用方法：点击工具栏中的 TabMaster Pro 图标；选择“保存当前窗口”，或进入多选模式选中标签后点击“保存并关闭已选标签”。Saved Lists 会保留在扩展弹窗中，浏览器重启后仍可恢复。
 
-Saved Lists 和设置仅保存在当前浏览器的本地扩展存储中，不会上传到服务器，也不需要账户。扩展不读取或修改网页内容；访问网站的权限仅用于生成当前可见标签的缩略图。
+Saved Lists 和设置默认保存在当前浏览器的本地扩展存储中，不需要账户。可选的 AI 摘要默认使用 Chrome 本机模型。若用户在设置中选择自定义 OpenAI 兼容服务并主动请求摘要，扩展会将列表名称、标签标题和网站域名发送到用户配置的服务；不会发送完整网址。API 密钥保存在本机扩展存储中，并仅用于向该服务发起认证请求。扩展不读取或修改网页内容；网站访问权限用于生成当前可见标签的缩略图和连接用户配置的模型服务。
 
 问题与建议请提交至 https://github.com/icatw/TabMaster-Pro/issues 。
 
@@ -83,25 +83,25 @@ build checks documented in the repository.
 | `tabGroups` | `permissions` | Reads, creates, and removes Chrome tab groups at the user's request. |
 | `storage` | `permissions` | Stores settings and Saved Lists locally in the current browser so they survive popup and service-worker restarts. |
 | `bookmarks` | `permissions` | Searches the user's existing bookmarks alongside open tabs. No bookmark is modified. |
-| `<all_urls>` | `host_permissions` | Required by Chrome's `captureVisibleTab` to generate a thumbnail for the currently visible tab. The extension does not read or modify page content. |
+| `<all_urls>` | `host_permissions` | Required by Chrome's `captureVisibleTab` to generate a thumbnail for the currently visible tab, and to connect to a model endpoint only after the user configures a custom provider and requests an AI summary. The extension does not read or modify page content. |
 
 ## Privacy & Data Use
 
 ### Data Collection
 
-**Does the extension collect user data?** No data is transmitted off the device. The extension processes open-tab titles and URLs, bookmarks, settings, and saved links locally to provide its tab-management features. Saved Lists and settings remain in `chrome.storage.local` on the current browser. There is no analytics, account system, cloud sync, or remote API.
+**Does the extension collect user data?** The developer does not collect user data. The extension processes open-tab titles and URLs, bookmarks, settings, and saved links locally to provide its tab-management features. Saved Lists and settings remain in `chrome.storage.local` on the current browser. Optional AI summaries use Chrome's on-device model by default. If a user configures a custom OpenAI-compatible provider and explicitly requests a summary, the extension sends the saved-list name, tab titles, and hostnames (not full URLs) to that user-selected provider. The API key is stored locally and sent to that provider only for authentication. There is no analytics, account system, or cloud sync.
 
-No item in the table below is transmitted to the developer or a third party.
+The developer does not receive this data. The user-selected AI provider may process the summary input under its own privacy terms.
 
 | Data Type | Collected Off-Device? | Transmitted Off-Device? | Purpose | Shared with Third Parties? |
 |---|---|---|---|---|
 | Personally identifiable info | No | No | Not used | No |
 | Health info | No | No | Not used | No |
 | Financial info | No | No | Not used | No |
-| Authentication info | No | No | Not used | No |
+| Authentication info | No | Yes, the API key is sent to the user-selected model provider for authentication | Optional custom AI summaries | Only the provider chosen by the user |
 | Personal communications | No | No | Not used | No |
 | Location | No | No | Not used | No |
-| Web history | No | No | Local tab and Saved Lists functionality only | No |
+| Web history | No | Yes, only to a user-selected AI provider after an explicit summary request | Local tab and Saved Lists functionality; optional summary input includes hostnames and tab titles, not full URLs | Only the provider chosen by the user, for requested summaries |
 | User activity | No | No | Local UI preferences and tab actions only | No |
 | Website content | No | No | Not read or modified | No |
 
@@ -138,7 +138,7 @@ TODO — 上架前托管公开隐私政策并填入 URL。政策需要说明标�
 | Version | Date | Changes | Status |
 |---|---|---|---|
 | 0.1.0 | Unreleased | Initial development version | Draft |
-| Next | 2026-10-26 | Added exact-URL duplicate review with save-before-close behavior, and local JSON backup import/export that merges without replacing existing lists. Refresh store screenshots before submission. | In progress |
+| 0.2.0 | 2026-10-26 | Added exact-URL duplicate review with save-before-close behavior, local JSON backup import/export, and optional saved-list AI summaries using Chrome's on-device model or a user-configured OpenAI-compatible provider. Custom summaries send list names, tab titles, and hostnames to the selected provider after the user requests them. Refresh store screenshots before submission. | Release candidate |
 
 ## Review Notes
 

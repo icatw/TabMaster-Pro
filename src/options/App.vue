@@ -65,6 +65,8 @@
           @change="handleConfigChange"
         />
 
+        <AISettings v-show="activeSection === 'ai'" />
+
         <!-- 快捷键设置组件 -->
         <ShortcutsSection v-show="activeSection === 'shortcuts'" />
 
@@ -73,7 +75,7 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div class="action-bar" v-show="!isLoading">
+      <div class="action-bar" v-show="!isLoading && activeSection !== 'ai'">
         <button
           @click="saveConfig"
           :disabled="isSaving || !isDirty"
@@ -131,6 +133,7 @@ import SortSettings from './components/SortSettings.vue'
 import GroupSettings from './components/GroupSettings.vue'
 import ShortcutsSection from './components/ShortcutsSection.vue'
 import AboutSection from './components/AboutSection.vue'
+import AISettings from './components/AISettings.vue'
 
 // 初始化主题
 const { themeMode, setTheme } = useTheme()
