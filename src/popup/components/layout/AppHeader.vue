@@ -1,7 +1,7 @@
 <template>
   <header class="app-header">
     <div class="header-left">
-      <img class="logo" src="/src/assets/icons/icon-16.png" alt="Logo" />
+      <img class="logo" src="/src/assets/icons/icon-16.png" alt="" />
       <div class="header-info">
         <h1 class="title">{{ $t('app.title') }}</h1>
         <div class="stats-line">
@@ -16,6 +16,8 @@
         class="auto-sort-btn"
         :class="{ active: autoSortEnabled }"
         @click="handleToggleAutoSort"
+        :aria-pressed="autoSortEnabled"
+        :aria-label="autoSortEnabled ? $t('header.autoSortEnabled') : $t('header.autoSortDisabled')"
         :title="autoSortEnabled ? $t('header.autoSortEnabled') : $t('header.autoSortDisabled')"
       >
         <svg viewBox="0 0 16 16" fill="currentColor">
@@ -27,6 +29,7 @@
       <button
         class="language-btn"
         @click="handleLanguageToggle"
+        :aria-label="$t('header.toggleLanguage')"
         :title="$t('header.toggleLanguage')"
       >
         <svg viewBox="0 0 16 16" fill="currentColor">
@@ -41,6 +44,7 @@
       <button
         class="theme-btn"
         @click="$emit('toggle-theme')"
+        :aria-label="$t('header.toggleTheme')"
         :title="$t('header.toggleTheme')"
       >
         <!-- 太阳图标（浅色模式） -->
@@ -54,7 +58,7 @@
       </button>
 
       <!-- 设置按钮 -->
-      <button class="settings-btn" @click="handleOpenSettings" :title="$t('header.openSettings')">
+      <button class="settings-btn" @click="handleOpenSettings" :aria-label="$t('header.openSettings')" :title="$t('header.openSettings')">
         <svg viewBox="0 0 16 16" fill="currentColor">
           <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
           <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
@@ -67,7 +71,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getCurrentLocale, setLocale, getSupportedLocales } from '@/i18n'
-import { useI18n } from 'vue-i18n'
 
 // Props定义
 interface Props {
@@ -80,7 +83,6 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const { t } = useI18n()
 
 // Emits定义
 const emit = defineEmits<{
@@ -131,8 +133,9 @@ const handleOpenSettings = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 24px;
-  background: var(--bg-primary);
+  gap: 12px;
+  padding: 14px 16px 13px;
+  background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-secondary);
   flex-shrink: 0;
 }
@@ -140,13 +143,19 @@ const handleOpenSettings = () => {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 11px;
 }
 
 .logo {
-  width: 24px;
-  height: 24px;
-  color: #4a90e2;
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-primary);
+  border-radius: 9px;
+  background: var(--bg-secondary);
+  filter: grayscale(1) contrast(1.04);
+  box-shadow: var(--shadow-sm);
   flex-shrink: 0;
 }
 
@@ -158,8 +167,8 @@ const handleOpenSettings = () => {
 
 .title {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.2px;
 }
@@ -177,39 +186,48 @@ const handleOpenSettings = () => {
 
 .header-right {
   display: flex;
-  gap: 6px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .auto-sort-btn,
 .language-btn,
 .theme-btn,
 .settings-btn {
-  width: 28px;
-  height: 28px;
+  min-width: 34px;
+  min-height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: var(--transition-colors), transform 160ms ease;
 }
 
 .auto-sort-btn:hover,
 .language-btn:hover,
 .theme-btn:hover,
 .settings-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--primary-color);
+  background: var(--bg-secondary);
+  border-color: var(--border-primary);
   color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .auto-sort-btn.active {
   background: var(--primary-light);
-  border-color: var(--primary-color);
+  border-color: var(--border-primary);
   color: var(--primary-color);
+}
+
+.auto-sort-btn:active,
+.language-btn:active,
+.theme-btn:active,
+.settings-btn:active {
+  transform: scale(0.94);
 }
 
 .auto-sort-btn svg,

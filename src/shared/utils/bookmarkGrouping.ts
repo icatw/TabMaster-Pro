@@ -28,7 +28,7 @@ function extractDomain(url: string): string {
  */
 export function groupBookmarksByDomain(bookmarks: BookmarkInfo[]): BookmarkGroup[] {
   const domainMap = new Map<string, BookmarkInfo[]>()
-  
+
   bookmarks.forEach(bookmark => {
     if (bookmark.url) {
       const domain = extractDomain(bookmark.url)
@@ -55,16 +55,16 @@ export function groupBookmarksByDomain(bookmarks: BookmarkInfo[]): BookmarkGroup
  */
 export async function groupBookmarksByFolder(bookmarks: BookmarkInfo[]): Promise<BookmarkGroup[]> {
   const folderMap = new Map<string, BookmarkInfo[]>()
-  
+
   // 获取所有书签的文件夹信息
   for (const bookmark of bookmarks) {
     let folderName = '未分类'
-    
+
     if (bookmark.parentId) {
       try {
         const folder = await chrome.bookmarks.get(bookmark.parentId)
         folderName = folder[0]?.title || '未分类'
-        
+
         // 如果是书签栏，使用更友好的名称
         if (folderName === 'Bookmarks bar' || folderName === '书签栏') {
           folderName = '书签栏'
@@ -74,7 +74,7 @@ export async function groupBookmarksByFolder(bookmarks: BookmarkInfo[]): Promise
         folderName = '未分类'
       }
     }
-    
+
     if (!folderMap.has(folderName)) {
       folderMap.set(folderName, [])
     }
@@ -87,7 +87,7 @@ export async function groupBookmarksByFolder(bookmarks: BookmarkInfo[]): Promise
       // 书签栏优先
       if (nameA === '书签栏') return -1
       if (nameB === '书签栏') return 1
-      
+
       // 其他按数量排序
       return bookmarksB.length - bookmarksA.length
     })
@@ -118,7 +118,7 @@ export function groupBookmarksByTime(bookmarks: BookmarkInfo[]): BookmarkGroup[]
   bookmarks.forEach(bookmark => {
     if (bookmark.dateAdded) {
       const timeDiff = now - bookmark.dateAdded
-      
+
       if (timeDiff < oneDay) {
         groups['今天'].push(bookmark)
       } else if (timeDiff < oneWeek) {
@@ -156,39 +156,40 @@ export async function smartGroupBookmarks(
   }
 
   switch (strategy) {
-    case 'domain':
-      return groupBookmarksByDomain(bookmarks)
-    
-    case 'folder':
-      return await groupBookmarksByFolder(bookmarks)
-    
-    case 'time':
-      return groupBookmarksByTime(bookmarks)
-    
-    case 'mixed':
-    default:
-      // 混合策略：优先按域名分组，但如果某个域名书签太少，则合并到其他分组
-      const domainGroups = groupBookmarksByDomain(bookmarks)
-      const result: BookmarkGroup[] = []
-      const miscBookmarks: BookmarkInfo[] = []
+  case 'domain':
+    return groupBookmarksByDomain(bookmarks)
 
-      domainGroups.forEach(group => {
-        if (group.count >= 2) {
-          // 如果域名下有2个或更多书签，单独成组
-          result.push(group)
-        } else {
-          // 否则合并到杂项
-          miscBookmarks.push(...group.bookmarks)
-        }
-      })
+  case 'folder':
+    return await groupBookmarksByFolder(bookmarks)
 
-      // 如果有杂项书签，按时间分组
-      if (miscBookmarks.length > 0) {
-        const timeGroups = groupBookmarksByTime(miscBookmarks)
-        result.push(...timeGroups)
+  case 'time':
+    return groupBookmarksByTime(bookmarks)
+
+  case 'mixed':
+  default: {
+    // 混合策略：优先按域名分组，但如果某个域名书签太少，则合并到其他分组
+    const domainGroups = groupBookmarksByDomain(bookmarks)
+    const result: BookmarkGroup[] = []
+    const miscBookmarks: BookmarkInfo[] = []
+
+    domainGroups.forEach(group => {
+      if (group.count >= 2) {
+        // 如果域名下有2个或更多书签，单独成组
+        result.push(group)
+      } else {
+        // 否则合并到杂项
+        miscBookmarks.push(...group.bookmarks)
       }
+    })
 
-      return result
+    // 如果有杂项书签，按时间分组
+    if (miscBookmarks.length > 0) {
+      const timeGroups = groupBookmarksByTime(miscBookmarks)
+      result.push(...timeGroups)
+    }
+
+    return result
+  }
   }
 }
 
@@ -197,23 +198,23 @@ export async function smartGroupBookmarks(
  */
 export function getGroupDisplayName(group: BookmarkGroup): string {
   switch (group.type) {
-    case 'domain':
-      return group.name
-    case 'folder':
-      // 为文件夹分组添加图标前缀
-      if (group.name === '书签栏') {
-        return `⭐ ${group.name}`
-      } else if (group.name === '未分类') {
-        return `📂 ${group.name}`
-      } else {
-        return `📁 ${group.name}`
-      }
-    case 'recent':
-      return `🕒 ${group.name}`
-    case 'frequent':
+  case 'domain':
+    return group.name
+  case 'folder':
+    // 为文件夹分组添加图标前缀
+    if (group.name === '书签栏') {
       return `⭐ ${group.name}`
-    default:
-      return group.name
+    } else if (group.name === '未分类') {
+      return `📂 ${group.name}`
+    } else {
+      return `📁 ${group.name}`
+    }
+  case 'recent':
+    return `🕒 ${group.name}`
+  case 'frequent':
+    return `⭐ ${group.name}`
+  default:
+    return group.name
   }
 }
 
@@ -222,17 +223,17 @@ export function getGroupDisplayName(group: BookmarkGroup): string {
  */
 export function getGroupDescription(group: BookmarkGroup): string {
   const countText = `${group.count} 个书签`
-  
+
   switch (group.type) {
-    case 'domain':
-      return `来自 ${group.name} 的 ${countText}`
-    case 'folder':
-      return `文件夹中的 ${countText}`
-    case 'recent':
-      return `${group.name}添加的 ${countText}`
-    case 'frequent':
-      return `常用的 ${countText}`
-    default:
-      return countText
+  case 'domain':
+    return `来自 ${group.name} 的 ${countText}`
+  case 'folder':
+    return `文件夹中的 ${countText}`
+  case 'recent':
+    return `${group.name}添加的 ${countText}`
+  case 'frequent':
+    return `常用的 ${countText}`
+  default:
+    return countText
   }
 }

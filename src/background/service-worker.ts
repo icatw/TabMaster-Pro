@@ -1,416 +1,330 @@
-/**
- * Chrome Extension Service Worker
- * 处理扩展的后台逻辑和消息传递
- */
-
-import type { ExtensionConfig, SortOptions, GroupOptions, APIResponse, BatchOperationResult } from '@/shared/types'
-import { MESSAGE_TYPES, ERROR_CODES, DEFAULT_CONFIG } from '@/shared/constants'
+import type {
+  APIResponse,
+  ExtensionConfig,
+  GroupOptions,
+  SortOptions
+} from '@/shared/types'
+import {
+  DEFAULT_CONFIG,
+  ERROR_CODES,
+  MESSAGE_TYPES
+} from '@/shared/constants'
+import { SavedTabsService } from '@/shared/services/SavedTabsService'
+import { GroupService } from '@/shared/utils/groups'
 import { StorageService } from '@/shared/utils/storage'
 import { TabService } from '@/shared/utils/tabs'
-import { GroupService } from '@/shared/utils/groups'
 
-// Service Worker 安装事件
-chrome.runtime.onInstalled.addListener(async (details) => {
-  console.log('Extension installed:', details.reason)
-  
+interface SaveAndClosePayload {
+  tabIds?: number[]
+  name?: string
+}
+
+interface SaveWindowPayload {
+  name?: string
+}
+
+interface RestoreListPayload {
+  id: string
+}
+
+interface RestoreSavedItemPayload {
+  id: string
+  itemIndex: number
+}
+
+interface UpdateListPayload {
+  id: string
+  name: string
+}
+
+function response<T>(data: T, success = true, error?: string): APIResponse<T> {
+  return {
+    success,
+    data,
+    error,
+    timestamp: Date.now()
+  }
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   try {
-    // 初始化默认配置
-    if (details.reason === 'install') {
+    if (reason === 'install') {
       await StorageService.setConfig(DEFAULT_CONFIG)
-      console.log('Default configuration initialized')
-    } else if (details.reason === 'update') {
-      // 更新时合并新的默认配置
+      return
+    }
+
+    if (reason === 'update') {
       const currentConfig = await StorageService.getConfig()
-      const mergedConfig = { ...DEFAULT_CONFIG, ...currentConfig }
+      const mergedConfig: ExtensionConfig = {
+        ...DEFAULT_CONFIG,
+        ...currentConfig,
+        sortOptions: {
+          ...DEFAULT_CONFIG.sortOptions,
+          ...currentConfig.sortOptions
+        },
+        groupOptions: {
+          ...DEFAULT_CONFIG.groupOptions,
+          ...currentConfig.groupOptions
+        }
+      }
       await StorageService.setConfig(mergedConfig)
-      console.log('Configuration updated after extension update')
     }
   } catch (error) {
-    console.error('Failed to initialize configuration:', error)
+    console.error('Failed to initialize extension:', error)
   }
 })
 
-// Service Worker 启动事件
-chrome.runtime.onStartup.addListener(() => {
-  console.log('Extension startup')
-  
-  // 验证配置完整性
-  StorageService.getConfig().then(config => {
-    console.log('Current configuration:', config)
-  }).catch(error => {
-    console.error('Failed to load configuration on startup:', error)
-  })
-})
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  handleMessage(message)
+    .then(sendResponse)
+    .catch(error => {
+      console.error('Message handling error:', error)
+      sendResponse(response(
+        undefined,
+        false,
+        error instanceof Error ? error.message : '未知错误'
+      ))
+    })
 
-// 处理来自 popup 和 options 页面的消息
-chrome.runtime.onMessage.addListener((
-  message,
-  sender,
-  sendResponse
-) => {
-  console.log('Received message:', message, 'from:', sender)
-  
-  // 异步处理消息
-    handleMessage(message, sender)
-      .then(result => sendResponse(result))
-      .catch(error => {
-        console.error('Message handling error:', error)
-        sendResponse({
-          success: false,
-          error: error instanceof Error ? error.message : '未知错误',
-          timestamp: Date.now()
-        })
-      })
-  
-  // 返回 true 表示异步响应
   return true
 })
 
-// 处理键盘快捷键
-chrome.commands.onCommand.addListener(async (command) => {
-  console.log('Keyboard shortcut triggered:', command)
-  
+chrome.commands.onCommand.addListener(async command => {
   try {
     const config = await StorageService.getConfig()
-    
     switch (command) {
-      case 'sort-tabs':
-        await handleSortTabs(config.sortOptions)
-        break
-      case 'group-tabs':
-        await handleGroupTabs(config.groupOptions)
-        break
-      case 'ungroup-tabs':
-        await handleUngroupTabs()
-        break
-      default:
-        console.warn('Unknown command:', command)
+    case 'sort-tabs':
+      await handleSortTabs(config.sortOptions)
+      break
+    case 'group-tabs':
+      await handleGroupTabs(config.groupOptions)
+      break
+    case 'ungroup-tabs':
+      await handleUngroupTabs()
+      break
+    default:
+      console.warn('Unknown command:', command)
     }
   } catch (error) {
     console.error('Failed to execute keyboard shortcut:', error)
   }
 })
 
-/**
- * 处理消息的主要函数
- */
-async function handleMessage(
-  message: any,
-  sender: chrome.runtime.MessageSender
-): Promise<APIResponse> {
+async function handleMessage(message: {
+  type?: string
+  payload?: unknown
+}): Promise<APIResponse> {
   const { type, payload } = message
-  
+
   switch (type) {
-    case MESSAGE_TYPES.SORT_TABS:
-      return await handleSortTabs(payload)
-      
-    case MESSAGE_TYPES.GROUP_TABS:
-      return await handleGroupTabs(payload)
-    case MESSAGE_TYPES.UNGROUP_TABS:
-      return await handleUngroupTabs()
-    case MESSAGE_TYPES.UPDATE_CONFIG:
-      return await handleUpdateConfig(payload)
-
-    case MESSAGE_TYPES.GET_CONFIG:
-      return await handleGetConfig()
-
-    case MESSAGE_TYPES.GET_STATS:
-      return await handleGetStats()
-
-    default:
-      throw new Error(`Unknown message type: ${type}`)
+  case MESSAGE_TYPES.SORT_TABS:
+    return handleSortTabs(payload as SortOptions)
+  case MESSAGE_TYPES.GROUP_TABS:
+    return handleGroupTabs(payload as GroupOptions)
+  case MESSAGE_TYPES.UNGROUP_TABS:
+    return handleUngroupTabs()
+  case MESSAGE_TYPES.UPDATE_CONFIG:
+    return handleUpdateConfig(payload as Partial<ExtensionConfig>)
+  case MESSAGE_TYPES.GET_CONFIG:
+    return handleGetConfig()
+  case MESSAGE_TYPES.GET_STATS:
+    return handleGetStats()
+  case MESSAGE_TYPES.SAVE_WINDOW:
+    return handleSaveWindow(payload as SaveWindowPayload)
+  case MESSAGE_TYPES.SAVE_AND_CLOSE_TABS:
+    return handleSaveAndCloseTabs(payload as SaveAndClosePayload)
+  case MESSAGE_TYPES.GET_SAVED_LISTS:
+    return response(await SavedTabsService.getLists())
+  case MESSAGE_TYPES.RESTORE_LIST:
+    return handleRestoreList(payload as RestoreListPayload)
+  case MESSAGE_TYPES.RESTORE_SAVED_ITEM:
+    return handleRestoreSavedItem(payload as RestoreSavedItemPayload)
+  case MESSAGE_TYPES.UPDATE_LIST:
+    return handleUpdateList(payload as UpdateListPayload)
+  case MESSAGE_TYPES.DELETE_LIST:
+    return handleDeleteList(payload as RestoreListPayload)
+  default:
+    return response(undefined, false, `Unknown message type: ${type}`)
   }
 }
 
-/**
- * 处理标签页排序请求
- */
 async function handleSortTabs(payload: SortOptions): Promise<APIResponse> {
   try {
-    
-    // 获取当前窗口的所有标签
-    const tabs = await TabService.getAllTabs()
-    
-    if (tabs.length === 0) {
-      return {
-        success: true,
-        data: {
-          totalOperations: 0,
-          successfulOperations: 0,
-          failedOperations: 0
-        },
-        timestamp: Date.now()
-      }
-    }
-    
-    // 执行排序
     const result = await TabService.sortCurrentWindow(payload)
-    
-    return {
-      success: true,
-      data: result,
-      timestamp: Date.now()
-    }
+    return response(result, result.success, result.errors?.[0])
   } catch (error) {
-    throw new Error(`标签排序失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    return response(undefined, false, `标签排序失败: ${toErrorMessage(error)}`)
   }
 }
 
-/**
- * 处理标签页分组请求
- */
-async function handleGroupTabs(payload: GroupOptions): Promise<APIResponse> {
+async function handleGroupTabs(payload: GroupOptions = {}): Promise<APIResponse> {
   try {
-    
-    // 获取当前窗口的所有标签
     const tabs = await TabService.getAllTabs()
-    
-    if (tabs.length === 0) {
-      return {
-        success: true,
-        data: {
-          groupCount: 0,
-          tabCount: 0,
-          duration: 0
-        },
-        timestamp: Date.now()
-      }
-    }
-    
-    // 执行分组
     const result = await GroupService.groupTabsByDomain(tabs, payload)
-    
-    return {
-      success: true,
-      data: result,
-      timestamp: Date.now()
-    }
+    return response(result, result.success, result.error)
   } catch (error) {
-    throw new Error(`标签分组失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    return response(undefined, false, `标签分组失败: ${toErrorMessage(error)}`)
   }
 }
 
-/**
- * 处理取消分组请求
- */
 async function handleUngroupTabs(): Promise<APIResponse> {
   try {
-    
-    // 取消当前窗口的所有分组
     const result = await GroupService.ungroupAllTabs()
-    
-    return {
-      success: result.success,
-      data: result,
-      timestamp: Date.now()
-    }
+    return response(result, result.success, result.errors?.[0])
   } catch (error) {
-    throw new Error(`取消分组失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    return response(undefined, false, `取消分组失败: ${toErrorMessage(error)}`)
   }
 }
 
-/**
- * 处理配置更新请求
- */
-async function handleUpdateConfig(payload: Partial<ExtensionConfig>): Promise<APIResponse> {
+async function handleUpdateConfig(
+  payload: Partial<ExtensionConfig>
+): Promise<APIResponse> {
   try {
-    
     const success = await StorageService.updateConfig(payload)
-    
-    if (success) {
-      // 广播配置变化事件
-      chrome.runtime.sendMessage({
-        type: 'CONFIG_UPDATED',
-        data: await StorageService.getConfig()
-      }).catch(() => {
-        // 忽略没有监听器的错误
-      })
-    } else {
-      throw new Error('配置保存失败')
-    }
-    
-    return {
-      success: true,
-      data: success,
-      timestamp: Date.now()
-    }
-  } catch (error) {
-    throw new Error(`配置更新失败: ${error instanceof Error ? error.message : '未知错误'}`)
-  }
-}
-
-/**
- * 处理获取配置请求
- */
-async function handleGetConfig(): Promise<APIResponse> {
-  try {
+    if (!success) throw new Error(ERROR_CODES.CONFIG_UPDATE_FAILED)
 
     const config = await StorageService.getConfig()
+    chrome.runtime.sendMessage({
+      type: MESSAGE_TYPES.CONFIG_UPDATED,
+      data: config
+    }).catch(() => undefined)
 
-    return {
-      success: true,
-      data: config,
-      timestamp: Date.now()
-    }
+    return response(config)
   } catch (error) {
-    throw new Error(`获取配置失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    return response(undefined, false, `配置更新失败: ${toErrorMessage(error)}`)
   }
 }
 
-/**
- * 处理统计信息请求
- */
+async function handleGetConfig(): Promise<APIResponse> {
+  try {
+    return response(await StorageService.getConfig())
+  } catch (error) {
+    return response(undefined, false, `获取配置失败: ${toErrorMessage(error)}`)
+  }
+}
+
 async function handleGetStats(): Promise<APIResponse> {
   try {
-    
-    const [tabStats, groupStats, storageInfo, config] = await Promise.all([
+    const [tabs, groups, storage, config] = await Promise.all([
       TabService.getTabStats(),
       GroupService.getGroupStats(),
       StorageService.getStorageInfo(),
       StorageService.getConfig()
     ])
-    
-    const stats = {
-      tabs: tabStats,
-      groups: groupStats,
-      storage: storageInfo,
-      config: config, // 返回完整的配置对象
-      timestamp: Date.now()
-    }
-    
-    return {
-      success: true,
-      data: stats,
-      timestamp: Date.now()
-    }
+    return response({ tabs, groups, storage, config, timestamp: Date.now() })
   } catch (error) {
-    throw new Error(`获取统计信息失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    return response(undefined, false, `获取统计信息失败: ${toErrorMessage(error)}`)
   }
 }
 
-// 标签页更新事件监听
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && changeInfo.url) {
-
-    // 检查是否需要自动排序
-    StorageService.getConfig().then(config => {
-      if (config.autoSortEnabled && !tab.pinned) {
-        scheduleAutoSort(config)
-      }
-    }).catch(error => {
-      console.error('获取配置失败:', error)
-    })
-  }
-})
-
-// 自动排序节流器
-let autoSortTimer: NodeJS.Timeout | null = null
-
-// 执行自动排序
-async function performAutoSort(config: ExtensionConfig) {
-  if (!config.autoSortEnabled) return
-
+async function handleSaveWindow(payload: SaveWindowPayload = {}): Promise<APIResponse> {
   try {
-    const sortOptions: SortOptions = {
+    return response(await SavedTabsService.saveWindow(payload.name))
+  } catch (error) {
+    return response(undefined, false, `保存窗口失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function handleSaveAndCloseTabs(
+  payload: SaveAndClosePayload = {}
+): Promise<APIResponse> {
+  try {
+    let tabIds = payload.tabIds
+    if (tabIds === undefined) {
+      const tabs = await chrome.tabs.query({ currentWindow: true })
+      tabIds = tabs.flatMap(tab => tab.id === undefined ? [] : [tab.id])
+    }
+
+    const result = await SavedTabsService.saveAndCloseTabs(tabIds, payload.name)
+    return response(result, result.success, result.errors?.[0])
+  } catch (error) {
+    return response(undefined, false, `保存并关闭失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function handleRestoreList(payload: RestoreListPayload): Promise<APIResponse> {
+  try {
+    const result = await SavedTabsService.restoreList(payload.id)
+    return response(result, result.success, result.errors?.[0])
+  } catch (error) {
+    return response(undefined, false, `恢复标签页失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function handleRestoreSavedItem(
+  payload: RestoreSavedItemPayload
+): Promise<APIResponse> {
+  try {
+    const result = await SavedTabsService.restoreSavedItem(payload.id, payload.itemIndex)
+    return response(result, result.success, result.errors?.[0])
+  } catch (error) {
+    return response(undefined, false, `恢复标签页失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function handleUpdateList(payload: UpdateListPayload): Promise<APIResponse> {
+  try {
+    return response(await SavedTabsService.renameList(payload.id, payload.name))
+  } catch (error) {
+    return response(undefined, false, `重命名失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function handleDeleteList(payload: RestoreListPayload): Promise<APIResponse> {
+  try {
+    return response(await SavedTabsService.deleteList(payload.id))
+  } catch (error) {
+    return response(undefined, false, `删除失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function afterNavigation(tab: chrome.tabs.Tab): Promise<void> {
+  const config = await StorageService.getConfig()
+
+  if (config.autoSortEnabled && !tab.pinned) {
+    await TabService.sortCurrentWindow({
       rule: config.defaultSortRule,
       ascending: config.sortOptions.ascending,
       caseSensitive: config.sortOptions.caseSensitive
-    }
+    })
+  }
 
-    console.log('执行自动排序:', sortOptions)
-    const result = await TabService.sortCurrentWindow(sortOptions)
+  if (config.autoGroupEnabled && tab.url && !tab.pinned) {
+    const tabs = await TabService.getAllTabs(tab.windowId)
+    await GroupService.groupTabsByDomain(tabs, config.groupOptions)
+  }
+}
+
+chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
+  if (changeInfo.status !== 'complete' && !changeInfo.url) return
+  void afterNavigation(tab).catch(error => {
+    console.error('Failed to organize tabs after navigation:', error)
+  })
+})
+
+chrome.tabs.onRemoved.addListener(async () => {
+  try {
+    const config = await StorageService.getConfig()
+    if (!config.autoSortEnabled) return
+    await TabService.sortCurrentWindow({
+      rule: config.defaultSortRule,
+      ascending: config.sortOptions.ascending,
+      caseSensitive: config.sortOptions.caseSensitive
+    })
   } catch (error) {
-    console.error('自动排序失败:', error)
+    console.error('Failed to auto-sort after tab removal:', error)
   }
-}
-
-// 设置自动排序定时器
-function scheduleAutoSort(config: ExtensionConfig) {
-  // 清除现有定时器
-  if (autoSortTimer) {
-    clearTimeout(autoSortTimer)
-    autoSortTimer = null
-  }
-
-  // 如果启用了自动排序，设置新的定时器
-  if (config.autoSortEnabled) {
-    const delay = config.autoSortDelay || 1000 // 默认1秒延迟
-    autoSortTimer = setTimeout(() => {
-      performAutoSort(config)
-    }, delay)
-  }
-}
-
-// 标签页创建事件监听
-chrome.tabs.onCreated.addListener((tab) => {
-
-  StorageService.getConfig().then(config => {
-    // 自动排序
-    if (config.autoSortEnabled && !tab.pinned) {
-      scheduleAutoSort(config)
-    }
-
-    // 自动分组
-    if (config.autoGroupEnabled && tab.url && !tab.pinned) {
-      // 延迟执行，等待标签完全加载
-      setTimeout(async () => {
-        try {
-          const tabs = await TabService.getAllTabs()
-          const newTab = tabs.find(t => t.id === tab.id)
-          if (newTab && newTab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE) {
-            // 检查是否有相同域名的分组
-            const groups = await GroupService.getAllGroups()
-            const matchingGroup = groups.find(g => g.domains?.includes(newTab.domain))
-
-            if (matchingGroup) {
-              // 将标签添加到现有分组
-              await chrome.tabs.group({ tabIds: [tab.id!], groupId: matchingGroup.id })
-              console.log(`标签 ${tab.id} 自动添加到分组 ${matchingGroup.id}`)
-            }
-          }
-        } catch (error) {
-          console.error('自动分组失败:', error)
-        }
-      }, 1000)
-    }
-  }).catch(error => {
-    console.error('获取配置失败:', error)
-  })
 })
 
-// 标签页移除事件监听
-chrome.tabs.onRemoved.addListener((tabId) => {
-
-  // 检查是否需要自动排序
-  StorageService.getConfig().then(config => {
-    if (config.autoSortEnabled) {
-      scheduleAutoSort(config)
-    }
-  }).catch(error => {
-    console.error('获取配置失败:', error)
-  })
+self.addEventListener('error', event => {
+  console.error('Service Worker error:', event.error)
 })
 
-// 标签页组事件监听（如果支持）
-if (chrome.tabGroups) {
-  chrome.tabGroups.onCreated.addListener((group) => {
-  })
-  
-  chrome.tabGroups.onUpdated.addListener((group) => {
-  })
-  
-  chrome.tabGroups.onRemoved.addListener((group) => {
-  })
-}
-
-// 错误处理
-self.addEventListener('error', (event) => {
-  console.error('Service Worker 错误:', event.error)
-})
-
-self.addEventListener('unhandledrejection', (event) => {
-  console.error('未处理的 Promise 拒绝:', event.reason)
+self.addEventListener('unhandledrejection', event => {
+  console.error('Unhandled service worker rejection:', event.reason)
   event.preventDefault()
 })
-
-console.log('Tab Chrome Extension Service Worker 已加载')

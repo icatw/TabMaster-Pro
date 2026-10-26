@@ -20,6 +20,13 @@
       @toggle-filter="toggleFilter"
     />
 
+    <SavedListsSection
+      :selected-tab-ids="selectedTabIds"
+      @notify="handleSavedListsNotify"
+      @tabs-updated="refreshAfterSavedTabsChange"
+      @selection-cleared="clearSelection"
+    />
+
     <!-- 主内容区 -->
     <MainContent
       :search-query="searchQuery"
@@ -109,6 +116,7 @@ import { useToast } from '@/composables/useToast'
 // 组件导入
 import AppHeader from './components/layout/AppHeader.vue'
 import SearchSection from './components/layout/SearchSection.vue'
+import SavedListsSection from './components/layout/SavedListsSection.vue'
 import MainContent from './components/layout/MainContent.vue'
 import Toolbar from './components/layout/Toolbar.vue'
 import TabHoverDetails from './components/TabHoverDetails.vue'
@@ -278,6 +286,18 @@ const handleToggleAutoSort = () => {
   toggleAutoSort()
 }
 
+const handleSavedListsNotify = (message: string, type: 'success' | 'error') => {
+  if (type === 'success') {
+    showSuccess(message)
+  } else {
+    showError(message)
+  }
+}
+
+const refreshAfterSavedTabsChange = async () => {
+  await refreshTabList()
+}
+
 const openOptions = () => {
   chrome.runtime.openOptionsPage()
 }
@@ -317,7 +337,7 @@ const loadConfig = async () => {
 // 配置更新监听
 const handleConfigUpdate = (message: any) => {
   if (message.type === MESSAGE_TYPES.CONFIG_UPDATED) {
-    config.value = message.config
+    config.value = message.data
   }
 }
 
@@ -360,11 +380,12 @@ watch([filteredTabs, bookmarkResults, displayedBookmarkGroups, collapsedBookmark
   max-height: 600px;
   background: var(--bg-primary);
   color: var(--text-primary);
-  border-radius: 12px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-lg), 0 0 0 1px color-mix(in oklab, var(--bg-elevated) 40%, transparent);
   position: relative;
 }
 

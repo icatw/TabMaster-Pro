@@ -64,7 +64,7 @@ const displayUrl = computed(() => {
     const url = new URL(props.bookmark.url)
     return url.hostname
   } catch {
-    return props.bookmark.url.slice(0, 50) + '...'
+    return `${props.bookmark.url.slice(0, 50)  }...`
   }
 })
 
@@ -108,7 +108,7 @@ onMounted(async () => {
   background: transparent;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: var(--transition-colors), transform 160ms ease;
   position: relative;
 }
 
@@ -120,9 +120,9 @@ onMounted(async () => {
 /* 键盘导航高亮样式 */
 .bookmark-item.keyboard-active {
   background: var(--primary-light);
-  border: 2px solid var(--primary-color);
-  padding-left: 5px;
-  box-shadow: 0 0 0 2px var(--primary-light);
+  border: 1px solid var(--primary-color);
+  padding-left: 7px;
+  box-shadow: var(--shadow-sm);
   position: relative;
   z-index: 1;
 }
@@ -130,26 +130,24 @@ onMounted(async () => {
 .bookmark-item.keyboard-active::before {
   opacity: 1;
   background: var(--primary-color);
-  width: 4px;
+  width: 3px;
 }
 
 /* 黑夜模式下加强键盘导航效果 */
 [data-theme="dark"] .bookmark-item.keyboard-active {
-  background: rgba(106, 176, 143, 0.25);
-  border-color: #7fc0a0;
-  box-shadow:
-    0 0 0 1px rgba(127, 192, 160, 0.5),
-    inset 0 0 0 1px rgba(127, 192, 160, 0.3);
+  background: var(--keyboard-highlight);
+  border-color: var(--keyboard-border);
+  box-shadow: 0 0 0 1px var(--keyboard-glow);
 }
 
 [data-theme="dark"] .bookmark-item.keyboard-active .bookmark-title {
-  color: #e8f5f0;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 [data-theme="dark"] .bookmark-item.keyboard-active .bookmark-url,
 [data-theme="dark"] .bookmark-item.keyboard-active .bookmark-folder {
-  color: #b0d4c0;
+  color: var(--text-secondary);
 }
 
 .bookmark-icon {
@@ -159,7 +157,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--warning-color);
+  color: var(--text-secondary);
   opacity: 0.8;
 }
 
@@ -167,6 +165,7 @@ onMounted(async () => {
   width: 16px;
   height: 16px;
   object-fit: contain;
+  filter: grayscale(1);
 }
 
 .bookmark-icon svg {

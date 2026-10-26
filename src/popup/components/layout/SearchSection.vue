@@ -18,7 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import SearchBar from '@/popup/components/layout/SearchBar.vue'
 import FilterChips from '@/popup/components/layout/FilterChips.vue'
 import type { FilterConfig } from '@/shared/types'
@@ -36,7 +35,7 @@ interface Emits {
   (e: 'toggle-filter', filterId: string): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const updateSearchQuery = (value: string) => {
@@ -61,10 +60,11 @@ const toggleFilter = (filterId: string) => {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-primary);
-  padding: 16px;
-  gap: 12px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-secondary);
+  padding: 14px 16px 12px;
+  gap: 11px;
   display: flex;
   flex-direction: column;
 }

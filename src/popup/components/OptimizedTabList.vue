@@ -31,8 +31,8 @@
             isKeyboardActive: keyboardNavIndex === getTabNavIndex(tab.id)
           }"
           :component-events="{
-            click: (event) => handleTabClick(tab, event),
-            hover: (event) => handleTabHover(tab, event),
+            click: (event: MouseEvent) => handleTabClick(tab, event),
+            hover: (event: MouseEvent) => handleTabHover(tab, event),
             leave: handleTabLeave,
             close: () => handleTabClose(tab.id),
             'toggle-select': () => handleToggleSelect(tab.id)
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, nextTick } from 'vue'
 import { PerformanceMonitor } from '@/shared/utils/performance'
 import type { TabInfo, NavigationItem } from '@/shared/types'
 import VirtualList from './common/VirtualList.vue'
@@ -133,7 +133,7 @@ const tabItemHeight = 60 // Height of each tab item in pixels
 const containerHeight = 400 // Max height of the container
 const showPerformanceInfo = process.env.NODE_ENV === 'development'
 
-const virtualListRef = ref<InstanceType<typeof VirtualList>>()
+const virtualListRef = ref<{ scrollToIndex: (index: number) => void }>()
 
 // Get navigation index for a tab
 const getTabNavIndex = (tabId: number) => {

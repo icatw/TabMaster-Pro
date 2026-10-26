@@ -1,5 +1,5 @@
 import { type Ref } from 'vue'
-import type { TabInfo, SortRule, ExtensionConfig, ComposableOptions } from '@/shared/types'
+import type { TabInfo, ExtensionConfig, ComposableOptions } from '@/shared/types'
 import { useTabData } from './useTabData'
 import { useTabStats } from './useTabStats'
 import { useTabFilters } from './useTabFilters'
@@ -11,7 +11,8 @@ interface UseTabManagementOptions extends ComposableOptions {
 }
 
 export function useTabManagement(options: UseTabManagementOptions) {
-  const { showToast, config } = options
+  const { config } = options
+  const showToast = options.showToast ?? (() => undefined)
 
   // 初始化核心数据管理
   const tabDataComposable = useTabData({ showToast, config })

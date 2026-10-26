@@ -20,6 +20,7 @@ export interface GroupOptions {
   minTabsPerGroup?: number
   maxGroupsPerWindow?: number
   colorStrategy?: 'auto' | 'manual' | 'random'
+  manualColor?: chrome.tabGroups.ColorEnum
 }
 
 /**
@@ -97,6 +98,36 @@ export interface TabInfo {
   thumbnailCachedAt?: number
   // 其他性能信息
   loadTime?: number
+}
+
+/**
+ * A tab captured in a saved tab list.
+ */
+export interface SavedTabItem {
+  title: string
+  url: string
+  favIconUrl?: string
+  pinned: boolean
+  createdAt: number
+}
+
+/**
+ * A user-visible collection of saved tabs.
+ */
+export interface SavedTabList {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
+  items: SavedTabItem[]
+}
+
+/**
+ * Versioned payload persisted in chrome.storage.local.
+ */
+export interface SavedTabsData {
+  version: number
+  lists: SavedTabList[]
 }
 
 /**

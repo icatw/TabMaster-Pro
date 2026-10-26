@@ -4,10 +4,10 @@
     <div v-if="selectedIds.size > 0" class="batch-actions">
       <span class="selected-count">{{ selectedCountText }}</span>
       <div class="actions">
-        <button class="batch-btn" @click="$emit('select-all')">{{ $t('selection.selectAll') }}</button>
-        <button class="batch-btn" @click="$emit('clear-selection')">{{ $t('selection.clearSelection') }}</button>
-        <button class="batch-btn danger" @click="$emit('batch-close')">{{ $t('selection.batchClose') }}</button>
-        <button class="batch-btn" @click="$emit('batch-group')">{{ $t('selection.batchGroup') }}</button>
+        <button class="batch-btn" @click="emit('select-all')">{{ $t('selection.selectAll') }}</button>
+        <button class="batch-btn" @click="emit('clear-selection')">{{ $t('selection.clearSelection') }}</button>
+        <button class="batch-btn danger" @click="emit('batch-close')">{{ $t('selection.batchClose') }}</button>
+        <button class="batch-btn" @click="emit('batch-group')">{{ $t('selection.batchGroup') }}</button>
       </div>
     </div>
 
@@ -86,11 +86,11 @@
               :is-keyboard-active="isTabActive(tab)"
               :nav-id="`tab-${tab.id}`"
               :group-color="getGroupColor(group.color)"
-              @hover="(e: MouseEvent) => $emit('hover', tab, e)"
-              @leave="$emit('leave')"
-              @click="(e: MouseEvent) => $emit('click', tab, e)"
-              @close="$emit('close', tab.id)"
-              @toggle-select="$emit('toggle-select', tab.id)"
+              @hover="(e: MouseEvent) => emit('hover', tab, e)"
+              @leave="emit('leave')"
+              @click="(e: MouseEvent) => emit('click', tab, e)"
+              @close="emit('close', tab.id)"
+              @toggle-select="emit('toggle-select', tab.id)"
             />
           </div>
         </div>
@@ -105,11 +105,11 @@
             :is-multi-select="isMultiSelect"
             :is-keyboard-active="isTabActive(tab)"
             :nav-id="`tab-${tab.id}`"
-            @hover="(e: MouseEvent) => $emit('hover', tab, e)"
-            @leave="$emit('leave')"
-            @click="(e: MouseEvent) => $emit('click', tab, e)"
-            @close="$emit('close', tab.id)"
-            @toggle-select="$emit('toggle-select', tab.id)"
+            @hover="(e: MouseEvent) => emit('hover', tab, e)"
+            @leave="emit('leave')"
+            @click="(e: MouseEvent) => emit('click', tab, e)"
+            @close="emit('close', tab.id)"
+            @toggle-select="emit('toggle-select', tab.id)"
           />
         </div>
 
@@ -225,16 +225,18 @@ const isTabActive = (tab: TabInfo) => {
 
 // 获取分组颜色
 const getGroupColor = (color: chrome.tabGroups.ColorEnum) => {
+  // Keep Chrome's group identity while using a restrained ink palette.
+  // Saturated colors compete with titles and make the list feel noisy.
   const colors: Record<chrome.tabGroups.ColorEnum, string> = {
-    grey: '#5F6368',
-    blue: '#1A73E8',
-    red: '#EA4335',
-    yellow: '#FBBC04',
-    green: '#34A853',
-    pink: '#FF6D93',
-    purple: '#9E69AF',
-    cyan: '#00BCD4',
-    orange: '#FF9800'
+    grey: '#777773',
+    blue: '#5f5f5b',
+    red: '#6a6a65',
+    yellow: '#85857d',
+    green: '#65655f',
+    pink: '#76766f',
+    purple: '#6d6d68',
+    cyan: '#5c5c57',
+    orange: '#7d7d75'
   }
   return colors[color] || colors.grey
 }
@@ -380,31 +382,32 @@ const cancelEditGroupTitle = () => {
 
 /* 分组样式 */
 .tab-group {
-  border-left: 3px solid var(--group-color);
-  background: linear-gradient(90deg, rgba(var(--group-color), 0.05) 0%, transparent 100%);
-  margin: 4px 0;
-  border-radius: 4px;
+  border-left: 2px solid color-mix(in oklab, var(--group-color) 62%, var(--border-primary));
+  background: color-mix(in oklab, var(--bg-secondary) 34%, transparent);
+  margin: 0 10px 12px 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  overflow: hidden;
 }
 
 .group-header {
   position: sticky;
   top: 0;
   z-index: 5;
-  background: var(--bg-primary);
+  background: color-mix(in oklab, var(--bg-secondary) 66%, var(--bg-primary));
   border-bottom: 1px solid var(--border-secondary);
 }
 
 .group-header-content {
   display: flex;
   align-items: center;
-  padding: 8px 12px 8px 8px;
+  padding: 10px 12px 10px 10px;
   gap: 8px;
   user-select: none;
   transition: all 0.15s;
 }
 
 .group-header-content:hover {
-  background: rgba(74, 144, 226, 0.05);
+  background: var(--bg-hover);
 }
 
 .collapse-icon {
@@ -427,6 +430,7 @@ const cancelEditGroupTitle = () => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  opacity: 0.75;
   flex-shrink: 0;
 }
 
@@ -451,11 +455,12 @@ const cancelEditGroupTitle = () => {
 }
 
 .group-count {
-  padding: 2px 8px;
-  background: var(--primary-color);
-  border-radius: 10px;
+  min-width: 24px;
+  padding: 2px 7px;
+  background: color-mix(in oklab, var(--bg-tertiary) 82%, var(--bg-primary));
+  border-radius: 999px;
   font-size: 11px;
-  color: white;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -467,6 +472,10 @@ const cancelEditGroupTitle = () => {
 }
 
 .group-header-content:hover .group-actions {
+  opacity: 1;
+}
+
+.group-header-content:focus-within .group-actions {
   opacity: 1;
 }
 

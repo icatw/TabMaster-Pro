@@ -1,16 +1,27 @@
 <template>
   <div class="search-wrapper">
-    <svg class="search-icon" viewBox="0 0 16 16" fill="currentColor">
+    <label class="sr-only" for="tab-search-input">{{ placeholder }}</label>
+    <svg class="search-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
       <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
     </svg>
     <input
       type="text"
+      id="tab-search-input"
       :value="modelValue"
       @input="handleInput"
       :placeholder="placeholder"
+      autocomplete="off"
+      spellcheck="false"
       class="search-input"
     />
-    <button v-if="modelValue" @click="handleClear" class="clear-btn">
+    <button
+      v-if="modelValue"
+      @click="handleClear"
+      class="clear-btn"
+      type="button"
+      :aria-label="$t('common.clear')"
+      :title="$t('common.clear')"
+    >
       <svg viewBox="0 0 16 16" fill="currentColor">
         <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z"/>
       </svg>
@@ -52,49 +63,58 @@ const handleClear = () => {
 <style scoped>
 .search-wrapper {
   position: relative;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
+  isolation: isolate;
 }
 
 .search-icon {
   position: absolute;
-  left: 10px;
+  left: 12px;
   width: 14px;
   height: 14px;
-  color: #999;
+  color: var(--text-tertiary);
   pointer-events: none;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 32px 8px 32px;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  min-height: 40px;
+  padding: 9px 36px 9px 36px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
   font-size: 13px;
-  color: #333;
-  transition: all 0.2s;
+  color: var(--text-primary);
+  transition: var(--transition-colors), box-shadow 160ms ease, transform 160ms ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  border-color: var(--primary-color);
+  background: var(--bg-elevated);
+  box-shadow: var(--ring);
+}
+
+.search-input:hover {
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .clear-btn {
   position: absolute;
-  right: 6px;
-  width: 24px;
-  height: 24px;
+  right: 7px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  color: #999;
+  color: var(--text-tertiary);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: all 0.15s;
 }
 

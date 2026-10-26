@@ -17,7 +17,7 @@ export default defineConfig({
       'src/**/*.html'
     ]
   },
-  
+
   // 预设
   presets: [
     presetUno(), // 默认预设
@@ -42,13 +42,13 @@ export default defineConfig({
       provider: 'none' // 关闭自动字体获取，使用本地字体
     })
   ],
-  
+
   // 转换器
   transformers: [
     transformerDirectives(), // 支持 @apply 指令
     transformerVariantGroup() // 支持变体组语法
   ],
-  
+
   // 主题配置
   theme: {
     colors: {
@@ -76,7 +76,7 @@ export default defineConfig({
       'bounce-in': 'bounceIn 0.4s ease-out'
     }
   },
-  
+
   // 自定义规则
   rules: [
     // 自定义动画关键帧
@@ -87,7 +87,7 @@ export default defineConfig({
       animation: 'slideUp 0.3s ease-out'
     }]
   ],
-  
+
   // 快捷方式
   shortcuts: [
     // 按钮样式
@@ -95,24 +95,24 @@ export default defineConfig({
     ['btn-primary', 'btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-2 focus:ring-primary-500'],
     ['btn-secondary', 'btn bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-2 focus:ring-gray-500'],
     ['btn-ghost', 'btn bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-gray-500'],
-    
+
     // 卡片样式
     ['card', 'bg-white rounded-lg shadow-sm border border-gray-200 p-4'],
     ['card-hover', 'card hover:shadow-md transition-shadow duration-200'],
-    
+
     // 输入框样式
     ['input', 'px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent'],
-    
+
     // 布局快捷方式
     ['flex-center', 'flex items-center justify-center'],
     ['flex-between', 'flex items-center justify-between'],
-    
+
     // 文本样式
     ['text-muted', 'text-gray-600'],
     ['text-error', 'text-red-600'],
     ['text-success', 'text-green-600']
   ],
-  
+
   // 变体
   variants: [
     // 暗色主题变体
@@ -125,7 +125,7 @@ export default defineConfig({
       }
     }
   ],
-  
+
   // 安全列表 - 确保这些类不会被清除
   safelist: [
     'bg-blue-600',

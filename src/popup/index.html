@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>Chrome 标签管理器</title>
   <style>
     /* 防止页面闪烁的基础样式 */
@@ -17,7 +18,11 @@
       width: 620px;
       min-height: 400px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #ffffff;
+      background-color: #f4f4f1;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background-color: #111110; color: #f5f5f0; }
     }
     
     /* 加载状态样式 */
@@ -26,7 +31,7 @@
       align-items: center;
       justify-content: center;
       height: 400px;
-      color: #6b7280;
+      color: #676760;
     }
     
     /* 隐藏未加载的内容 */

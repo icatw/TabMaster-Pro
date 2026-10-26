@@ -133,7 +133,7 @@ import ShortcutsSection from './components/ShortcutsSection.vue'
 import AboutSection from './components/AboutSection.vue'
 
 // 初始化主题
-const { isDark, themeMode, actualTheme, setTheme } = useTheme()
+const { themeMode, setTheme } = useTheme()
 
 // 响应式数据
 const activeSection = ref('general')
@@ -274,14 +274,14 @@ onMounted(async () => {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: var(--transition-colors);
 }
 
 /* 主内容区 */
 .main-content {
   flex: 1;
-  padding: 40px;
-  max-width: 900px;
+  padding: 36px 48px 52px;
+  max-width: 1040px;
   margin: 0 auto;
   width: 100%;
 }
@@ -291,9 +291,9 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
-  padding: 8px 0;
+  gap: 8px;
+  margin-bottom: 28px;
+  padding: 4px 0;
   position: relative;
 }
 
@@ -306,23 +306,21 @@ onMounted(async () => {
 .language-switcher {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 9px;
+  padding: 9px 11px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-secondary);
+  border-radius: 9px;
+  transition: var(--transition-colors), box-shadow 160ms ease;
   cursor: pointer;
-  min-width: 120px;
-  box-shadow: var(--shadow-sm);
+  min-width: 128px;
 }
 
 .theme-switcher:hover,
 .language-switcher:hover {
   background: var(--bg-hover);
-  border-color: var(--primary-color);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .control-icon {
@@ -362,7 +360,7 @@ onMounted(async () => {
 
 /* 为select添加下拉箭头样式 */
 .control-select {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2385857d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-size: 16px;
@@ -381,8 +379,8 @@ onMounted(async () => {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e8e8e8;
-  border-top-color: #345454;
+  border: 4px solid var(--border-primary);
+  border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 16px;
@@ -391,8 +389,8 @@ onMounted(async () => {
 .btn-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 2px solid color-mix(in oklab, var(--bg-primary) 35%, transparent);
+  border-top-color: var(--bg-primary);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -404,28 +402,30 @@ onMounted(async () => {
 /* 操作栏 */
 .action-bar {
   position: sticky;
-  bottom: 20px;
-  background: var(--bg-secondary);
-  padding: 20px;
-  border-radius: 16px;
+  bottom: 16px;
+  background: color-mix(in oklab, var(--bg-elevated) 94%, transparent);
+  padding: 14px 16px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 12px;
   box-shadow: var(--shadow-lg);
   display: flex;
-  gap: 16px;
-  margin-top: 40px;
-  backdrop-filter: blur(10px);
+  gap: 10px;
+  margin-top: 32px;
+  backdrop-filter: blur(16px);
 }
 
 .btn {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 10px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 40px;
+  transition: var(--transition-colors), box-shadow 160ms ease, transform 160ms ease;
 }
 
 .btn:disabled {
@@ -439,31 +439,30 @@ onMounted(async () => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #345454 0%, #5b9c7a 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(52, 84, 84, 0.3);
+  background: var(--primary-color);
+  color: var(--bg-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 84, 84, 0.4);
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(1px);
 }
 
 .btn-secondary {
-  background: var(--bg-primary);
+  background: var(--bg-elevated);
   color: var(--text-secondary);
-  border: 2px solid var(--border-primary);
+  border-color: var(--border-secondary);
 }
 
 .btn-secondary:hover:not(:disabled) {
   background: var(--bg-hover);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  transform: translateY(-2px);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
   box-shadow: var(--shadow-md);
 }
 
@@ -485,13 +484,15 @@ onMounted(async () => {
 }
 
 .toast.success {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(91, 156, 122, 0.95) 100%);
-  color: white;
+  background: var(--bg-elevated);
+  border: 1px solid var(--success-color);
+  color: var(--success-color);
 }
 
 .toast.error {
-  background: linear-gradient(135deg, rgba(245, 101, 101, 0.95) 0%, rgba(237, 137, 54, 0.95) 100%);
-  color: white;
+  background: var(--bg-elevated);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
 }
 
 .toast-icon {
@@ -513,6 +514,79 @@ onMounted(async () => {
 .toast-leave-to {
   transform: translateX(100%) scale(0.8);
   opacity: 0;
+}
+
+/* Keep every settings panel on the same quiet surface hierarchy. */
+.main-content :deep(.section-title) {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  margin-bottom: 22px;
+}
+
+.main-content :deep(.setting-card),
+.main-content :deep(.shortcut-card),
+.main-content :deep(.tips-card),
+.main-content :deep(.about-card) {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.main-content :deep(.setting-card:hover),
+.main-content :deep(.shortcut-card:hover),
+.main-content :deep(.tips-card:hover),
+.main-content :deep(.about-card:hover) {
+  box-shadow: var(--shadow-md);
+}
+
+.main-content :deep(.card-title) {
+  border-bottom-color: var(--border-secondary);
+}
+
+.main-content :deep(.form-select),
+.main-content :deep(.number-input),
+.main-content :deep(.range-value) {
+  background: var(--bg-primary);
+  border-color: var(--border-secondary);
+  border-width: 1px;
+  border-radius: var(--radius-sm);
+}
+
+.main-content :deep(.option-card),
+.main-content :deep(.color-option),
+.main-content :deep(.shortcut-item),
+.main-content :deep(.feature-card),
+.main-content :deep(.link-card),
+.main-content :deep(.dev-card) {
+  border-color: var(--border-secondary);
+  background: var(--bg-secondary);
+  border-width: 1px;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.main-content :deep(.option-card:hover),
+.main-content :deep(.color-option:hover),
+.main-content :deep(.shortcut-item:hover),
+.main-content :deep(.feature-card:hover),
+.main-content :deep(.link-card:hover) {
+  border-color: var(--border-primary);
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.main-content :deep(.option-card.active),
+.main-content :deep(.color-option.active),
+.main-content :deep(.shortcut-item.active) {
+  background: var(--bg-tertiary);
+  border-color: var(--border-primary);
+  box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+.main-content :deep(.preview-icon),
+.main-content :deep(.feature-icon) {
+  filter: grayscale(1);
 }
 
 /* 响应式 */
@@ -558,11 +632,11 @@ onMounted(async () => {
 }
 
 .main-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #345454 0%, #5b9c7a 100%);
-  border-radius: 4px;
+  background: var(--text-tertiary);
+  border-radius: 999px;
 }
 
 .main-content::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #2a4343 0%, #4a8b69 100%);
+  background: var(--text-secondary);
 }
 </style>

@@ -1,7 +1,9 @@
 import { ref, computed, type Ref } from 'vue'
-import type { TabInfo } from '@/shared/types'
+import type { BatchOperationResult, TabInfo } from '@/shared/types'
 import type { BookmarkInfo } from '@/shared/utils/bookmarks'
 import { openBookmark } from '@/shared/utils/bookmarks'
+import { MESSAGE_TYPES } from '@/shared/constants'
+import { i18n } from '@/i18n'
 
 interface NavigationItem {
   type: 'tab' | 'bookmark'
@@ -195,21 +197,33 @@ export function useKeyboardNavigation(options: UseKeyboardNavigationOptions) {
     if (!currentItem || currentItem.type !== 'tab') return
 
     const tab = currentItem.data as TabInfo
-    const tabTitle = tab.title.length > 30
-      ? tab.title.substring(0, 30) + '...'
-      : tab.title
-
     try {
-      await chrome.tabs.remove(tab.id)
+      const response = await chrome.runtime.sendMessage({
+        type: MESSAGE_TYPES.SAVE_AND_CLOSE_TABS,
+        payload: { tabIds: [tab.id] }
+      })
+      const operation = response.data as BatchOperationResult | undefined
+      if (!operation || operation.successfulOperations === 0) {
+        throw new Error(response.error || '标签页保存失败，未关闭标签页')
+      }
+
       await loadTabs()
-      showToast(`已关闭标签页: ${tabTitle}`, 'success')
+      const message = operation.failedOperations > 0
+        ? i18n.global.t('savedTabs.partialClose', {
+          count: operation.successfulOperations,
+          failed: operation.failedOperations
+        })
+        : i18n.global.t('savedTabs.savedAndClosed', {
+          count: operation.successfulOperations
+        })
+      showToast(message, operation.failedOperations > 0 ? 'error' : 'success')
 
       if (keyboardNavIndex.value >= filteredTabs.value.length) {
         keyboardNavIndex.value = filteredTabs.value.length - 1
       }
     } catch (error) {
       console.error('关闭标签页失败:', error)
-      showToast('关闭标签页失败', 'error')
+      showToast(i18n.global.t('errors.batchCloseFailed'), 'error')
     }
   }
 
@@ -242,38 +256,38 @@ export function useKeyboardNavigation(options: UseKeyboardNavigationOptions) {
     }
 
     switch(e.key) {
-      case 'ArrowUp':
-      case 'k':
+    case 'ArrowUp':
+    case 'k':
+      e.preventDefault()
+      handleArrowUp()
+      break
+    case 'ArrowDown':
+    case 'j':
+      e.preventDefault()
+      handleArrowDown()
+      break
+    case 'Enter':
+      e.preventDefault()
+      handleEnter()
+      break
+    case 'Delete':
+    case 'Backspace':
+      if (!isInputFocused) {
         e.preventDefault()
-        handleArrowUp()
-        break
-      case 'ArrowDown':
-      case 'j':
+        handleDelete()
+      }
+      break
+    case 'Escape':
+      e.preventDefault()
+      handleEscape()
+      break
+    case '/':
+      if (!isInputFocused) {
         e.preventDefault()
-        handleArrowDown()
-        break
-      case 'Enter':
-        e.preventDefault()
-        handleEnter()
-        break
-      case 'Delete':
-      case 'Backspace':
-        if (!isInputFocused) {
-          e.preventDefault()
-          handleDelete()
-        }
-        break
-      case 'Escape':
-        e.preventDefault()
-        handleEscape()
-        break
-      case '/':
-        if (!isInputFocused) {
-          e.preventDefault()
-          const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement
-          searchInput?.focus()
-        }
-        break
+        const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement
+        searchInput?.focus()
+      }
+      break
     }
   }
 

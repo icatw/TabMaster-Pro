@@ -9,20 +9,25 @@
 
 /* 全局字体和基础样式 */
 html {
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
                'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 
                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 
                'Noto Color Emoji';
-  line-height: 1.6;
+  line-height: 1.5;
+  font-size: 13px;
+  background: var(--bg-primary, #f4f4f1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
   padding: 0;
-  color: #374151;
-  background-color: #ffffff;
+  color: var(--text-primary, #191918);
+  background-color: var(--bg-primary, #f4f4f1);
+  min-width: 0;
+  min-height: 100%;
 }
 
 /* 滚动条样式 */
@@ -31,22 +36,20 @@ body {
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
+::-webkit-scrollbar-track { background: transparent; }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: var(--text-tertiary, #b8b8bf);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-secondary, #52525b);
 }
 
 /* 焦点样式 */
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--primary-color, #1b1b19);
   outline-offset: 2px;
 }
 
@@ -56,6 +59,12 @@ button {
   font-size: inherit;
   line-height: inherit;
   margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+[role='button'] {
+  cursor: pointer;
 }
 
 /* 输入框基础样式 */
@@ -65,11 +74,12 @@ textarea {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+  accent-color: var(--primary-color, #171715);
 }
 
 /* 链接样式 */
 a {
-  color: #3b82f6;
+  color: var(--primary-color, #1b1b19);
   text-decoration: none;
 }
 
@@ -114,18 +124,6 @@ a:hover {
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(-20px);
-}
-
-/* 暗色主题支持 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-  }
-  
-  body {
-    background-color: #111827;
-    color: #f9fafb;
-  }
 }
 
 /* 高对比度模式支持 */

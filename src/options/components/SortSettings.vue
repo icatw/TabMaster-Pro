@@ -228,10 +228,25 @@ const previewItems = computed(() => {
 .option-label {
   display: block;
   cursor: pointer;
+  position: relative;
 }
 
 .option-input {
-  display: none;
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.option-input:focus-visible + .option-content {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .option-content {

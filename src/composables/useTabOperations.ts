@@ -1,5 +1,10 @@
 import { ref, watch, type Ref } from 'vue'
-import type { SortRule, ExtensionConfig, APIResponse } from '@/shared/types'
+import type {
+  SortRule,
+  ExtensionConfig,
+  APIResponse,
+  BatchOperationResult
+} from '@/shared/types'
 import { MESSAGE_TYPES } from '@/shared/constants'
 import { i18n, getCurrentLocale } from '@/i18n'
 
@@ -56,13 +61,6 @@ export function useTabOperations(options: UseTabOperationsOptions) {
         await loadStats()
         await refreshTabList()
 
-        const sortRules = [
-          { value: 'domain' as SortRule, label: '按域名' },
-          { value: 'title' as SortRule, label: '按标题' },
-          { value: 'url' as SortRule, label: '按URL' },
-          { value: 'lastAccessed' as SortRule, label: '按时间' }
-        ]
-
         showToast(i18n.global.t('messages.sortSuccess'), 'success')
       } else {
         showToast(response.error || i18n.global.t('errors.sortFailed'), 'error')
@@ -112,17 +110,28 @@ export function useTabOperations(options: UseTabOperationsOptions) {
 
     try {
       const tabIds = Array.from(selectedTabIds.value)
-      await chrome.tabs.remove(tabIds)
+      const response: APIResponse = await chrome.runtime.sendMessage({
+        type: MESSAGE_TYPES.SAVE_AND_CLOSE_TABS,
+        payload: { tabIds }
+      })
+      const operation = response.data as BatchOperationResult | undefined
+
+      if (!operation || operation.successfulOperations === 0) {
+        throw new Error(response.error || '标签页保存失败，未关闭标签页')
+      }
 
       clearSelection()
       await refreshTabList()
       await loadStats()
-      const currentLocale = getCurrentLocale()
-      const count = tabIds.length
-      const message = currentLocale === 'zh-CN'
-        ? `已关闭 ${count} 个标签页`
-        : `Closed ${count} tabs`
-      showToast(message, 'success')
+      const message = operation.failedOperations > 0
+        ? i18n.global.t('savedTabs.partialClose', {
+          count: operation.successfulOperations,
+          failed: operation.failedOperations
+        })
+        : i18n.global.t('savedTabs.savedAndClosed', {
+          count: operation.successfulOperations
+        })
+      showToast(message, operation.failedOperations > 0 ? 'error' : 'success')
     } catch (err) {
       console.error('Batch close error:', err)
       showToast(i18n.global.t('errors.batchCloseFailed'), 'error')

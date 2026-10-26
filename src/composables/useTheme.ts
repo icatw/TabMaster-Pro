@@ -1,93 +1,111 @@
-import { useDark, useToggle, usePreferredDark } from '@vueuse/core'
-import { computed, watchEffect } from 'vue'
+import { usePreferredDark } from '@vueuse/core'
+import { computed, ref, watch, watchEffect } from 'vue'
+import type { ThemeMode } from '@/shared/types'
 
-export function useTheme() {
-  // 检测系统是否偏好暗色模式
-  const prefersDark = usePreferredDark()
+const THEME_MODE_STORAGE_KEY = 'tab-manager-theme-mode'
+const LEGACY_THEME_STORAGE_KEY = 'tab-manager-theme'
 
-  // 创建响应式的暗色模式状态
-  // 这会自动将状态持久化到 localStorage
-  const isDark = useDark({
-    selector: 'html',
-    attribute: 'data-theme',
-    valueDark: 'dark',
-    valueLight: 'light',
-    storageKey: 'tab-manager-theme',
-    initialValue: 'auto', // 默认跟随系统
-  })
+function readStoredThemeMode(): ThemeMode {
+  if (typeof localStorage === 'undefined') return 'auto'
 
-  // 创建切换函数
-  const toggleTheme = useToggle(isDark)
-
-  // 设置特定主题的函数
-  const setTheme = (mode: 'light' | 'dark' | 'auto') => {
-    if (mode === 'auto') {
-      isDark.value = prefersDark.value
-    } else {
-      isDark.value = mode === 'dark'
-    }
+  const storedMode = localStorage.getItem(THEME_MODE_STORAGE_KEY)
+  if (storedMode === 'auto' || storedMode === 'light' || storedMode === 'dark') {
+    return storedMode
   }
 
-  // 主题模式：light | dark | auto
-  const themeMode = computed(() => {
-    if (isDark.value === undefined) return 'auto'
-    return isDark.value ? 'dark' : 'light'
-  })
+  const legacyMode = localStorage.getItem(LEGACY_THEME_STORAGE_KEY)
+  return legacyMode === 'light' || legacyMode === 'dark' ? legacyMode : 'auto'
+}
 
-  // 实际使用的主题（考虑自动模式）
-  const actualTheme = computed(() => {
+export function useTheme() {
+  const prefersDark = usePreferredDark()
+  const themeMode = ref<ThemeMode>(readStoredThemeMode())
+
+  const actualTheme = computed<'light' | 'dark'>(() => {
     if (themeMode.value === 'auto') {
       return prefersDark.value ? 'dark' : 'light'
     }
     return themeMode.value
   })
 
+  // Keep a writable compatibility facade for popup callers while preserving
+  // the independent persisted mode used by the options page.
+  const isDark = computed({
+    get: () => actualTheme.value === 'dark',
+    set: value => {
+      themeMode.value = value ? 'dark' : 'light'
+    }
+  })
+
+  watch(themeMode, mode => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(THEME_MODE_STORAGE_KEY, mode)
+    }
+  })
+
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(THEME_MODE_STORAGE_KEY, themeMode.value)
+  }
+
+  const setTheme = (mode: ThemeMode) => {
+    themeMode.value = mode
+  }
+
+  const toggleTheme = () => {
+    themeMode.value = actualTheme.value === 'dark' ? 'light' : 'dark'
+  }
+
   // 主题配置
   const themeConfig = computed(() => {
     const isDarkTheme = actualTheme.value === 'dark'
 
     return {
-      // 背景色
-      bgPrimary: isDarkTheme ? '#1e1e1e' : '#ffffff',
-      bgSecondary: isDarkTheme ? '#2d2d2d' : '#fafafa',
-      bgTertiary: isDarkTheme ? '#3a3a3a' : '#f0f0f0',
-      bgHover: isDarkTheme ? '#404040' : '#f8f9fa',
+      // Neutral ink surfaces keep the popup calm and make hierarchy come from spacing.
+      bgPrimary: isDarkTheme ? '#111110' : '#f4f4f1',
+      bgSecondary: isDarkTheme ? '#191918' : '#ecece8',
+      bgTertiary: isDarkTheme ? '#252522' : '#e1e1dc',
+      bgHover: isDarkTheme ? '#22221f' : '#e8e8e3',
+      bgElevated: isDarkTheme ? '#1c1c1a' : '#fcfcfa',
+      bgOverlay: isDarkTheme ? 'rgba(28, 28, 26, 0.92)' : 'rgba(252, 252, 250, 0.9)',
 
       // 文字颜色
-      textPrimary: isDarkTheme ? '#f0f0f0' : '#333333',
-      textSecondary: isDarkTheme ? '#c0c0c0' : '#666666',
-      textTertiary: isDarkTheme ? '#a0a0a0' : '#999999',
+      textPrimary: isDarkTheme ? '#f5f5f0' : '#191918',
+      textSecondary: isDarkTheme ? '#c3c3ba' : '#555550',
+      textTertiary: isDarkTheme ? '#9e9e94' : '#76766f',
 
       // 边框颜色
-      borderPrimary: isDarkTheme ? '#505050' : '#e5e7eb',
-      borderSecondary: isDarkTheme ? '#404040' : '#f0f0f0',
+      borderPrimary: isDarkTheme ? '#65655e' : '#93938b',
+      borderSecondary: isDarkTheme ? '#343430' : '#d8d8d2',
 
-      // 主题色（绿色系）
-      primaryColor: isDarkTheme ? '#6ab08f' : '#5b9c7a',
-      primaryHover: isDarkTheme ? '#7fc0a0' : '#4a8c6a',
-      primaryLight: isDarkTheme ? 'rgba(106, 176, 143, 0.2)' : 'rgba(91, 156, 122, 0.1)',
+      // Black and white are the only brand colors; semantic colors remain separate.
+      primaryColor: isDarkTheme ? '#f5f5f0' : '#191918',
+      primaryHover: isDarkTheme ? '#ffffff' : '#393934',
+      primaryLight: isDarkTheme ? 'rgba(245, 245, 240, 0.1)' : 'rgba(25, 25, 24, 0.07)',
 
       // 键盘导航高亮色
-      keyboardHighlight: isDarkTheme ? 'rgba(127, 192, 160, 0.35)' : 'rgba(91, 156, 122, 0.15)',
-      keyboardBorder: isDarkTheme ? '#7fc0a0' : '#5b9c7a',
-      keyboardGlow: isDarkTheme ? 'rgba(106, 176, 143, 0.4)' : 'rgba(91, 156, 122, 0.2)',
+      keyboardHighlight: isDarkTheme ? 'rgba(245, 245, 240, 0.1)' : 'rgba(25, 25, 24, 0.07)',
+      keyboardBorder: isDarkTheme ? '#f5f5f0' : '#191918',
+      keyboardGlow: isDarkTheme ? 'rgba(245, 245, 240, 0.18)' : 'rgba(25, 25, 24, 0.14)',
 
       // 辅助色
-      successColor: isDarkTheme ? '#4ade80' : '#22c55e',
-      warningColor: isDarkTheme ? '#fbbf24' : '#f59e0b',
-      dangerColor: isDarkTheme ? '#f87171' : '#ef4444',
-      infoColor: isDarkTheme ? '#60a5fa' : '#3b82f6',
+      successColor: isDarkTheme ? '#75c995' : '#28734a',
+      warningColor: isDarkTheme ? '#e7b84b' : '#9a6700',
+      dangerColor: isDarkTheme ? '#ff8b82' : '#b42318',
+      infoColor: isDarkTheme ? '#86b7ff' : '#275dad',
 
       // 阴影
       shadowSm: isDarkTheme
-        ? '0 1px 2px 0 rgba(0, 0, 0, 0.5)'
-        : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        ? '0 1px 2px rgba(0, 0, 0, 0.24)'
+        : '0 1px 2px rgba(23, 23, 21, 0.04), 0 3px 10px rgba(23, 23, 21, 0.025)',
       shadowMd: isDarkTheme
-        ? '0 4px 6px -1px rgba(0, 0, 0, 0.5)'
-        : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        ? '0 8px 24px rgba(0, 0, 0, 0.28)'
+        : '0 8px 24px rgba(23, 23, 21, 0.065)',
       shadowLg: isDarkTheme
-        ? '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
-        : '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        ? '0 18px 44px rgba(0, 0, 0, 0.42)'
+        : '0 18px 44px rgba(23, 23, 21, 0.1)',
+      ring: isDarkTheme
+        ? '0 0 0 3px rgba(245, 245, 240, 0.2)'
+        : '0 0 0 3px rgba(23, 23, 21, 0.14)'
     }
   })
 
@@ -96,11 +114,16 @@ export function useTheme() {
     const root = document.documentElement
     const config = themeConfig.value
 
+    root.dataset.theme = actualTheme.value
+    root.style.colorScheme = actualTheme.value
+
     // 设置 CSS 变量
     root.style.setProperty('--bg-primary', config.bgPrimary)
     root.style.setProperty('--bg-secondary', config.bgSecondary)
     root.style.setProperty('--bg-tertiary', config.bgTertiary)
     root.style.setProperty('--bg-hover', config.bgHover)
+    root.style.setProperty('--bg-elevated', config.bgElevated)
+    root.style.setProperty('--bg-overlay', config.bgOverlay)
 
     root.style.setProperty('--text-primary', config.textPrimary)
     root.style.setProperty('--text-secondary', config.textSecondary)
@@ -125,6 +148,7 @@ export function useTheme() {
     root.style.setProperty('--shadow-sm', config.shadowSm)
     root.style.setProperty('--shadow-md', config.shadowMd)
     root.style.setProperty('--shadow-lg', config.shadowLg)
+    root.style.setProperty('--ring', config.ring)
   })
 
   return {
@@ -134,6 +158,6 @@ export function useTheme() {
     themeMode,
     actualTheme,
     themeConfig,
-    prefersDark,
+    prefersDark
   }
 }

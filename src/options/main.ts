@@ -5,6 +5,7 @@ import { i18n } from '@/i18n'
 
 // 导入样式
 import '@/assets/styles/main.css'
+import '@/styles/theme.css'
 import 'uno.css'
 
 // 创建 Vue 应用

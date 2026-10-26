@@ -86,7 +86,7 @@ const shortcuts = ref([
     id: 'open',
     nameKey: 'openManager',
     descKey: 'openManager',
-    key: 'T',
+    key: 'Y',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="7" width="18" height="13" rx="2"/>
       <path d="M5 7V5a2 2 0 012-2h10a2 2 0 012 2v2M9 11h6M9 15h4"/>
@@ -105,7 +105,7 @@ const shortcuts = ref([
     id: 'group',
     nameKey: 'smartGroup',
     descKey: 'smartGroup',
-    key: 'G',
+    key: 'X',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="3" width="7" height="7" rx="1"/>
       <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -296,8 +296,8 @@ const openShortcutsPage = () => {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-  color: white;
+  background: var(--primary-color);
+  color: var(--bg-primary);
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -334,9 +334,9 @@ const openShortcutsPage = () => {
   align-items: flex-start;
   gap: 12px;
   padding: 12px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  border-left: 3px solid #5b9c7a;
+  border-left: 3px solid var(--primary-color);
 }
 
 .tip-icon {
@@ -346,7 +346,7 @@ const openShortcutsPage = () => {
 
 .tip-text {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 

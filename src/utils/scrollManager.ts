@@ -54,7 +54,7 @@ export function ensureElementInView(options: ScrollOptions): void {
   if (needsScroll && Math.abs(newScrollTop - container.scrollTop) > 1) {
     container.scrollTo({
       top: newScrollTop,
-      behavior: behavior
+      behavior
     })
   }
 }

@@ -49,28 +49,28 @@ const handleAction = () => {
 .empty-icon {
   width: 48px;
   height: 48px;
-  color: #d0d0d0;
+  color: var(--border-primary);
   margin-bottom: 12px;
 }
 
 .empty-text {
   font-size: 13px;
-  color: #999;
+  color: var(--text-tertiary);
   margin: 0 0 12px 0;
 }
 
 .empty-action {
   padding: 6px 12px;
-  background: #f0f0f0;
-  border: none;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .empty-action:hover {
-  background: #e0e0e0;
+  background: var(--bg-hover);
 }
 </style>

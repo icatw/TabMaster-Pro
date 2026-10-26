@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { throttle } from '@/shared/utils/performance'
 
 interface Props {

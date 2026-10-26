@@ -1,31 +1,31 @@
 <template>
-  <div 
-    v-if="visible && tabInfo" 
+  <div
+    v-if="visible && tabInfo"
     ref="hoverDetailsRef"
     class="tab-hover-details"
     :style="adjustedPosition"
   >
     <div class="hover-details-header">
-      <img 
-        v-if="tabInfo.favIconUrl" 
-        :src="tabInfo.favIconUrl" 
+      <img
+        v-if="tabInfo.favIconUrl"
+        :src="tabInfo.favIconUrl"
         class="hover-favicon"
         @error="handleFaviconError"
       />
       <div class="hover-title">{{ tabInfo.title }}</div>
     </div>
-    
+
     <div class="hover-details-content">
       <div class="detail-item">
         <span class="detail-label">URL:</span>
         <span class="detail-value">{{ tabInfo.url }}</span>
       </div>
-      
+
       <div class="detail-item">
         <span class="detail-label">域名:</span>
         <span class="detail-value">{{ tabInfo.domain }}</span>
       </div>
-      
+
       <div class="detail-item">
         <span class="detail-label">状态:</span>
         <span class="detail-value">
@@ -34,29 +34,29 @@
           <span v-else class="status-inactive">非活跃</span>
         </span>
       </div>
-      
+
       <div v-if="tabInfo.pinned" class="detail-item">
         <span class="detail-label">固定:</span>
         <span class="detail-value status-pinned">已固定</span>
       </div>
-      
+
       <div v-if="tabInfo.audible" class="detail-item">
         <span class="detail-label">音频:</span>
         <span class="detail-value status-audio">有声音</span>
       </div>
-      
+
       <div v-if="tabInfo.mutedInfo?.muted" class="detail-item">
         <span class="detail-label">静音:</span>
         <span class="detail-value status-muted">已静音</span>
       </div>
-      
+
       <!-- 内存信息显示已移除，因为 chrome.processes API 在稳定版中不可用 -->
-      
+
       <div v-if="tabInfo.loadTime" class="detail-item">
         <span class="detail-label">加载时间:</span>
         <span class="detail-value">{{ formatLoadTime(tabInfo.loadTime) }}</span>
       </div>
-      
+
       <div v-if="tabInfo.thumbnailCachedAt" class="detail-item">
         <span class="detail-label">缩略图缓存:</span>
         <span class="detail-value">{{ formatCacheTime(tabInfo.thumbnailCachedAt) }}</span>
@@ -81,41 +81,41 @@ const hoverDetailsRef = ref<HTMLElement>()
 // 计算调整后的位置，确保不超出popup边界
 const adjustedPosition = computed(() => {
   if (!props.visible || !hoverDetailsRef.value) {
-    return { left: props.position.x + 'px', top: props.position.y + 'px' }
+    return { left: `${props.position.x  }px`, top: `${props.position.y  }px` }
   }
 
   const popup = document.querySelector('.popup-container')
   if (!popup) {
-    return { left: props.position.x + 'px', top: props.position.y + 'px' }
+    return { left: `${props.position.x  }px`, top: `${props.position.y  }px` }
   }
 
   const popupRect = popup.getBoundingClientRect()
   const detailsRect = hoverDetailsRef.value.getBoundingClientRect()
-  
+
   let x = props.position.x
   let y = props.position.y
-  
+
   // 检查右边界
   if (x + detailsRect.width > popupRect.right) {
     x = popupRect.right - detailsRect.width - 10
   }
-  
+
   // 检查左边界
   if (x < popupRect.left) {
     x = popupRect.left + 10
   }
-  
+
   // 检查下边界
   if (y + detailsRect.height > popupRect.bottom) {
     y = props.position.y - detailsRect.height - 10
   }
-  
+
   // 检查上边界
   if (y < popupRect.top) {
     y = popupRect.top + 10
   }
-  
-  return { left: x + 'px', top: y + 'px' }
+
+  return { left: `${x  }px`, top: `${y  }px` }
 })
 
 // 监听位置变化，重新计算
@@ -140,7 +140,7 @@ const formatLoadTime = (ms: number): string => {
 const formatCacheTime = (timestamp: number): string => {
   const now = Date.now()
   const diff = now - timestamp
-  
+
   if (diff < 60000) return '刚刚'
   if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`

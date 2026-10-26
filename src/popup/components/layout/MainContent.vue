@@ -154,7 +154,7 @@ interface Props {
 
 interface Emits {
   // 书签事件
-  (e: 'toggle-bookmark-collapse', groupName: string): void
+  (e: 'toggle-bookmark-collapse', groupName: string, collapsed: boolean): void
   (e: 'expand-all-groups'): void
   (e: 'collapse-groups'): void
 
@@ -203,8 +203,8 @@ const searchLayoutClasses = computed(() => {
 })
 
 // 事件处理函数
-const handleBookmarkGroupCollapse = (groupName: string) => {
-  emit('toggle-bookmark-collapse', groupName)
+const handleBookmarkGroupCollapse = (groupName: string, collapsed: boolean) => {
+  emit('toggle-bookmark-collapse', groupName, collapsed)
 }
 
 const refreshTabList = () => {
@@ -267,13 +267,13 @@ const collapseGroups = () => {
   overflow-x: hidden;
   background: var(--bg-primary);
   position: relative;
-  padding-bottom: 4px;
+  padding: 6px 0 66px;
 }
 
 .search-layout {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* 只有书签时：减少底部间距 */
@@ -298,14 +298,14 @@ const collapseGroups = () => {
 .search-divider {
   display: flex;
   align-items: center;
-  margin: 2px 16px;
+  margin: 6px 18px 4px;
   gap: 8px;
 }
 
 .divider-line {
   flex: 1;
   height: 1px;
-  background: var(--border-primary);
+  background: var(--border-secondary);
 }
 
 .divider-text {
@@ -340,7 +340,7 @@ const collapseGroups = () => {
 }
 
 .bookmarks-content {
-  padding: 8px 16px 16px 16px;
+  padding: 8px 16px 16px;
 }
 
 .bookmark-groups {
@@ -375,9 +375,9 @@ const collapseGroups = () => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-secondary);
+  border-radius: 7px;
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
@@ -386,6 +386,7 @@ const collapseGroups = () => {
 
 .show-more-btn:hover, .show-less-btn:hover {
   background: var(--bg-hover);
+  border-color: var(--border-primary);
   color: var(--text-primary);
 }
 
@@ -404,11 +405,11 @@ const collapseGroups = () => {
 }
 
 .app-main::-webkit-scrollbar-thumb {
-  background: #d0d0d0;
-  border-radius: 3px;
+  background: var(--text-tertiary);
+  border-radius: 999px;
 }
 
 .app-main::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
+  background: var(--text-secondary);
 }
 </style>
