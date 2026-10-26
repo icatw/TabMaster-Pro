@@ -75,6 +75,35 @@
         <span v-else-if="searchQuery.trim() && filteredLists.length === 0">{{ $t('savedTabs.noSearchResults') }}</span>
       </div>
 
+      <div class="saved-list-insights" :aria-label="$t('savedTabs.statsTitle')">
+        <div class="saved-stat">
+          <span>{{ $t('savedTabs.statsLists') }}</span>
+          <strong>{{ stats.listCount }}</strong>
+        </div>
+        <div class="saved-stat">
+          <span>{{ $t('savedTabs.statsItems') }}</span>
+          <strong>{{ stats.itemCount }}</strong>
+        </div>
+        <div class="saved-stat oldest-stat">
+          <span>{{ $t('savedTabs.statsOldest') }}</span>
+          <strong>{{ stats.oldestCreatedAt === null ? $t('savedTabs.statsNone') : formatDate(stats.oldestCreatedAt) }}</strong>
+        </div>
+        <div class="cleanup-controls">
+          <label class="cleanup-age-field">
+            <span>{{ $t('savedTabs.cleanupOlderThan') }}</span>
+            <select v-model.number="cleanupAgeDays" name="cleanup-age">
+              <option :value="30">{{ $t('savedTabs.days', { count: 30 }) }}</option>
+              <option :value="90">{{ $t('savedTabs.days', { count: 90 }) }}</option>
+              <option :value="180">{{ $t('savedTabs.days', { count: 180 }) }}</option>
+              <option :value="365">{{ $t('savedTabs.days', { count: 365 }) }}</option>
+            </select>
+          </label>
+          <button type="button" class="action-button" :disabled="expiredLists.length === 0" @click="openCleanupDialog">
+            {{ cleanupReviewText }}
+          </button>
+        </div>
+      </div>
+
       <div v-if="lists.length > 0" class="saved-list-tools">
         <label class="saved-search">
           <span class="sr-only">{{ $t('savedTabs.searchLabel') }}</span>
@@ -312,6 +341,49 @@
     </dialog>
 
     <dialog
+      ref="cleanupDialog"
+      class="saved-list-dialog cleanup-dialog"
+      aria-labelledby="cleanup-dialog-title"
+      aria-describedby="cleanup-dialog-description"
+      @close="selectedCleanupIds = []"
+    >
+      <form method="dialog" @submit.prevent="confirmCleanup">
+        <h2 id="cleanup-dialog-title">{{ $t('savedTabs.cleanupTitle') }}</h2>
+        <p id="cleanup-dialog-description">
+          {{ cleanupDescriptionText }}
+        </p>
+        <label class="cleanup-select-all">
+          <input
+            type="checkbox"
+            :checked="allCleanupSelected"
+            :disabled="isCleaningUp"
+            @change="toggleCleanupSelection"
+          />
+          <span>{{ $t('savedTabs.selectAllExpired', { count: expiredLists.length }) }}</span>
+        </label>
+        <ul class="cleanup-list-options">
+          <li v-for="list in expiredLists" :key="list.id">
+            <label>
+              <input v-model="selectedCleanupIds" type="checkbox" :value="list.id" :disabled="isCleaningUp" />
+              <span class="cleanup-list-copy">
+                <strong>{{ list.name }}</strong>
+                <small>{{ $t('savedTabs.cleanupListMeta', { count: list.items.length, date: formatDate(list.createdAt) }) }}</small>
+              </span>
+            </label>
+          </li>
+        </ul>
+        <div class="dialog-actions">
+          <button type="button" class="action-button" :disabled="isCleaningUp" @click="cleanupDialog?.close()">
+            {{ $t('common.cancel') }}
+          </button>
+          <button type="submit" class="action-button danger-filled" :disabled="selectedCleanupIds.length === 0 || isCleaningUp">
+            {{ isCleaningUp ? $t('common.loading') : $t('savedTabs.confirmCleanup', { count: selectedCleanupIds.length }) }}
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog
       ref="duplicatesDialog"
       class="saved-list-dialog duplicates-dialog"
       aria-labelledby="duplicates-dialog-title"
@@ -406,6 +478,7 @@ import type {
 } from '@/shared/types'
 import { MESSAGE_TYPES } from '@/shared/constants'
 import { filterSavedTabLists, validateSavedTabsImport } from '@/shared/utils/savedTabs'
+import { getExpiredSavedLists, getSavedListStats } from '@/shared/utils/savedListStats'
 import {
   findDuplicateTabGroups,
   haveDuplicateGroupsChanged,
@@ -443,6 +516,7 @@ const renameDialog = ref<HTMLDialogElement | null>(null)
 const deleteDialog = ref<HTMLDialogElement | null>(null)
 const duplicatesDialog = ref<HTMLDialogElement | null>(null)
 const importDialog = ref<HTMLDialogElement | null>(null)
+const cleanupDialog = ref<HTMLDialogElement | null>(null)
 const importFileInput = ref<HTMLInputElement | null>(null)
 const importPreview = ref<SavedTabsData | null>(null)
 const importFileName = ref('')
@@ -458,9 +532,26 @@ const deletingList = ref<SavedTabList | null>(null)
 const renameValue = ref('')
 const isRenaming = ref(false)
 const isDeleting = ref(false)
+const cleanupAgeDays = ref(90)
+const selectedCleanupIds = ref<string[]>([])
+const isCleaningUp = ref(false)
 const isRestoringSelection = ref(false)
 
 const filteredLists = computed(() => filterSavedTabLists(lists.value, searchQuery.value))
+const stats = computed(() => getSavedListStats(lists.value))
+const cleanupCutoff = computed(() => Date.now() - cleanupAgeDays.value * 24 * 60 * 60 * 1000)
+const expiredLists = computed(() => getExpiredSavedLists(lists.value, cleanupCutoff.value))
+const expiredItemCount = computed(() => expiredLists.value.reduce((total, list) => total + list.items.length, 0))
+const cleanupReviewText = computed(() => i18n.global.t(
+  expiredLists.value.length === 1 ? 'savedTabs.reviewCleanupSingular' : 'savedTabs.reviewCleanup',
+  { count: expiredLists.value.length }
+))
+const cleanupDescriptionText = computed(() => i18n.global.t(
+  expiredLists.value.length === 1 ? 'savedTabs.cleanupDescriptionSingular' : 'savedTabs.cleanupDescription',
+  { count: expiredLists.value.length, tabs: expiredItemCount.value, days: cleanupAgeDays.value }
+))
+const allCleanupSelected = computed(() => expiredLists.value.length > 0 &&
+  expiredLists.value.every(list => selectedCleanupIds.value.includes(list.id)))
 const duplicateCloseIds = computed(() => duplicateGroups.value.flatMap((group, groupIndex) =>
   group.tabs.filter(tab => tab.id !== duplicateKeepIds.value[groupIndex]).map(tab => tab.id)
 ))
@@ -852,6 +943,38 @@ function openDeleteDialog(list: SavedTabList) {
   nextTick(() => deleteDialog.value?.showModal())
 }
 
+function openCleanupDialog() {
+  selectedCleanupIds.value = []
+  nextTick(() => cleanupDialog.value?.showModal())
+}
+
+function toggleCleanupSelection(event: Event) {
+  selectedCleanupIds.value = (event.currentTarget as HTMLInputElement).checked
+    ? expiredLists.value.map(list => list.id)
+    : []
+}
+
+async function confirmCleanup() {
+  if (selectedCleanupIds.value.length === 0 || isCleaningUp.value) return
+  isCleaningUp.value = true
+  try {
+    const response = await send<{ listCount: number, itemCount: number }>(MESSAGE_TYPES.CLEANUP_SAVED_LISTS, {
+      ids: [...selectedCleanupIds.value],
+      olderThan: cleanupCutoff.value
+    })
+    if (!response.success || !response.data) {
+      throw new Error(response.error || i18n.global.t('savedTabs.cleanupFailed'))
+    }
+    cleanupDialog.value?.close()
+    await loadLists()
+    emit('notify', i18n.global.t('savedTabs.cleaned', response.data), 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.cleanupFailed'), 'error')
+  } finally {
+    isCleaningUp.value = false
+  }
+}
+
 async function confirmDelete() {
   if (!deletingList.value || isDeleting.value) return
   isDeleting.value = true
@@ -906,6 +1029,9 @@ onMounted(loadLists)
 }
 
 .section-toggle:focus-visible,
+.cleanup-controls select:focus-visible,
+.cleanup-controls .action-button:focus-visible,
+.cleanup-list-options input:focus-visible,
 .list-expand:focus-visible,
 .icon-button:focus-visible,
 .action-button:focus-visible,
@@ -956,6 +1082,71 @@ onMounted(loadLists)
 
 .section-body {
   padding: 0 14px 12px;
+}
+
+.saved-list-insights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 6px 0 2px;
+  padding: 9px;
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+}
+
+.saved-stat {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
+.saved-stat strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oldest-stat strong {
+  font-size: 10px;
+}
+
+.cleanup-controls {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 5px;
+  border-top: 1px solid var(--border-secondary);
+}
+
+.cleanup-age-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.cleanup-age-field select {
+  min-width: 78px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.cleanup-controls .action-button {
+  max-width: 58%;
+  font-size: 10px;
 }
 
 .saved-list-tools {
@@ -1257,6 +1448,77 @@ onMounted(loadLists)
 
 .saved-list-dialog::backdrop {
   background: rgba(0, 0, 0, 0.45);
+}
+
+.cleanup-dialog {
+  max-height: min(520px, calc(100vh - 32px));
+  overflow: auto;
+}
+
+.cleanup-list-options {
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
+  overflow: auto;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cleanup-select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cleanup-select-all input {
+  accent-color: var(--text-primary);
+}
+
+.cleanup-list-options label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px;
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.cleanup-list-options label:focus-within {
+  border-color: var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.cleanup-list-options input {
+  margin: 2px 0 0;
+  accent-color: var(--text-primary);
+}
+
+.cleanup-list-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.cleanup-list-copy strong,
+.cleanup-list-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cleanup-list-copy strong {
+  font-size: 11px;
+}
+
+.cleanup-list-copy small {
+  color: var(--text-tertiary);
+  font-size: 10px;
 }
 
 .saved-list-dialog h2 {

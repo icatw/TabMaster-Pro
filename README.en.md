@@ -22,6 +22,7 @@ TabMaster Pro also keeps its live-window tools for search, sorting, grouping, an
 - Rename or permanently delete lists; deletion uses a native confirmation dialog.
 - Keep lists after restoring items so they can be reused.
 - Deduplicate URLs within a list and migrate older storage data to a versioned format.
+- Show local list and tab totals plus the oldest list date; review lists by creation age and explicitly select what to delete. Cleanup never runs automatically.
 - Avoid closing tabs when saving fails; report actual partial success counts for restore and close operations.
 - Save restorable URLs before single-tab close, batch close, keyboard `Delete`, and group close.
 

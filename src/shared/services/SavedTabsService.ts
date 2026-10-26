@@ -17,6 +17,7 @@ import {
   renameSavedTabList,
   validateSavedTabsImport
 } from '../utils/savedTabs'
+import { getExpiredSavedLists } from '../utils/savedListStats'
 
 interface SavedTabsStore {
   get: (key: string) => Promise<Record<string, unknown>>
@@ -591,6 +592,26 @@ export class SavedTabsService {
         version: SAVED_TABS_SCHEMA_VERSION,
         lists: updated.lists
       })
+    })
+  }
+
+  static async cleanupLists(
+    ids: string[],
+    olderThan: number,
+    store: SavedTabsStore = localStore
+  ): Promise<{ listCount: number, itemCount: number }> {
+    return withStorageMutation(async () => {
+      const selectedIds = new Set(ids.filter(id => typeof id === 'string'))
+      const current = await this.getData(store)
+      const expired = getExpiredSavedLists(current.lists, olderThan)
+        .filter(list => selectedIds.has(list.id))
+      const expiredIds = new Set(expired.map(list => list.id))
+      const itemCount = expired.reduce((total, list) => total + list.items.length, 0)
+      await this.setData({
+        version: SAVED_TABS_SCHEMA_VERSION,
+        lists: current.lists.filter(list => !expiredIds.has(list.id))
+      }, store)
+      return { listCount: expired.length, itemCount }
     })
   }
 }

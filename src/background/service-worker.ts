@@ -51,6 +51,11 @@ interface UpdateListPayload {
   name: string
 }
 
+interface CleanupSavedListsPayload {
+  ids: string[]
+  olderThan: number
+}
+
 function response<T>(data: T, success = true, error?: string): APIResponse<T> {
   return {
     success,
@@ -198,6 +203,11 @@ async function handleMessage(message: {
     return handleUpdateList(payload as UpdateListPayload)
   case MESSAGE_TYPES.DELETE_LIST:
     return handleDeleteList(payload as RestoreListPayload)
+  case MESSAGE_TYPES.CLEANUP_SAVED_LISTS:
+    return response(await SavedTabsService.cleanupLists(
+      (payload as CleanupSavedListsPayload).ids,
+      (payload as CleanupSavedListsPayload).olderThan
+    ))
   default:
     return response(undefined, false, `Unknown message type: ${type}`)
   }
