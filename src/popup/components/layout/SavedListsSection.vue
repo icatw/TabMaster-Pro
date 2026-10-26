@@ -41,6 +41,14 @@
         </button>
         <button
           type="button"
+          class="action-button"
+          :disabled="isSavingSession"
+          @click="saveSession"
+        >
+          {{ isSavingSession ? $t('common.loading') : $t('savedTabs.saveSession') }}
+        </button>
+        <button
+          type="button"
           class="action-button danger-outline"
           :disabled="props.selectedTabIds.size === 0 || isSavingAndClosing"
           @click="saveAndCloseSelected"
@@ -56,21 +64,68 @@
       <div class="list-status" aria-live="polite">
         <span v-if="isLoading">{{ $t('common.loading') }}</span>
         <span v-else-if="lists.length === 0">{{ $t('savedTabs.empty') }}</span>
+        <span v-else-if="searchQuery.trim() && filteredLists.length === 0">{{ $t('savedTabs.noSearchResults') }}</span>
       </div>
 
-      <div v-if="lists.length > 0" class="lists">
-        <article v-for="list in lists" :key="list.id" class="saved-list">
+      <div v-if="lists.length > 0" class="saved-list-tools">
+        <label class="saved-search">
+          <span class="sr-only">{{ $t('savedTabs.searchLabel') }}</span>
+          <input
+            v-model="searchQuery"
+            name="saved-tabs-search"
+            type="search"
+            autocomplete="off"
+            :placeholder="$t('savedTabs.searchPlaceholder')"
+          />
+        </label>
+        <label class="restore-target-field">
+          <span>{{ $t('savedTabs.restoreTargetLabel') }}</span>
+          <select v-model="restoreTarget" name="restore-target">
+            <option value="current">{{ $t('savedTabs.restoreToCurrent') }}</option>
+            <option value="new">{{ $t('savedTabs.restoreToNew') }}</option>
+          </select>
+        </label>
+        <label class="skip-duplicates-field">
+          <input v-model="skipAlreadyOpen" type="checkbox" />
+          <span>{{ $t('savedTabs.skipAlreadyOpen') }}</span>
+        </label>
+        <div class="selection-actions">
+          <span class="selection-count" aria-live="polite">
+            {{ $t('savedTabs.selectedCount', { count: selectedItems.size }) }}
+          </span>
+          <button
+            type="button"
+            class="action-button"
+            :disabled="visibleItemReferences.length === 0"
+            @click="selectVisibleItems"
+          >
+            {{ $t('savedTabs.selectVisible') }}
+          </button>
+          <button
+            type="button"
+            class="action-button primary"
+            :disabled="selectedItems.size === 0 || isRestoringSelection"
+            @click="restoreSelectedItems"
+          >
+            {{ isRestoringSelection ? $t('common.loading') : $t('savedTabs.restoreSelected') }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="filteredLists.length > 0" class="lists">
+        <article v-for="result in filteredLists" :key="result.list.id" class="saved-list">
           <div class="list-header">
             <button
               type="button"
               class="list-expand"
-              :aria-label="$t('savedTabs.toggleList', { name: list.name })"
-              :aria-expanded="expandedListIds.has(list.id)"
-              @click="toggleList(list.id)"
+              :aria-label="$t('savedTabs.toggleList', { name: result.list.name })"
+              :aria-expanded="isListExpanded(result.list.id)"
+              :aria-controls="`saved-items-${result.list.id}`"
+              @click="toggleList(result.list.id)"
             >
               <svg
                 class="list-chevron"
-                :class="{ collapsed: !expandedListIds.has(list.id) }"
+                :class="{ collapsed: !isListExpanded(result.list.id) }"
                 viewBox="0 0 16 16"
                 fill="currentColor"
                 aria-hidden="true"
@@ -80,11 +135,11 @@
             </button>
 
             <div class="list-summary">
-              <h3 class="list-title">{{ list.name }}</h3>
+              <h3 class="list-title">{{ result.list.name }}</h3>
               <p class="list-meta">
-                {{ $t('savedTabs.itemCount', { count: list.items.length }) }}
+                {{ $t('savedTabs.itemCount', { count: result.list.items.length }) }}
                 <span aria-hidden="true">·</span>
-                {{ formatDate(list.updatedAt) }}
+                {{ formatDate(result.list.updatedAt) }}
               </p>
             </div>
 
@@ -92,10 +147,10 @@
               <button
                 type="button"
                 class="icon-button restore"
-                :disabled="busyListId === list.id"
-                :aria-label="$t('savedTabs.restoreListNamed', { name: list.name })"
-                :title="$t('savedTabs.restoreListNamed', { name: list.name })"
-                @click="restoreList(list)"
+                :disabled="busyListId === result.list.id"
+                :aria-label="$t('savedTabs.restoreListNamed', { name: result.list.name })"
+                :title="$t('savedTabs.restoreListNamed', { name: result.list.name })"
+                @click="restoreList(result.list)"
               >
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                   <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
@@ -105,9 +160,9 @@
               <button
                 type="button"
                 class="icon-button"
-                :aria-label="$t('savedTabs.renameListNamed', { name: list.name })"
-                :title="$t('savedTabs.renameListNamed', { name: list.name })"
-                @click="openRenameDialog(list)"
+                :aria-label="$t('savedTabs.renameListNamed', { name: result.list.name })"
+                :title="$t('savedTabs.renameListNamed', { name: result.list.name })"
+                @click="openRenameDialog(result.list)"
               >
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                   <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z" />
@@ -116,9 +171,9 @@
               <button
                 type="button"
                 class="icon-button danger"
-                :aria-label="$t('savedTabs.deleteListNamed', { name: list.name })"
-                :title="$t('savedTabs.deleteListNamed', { name: list.name })"
-                @click="openDeleteDialog(list)"
+                :aria-label="$t('savedTabs.deleteListNamed', { name: result.list.name })"
+                :title="$t('savedTabs.deleteListNamed', { name: result.list.name })"
+                @click="openDeleteDialog(result.list)"
               >
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                   <path d="M5.5 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zM8 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zM11 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5z" />
@@ -128,27 +183,39 @@
             </div>
           </div>
 
-          <ul v-if="expandedListIds.has(list.id)" class="saved-items">
-            <li v-for="(item, index) in list.items" :key="`${list.id}-${index}`" class="saved-item">
+          <ul
+            v-if="isListExpanded(result.list.id)"
+            :id="`saved-items-${result.list.id}`"
+            class="saved-items"
+          >
+            <li v-for="entry in result.items" :key="`${result.list.id}-${entry.index}`" class="saved-item">
+              <label class="item-select">
+                <input
+                  type="checkbox"
+                  :checked="isItemSelected(result.list.id, entry.index)"
+                  :aria-label="$t('savedTabs.selectItemNamed', { title: entry.item.title })"
+                  @change="toggleItemSelection(result.list.id, entry.index)"
+                />
+              </label>
               <img
-                v-if="item.favIconUrl"
-                :src="item.favIconUrl"
+                v-if="entry.item.favIconUrl"
+                :src="entry.item.favIconUrl"
                 class="item-icon"
                 alt=""
                 @error="hideBrokenIcon"
               />
               <span v-else class="item-icon fallback" aria-hidden="true">↗</span>
               <div class="item-copy">
-                <span class="item-title" :title="item.title">{{ item.title }}</span>
-                <span class="item-url" :title="item.url">{{ item.url }}</span>
+                <span class="item-title" :title="entry.item.title">{{ entry.item.title }}</span>
+                <span class="item-url" :title="entry.item.url">{{ entry.item.url }}</span>
               </div>
-              <span v-if="item.pinned" class="item-pinned" :title="$t('tabs.pinned')">📌</span>
+              <span v-if="entry.item.pinned" class="item-pinned" :title="$t('tabs.pinned')">📌</span>
               <button
                 type="button"
                 class="restore-item-button"
-                :disabled="busyItemKey === `${list.id}-${index}`"
-                :aria-label="$t('savedTabs.restoreItemNamed', { title: item.title, name: list.name })"
-                @click="restoreItem(list, index)"
+                :disabled="busyItemKey === `${result.list.id}-${entry.index}`"
+                :aria-label="$t('savedTabs.restoreItemNamed', { title: entry.item.title, name: result.list.name })"
+                @click="restoreItem(result.list, entry.index)"
               >
                 {{ $t('savedTabs.restoreItem') }}
               </button>
@@ -221,13 +288,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import type {
   APIResponse,
   BatchOperationResult,
-  SavedTabList
+  SavedTabList,
+  SavedTabReference,
+  SavedTabRestoreOptions,
+  SavedTabRestoreTarget
 } from '@/shared/types'
 import { MESSAGE_TYPES } from '@/shared/constants'
+import { filterSavedTabLists } from '@/shared/utils/savedTabs'
 import { getCurrentLocale, i18n } from '@/i18n'
 
 interface Props {
@@ -244,9 +315,15 @@ const emit = defineEmits<{
 const isExpanded = ref(true)
 const listName = ref('')
 const lists = ref<SavedTabList[]>([])
+const searchQuery = ref('')
 const expandedListIds = ref(new Set<string>())
+const collapsedSearchListIds = ref(new Set<string>())
+const selectedItems = ref(new Map<string, SavedTabReference>())
+const restoreTarget = ref<SavedTabRestoreTarget>('current')
+const skipAlreadyOpen = ref(true)
 const isLoading = ref(false)
 const isSavingWindow = ref(false)
+const isSavingSession = ref(false)
 const isSavingAndClosing = ref(false)
 const busyListId = ref<string | null>(null)
 const busyItemKey = ref<string | null>(null)
@@ -257,6 +334,23 @@ const deletingList = ref<SavedTabList | null>(null)
 const renameValue = ref('')
 const isRenaming = ref(false)
 const isDeleting = ref(false)
+const isRestoringSelection = ref(false)
+
+const filteredLists = computed(() => filterSavedTabLists(lists.value, searchQuery.value))
+
+const visibleItemReferences = computed(() => filteredLists.value.flatMap(({ list, items }) =>
+  items.map(({ index }) => ({ listId: list.id, itemIndex: index }))
+))
+
+const restoreOptions = computed<SavedTabRestoreOptions>(() => ({
+  target: restoreTarget.value,
+  skipAlreadyOpen: skipAlreadyOpen.value
+}))
+
+watch(searchQuery, () => {
+  selectedItems.value.clear()
+  collapsedSearchListIds.value = new Set()
+})
 
 const dateFormatter = computed(() => new Intl.DateTimeFormat(getCurrentLocale(), {
   dateStyle: 'medium',
@@ -285,6 +379,13 @@ async function loadLists() {
 }
 
 function toggleList(id: string) {
+  if (searchQuery.value.trim()) {
+    const next = new Set(collapsedSearchListIds.value)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    collapsedSearchListIds.value = next
+    return
+  }
   const next = new Set(expandedListIds.value)
   if (next.has(id)) {
     next.delete(id)
@@ -294,9 +395,42 @@ function toggleList(id: string) {
   expandedListIds.value = next
 }
 
+function isListExpanded(id: string) {
+  return searchQuery.value.trim()
+    ? !collapsedSearchListIds.value.has(id)
+    : expandedListIds.value.has(id)
+}
+
+function itemSelectionKey(listId: string, itemIndex: number) {
+  return `${listId}:${itemIndex}`
+}
+
+function isItemSelected(listId: string, itemIndex: number) {
+  return selectedItems.value.has(itemSelectionKey(listId, itemIndex))
+}
+
+function toggleItemSelection(listId: string, itemIndex: number) {
+  const next = new Map(selectedItems.value)
+  const key = itemSelectionKey(listId, itemIndex)
+  if (next.has(key)) next.delete(key)
+  else next.set(key, { listId, itemIndex })
+  selectedItems.value = next
+}
+
+function selectVisibleItems() {
+  selectedItems.value = new Map(visibleItemReferences.value.map(reference => [
+    itemSelectionKey(reference.listId, reference.itemIndex),
+    reference
+  ]))
+}
+
 function operationMessage(result: BatchOperationResult, action: 'restore' | 'close') {
   const succeeded = result.successfulOperations
   const failed = result.failedOperations
+  const skipped = result.skippedOperations ?? 0
+  if (action === 'restore' && skipped > 0) {
+    return i18n.global.t('savedTabs.restoreWithSkipped', { count: succeeded, skipped, failed })
+  }
   if (failed > 0 && succeeded > 0) {
     return action === 'restore'
       ? i18n.global.t('savedTabs.partialRestore', { count: succeeded, failed })
@@ -333,6 +467,24 @@ async function saveWindow() {
   }
 }
 
+async function saveSession() {
+  if (isSavingSession.value) return
+  isSavingSession.value = true
+  try {
+    const response = await send<SavedTabList>(MESSAGE_TYPES.SAVE_SESSION, {
+      name: listName.value.trim() || undefined
+    })
+    if (!response.data) throw new Error(response.error || i18n.global.t('savedTabs.saveFailed'))
+    listName.value = ''
+    await loadLists()
+    emit('notify', response.data.name, 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'), 'error')
+  } finally {
+    isSavingSession.value = false
+  }
+}
+
 async function saveAndCloseSelected() {
   if (props.selectedTabIds.size === 0 || isSavingAndClosing.value) return
   isSavingAndClosing.value = true
@@ -365,7 +517,8 @@ async function restoreList(list: SavedTabList) {
   busyListId.value = list.id
   try {
     const response = await send<BatchOperationResult>(MESSAGE_TYPES.RESTORE_LIST, {
-      id: list.id
+      id: list.id,
+      options: restoreOptions.value
     })
     const result = response.data
     if (!result) {
@@ -387,7 +540,8 @@ async function restoreItem(list: SavedTabList, itemIndex: number) {
   try {
     const response = await send<BatchOperationResult>(MESSAGE_TYPES.RESTORE_SAVED_ITEM, {
       id: list.id,
-      itemIndex
+      itemIndex,
+      options: restoreOptions.value
     })
     const result = response.data
     if (!result) {
@@ -399,6 +553,26 @@ async function restoreItem(list: SavedTabList, itemIndex: number) {
     emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.restoreFailed'), 'error')
   } finally {
     busyItemKey.value = null
+  }
+}
+
+async function restoreSelectedItems() {
+  if (selectedItems.value.size === 0 || isRestoringSelection.value) return
+  isRestoringSelection.value = true
+  try {
+    const response = await send<BatchOperationResult>(MESSAGE_TYPES.RESTORE_SELECTED_ITEMS, {
+      items: [...selectedItems.value.values()],
+      options: restoreOptions.value
+    })
+    const result = response.data
+    if (!result) throw new Error(response.error || i18n.global.t('savedTabs.restoreFailed'))
+    selectedItems.value.clear()
+    if (result.successfulOperations > 0) emit('tabs-updated')
+    emit('notify', operationMessage(result, 'restore'), result.failedOperations > 0 ? 'error' : 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.restoreFailed'), 'error')
+  } finally {
+    isRestoringSelection.value = false
   }
 }
 
@@ -489,7 +663,11 @@ onMounted(loadLists)
 .list-expand:focus-visible,
 .icon-button:focus-visible,
 .action-button:focus-visible,
-.restore-item-button:focus-visible {
+.restore-item-button:focus-visible,
+.saved-search input:focus-visible,
+.restore-target-field select:focus-visible,
+.skip-duplicates-field input:focus-visible,
+.item-select input:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
@@ -534,10 +712,74 @@ onMounted(loadLists)
   padding: 0 14px 12px;
 }
 
+.saved-list-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.saved-search input,
+.restore-target-field select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 11px;
+}
+
+.restore-target-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.restore-target-field select {
+  width: auto;
+}
+
+.skip-duplicates-field {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.skip-duplicates-field input,
+.item-select input {
+  accent-color: var(--primary-color);
+}
+
+.selection-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.selection-count {
+  flex: 1;
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
 .save-controls {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) auto auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.name-field {
+  grid-column: 1 / -1;
 }
 
 .name-field input,
@@ -694,6 +936,13 @@ onMounted(loadLists)
   gap: 7px;
   padding: 5px 0;
   border-top: 1px solid var(--border-secondary);
+}
+
+.item-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 16px;
 }
 
 .item-icon {

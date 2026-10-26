@@ -2,6 +2,8 @@ import type {
   APIResponse,
   ExtensionConfig,
   GroupOptions,
+  SavedTabReference,
+  SavedTabRestoreOptions,
   SortOptions
 } from '@/shared/types'
 import {
@@ -25,11 +27,18 @@ interface SaveWindowPayload {
 
 interface RestoreListPayload {
   id: string
+  options?: SavedTabRestoreOptions
 }
 
 interface RestoreSavedItemPayload {
   id: string
   itemIndex: number
+  options?: SavedTabRestoreOptions
+}
+
+interface RestoreSelectedItemsPayload {
+  items: SavedTabReference[]
+  options?: SavedTabRestoreOptions
 }
 
 interface UpdateListPayload {
@@ -135,6 +144,8 @@ async function handleMessage(message: {
     return handleGetStats()
   case MESSAGE_TYPES.SAVE_WINDOW:
     return handleSaveWindow(payload as SaveWindowPayload)
+  case MESSAGE_TYPES.SAVE_SESSION:
+    return handleSaveSession(payload as SaveWindowPayload)
   case MESSAGE_TYPES.SAVE_AND_CLOSE_TABS:
     return handleSaveAndCloseTabs(payload as SaveAndClosePayload)
   case MESSAGE_TYPES.GET_SAVED_LISTS:
@@ -143,6 +154,8 @@ async function handleMessage(message: {
     return handleRestoreList(payload as RestoreListPayload)
   case MESSAGE_TYPES.RESTORE_SAVED_ITEM:
     return handleRestoreSavedItem(payload as RestoreSavedItemPayload)
+  case MESSAGE_TYPES.RESTORE_SELECTED_ITEMS:
+    return handleRestoreSelectedItems(payload as RestoreSelectedItemsPayload)
   case MESSAGE_TYPES.UPDATE_LIST:
     return handleUpdateList(payload as UpdateListPayload)
   case MESSAGE_TYPES.DELETE_LIST:
@@ -229,6 +242,14 @@ async function handleSaveWindow(payload: SaveWindowPayload = {}): Promise<APIRes
   }
 }
 
+async function handleSaveSession(payload: SaveWindowPayload = {}): Promise<APIResponse> {
+  try {
+    return response(await SavedTabsService.saveSession(payload.name))
+  } catch (error) {
+    return response(undefined, false, `保存会话失败: ${toErrorMessage(error)}`)
+  }
+}
+
 async function handleSaveAndCloseTabs(
   payload: SaveAndClosePayload = {}
 ): Promise<APIResponse> {
@@ -248,7 +269,7 @@ async function handleSaveAndCloseTabs(
 
 async function handleRestoreList(payload: RestoreListPayload): Promise<APIResponse> {
   try {
-    const result = await SavedTabsService.restoreList(payload.id)
+    const result = await SavedTabsService.restoreList(payload.id, payload.options)
     return response(result, result.success, result.errors?.[0])
   } catch (error) {
     return response(undefined, false, `恢复标签页失败: ${toErrorMessage(error)}`)
@@ -259,7 +280,22 @@ async function handleRestoreSavedItem(
   payload: RestoreSavedItemPayload
 ): Promise<APIResponse> {
   try {
-    const result = await SavedTabsService.restoreSavedItem(payload.id, payload.itemIndex)
+    const result = await SavedTabsService.restoreSavedItem(
+      payload.id,
+      payload.itemIndex,
+      payload.options
+    )
+    return response(result, result.success, result.errors?.[0])
+  } catch (error) {
+    return response(undefined, false, `恢复标签页失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function handleRestoreSelectedItems(
+  payload: RestoreSelectedItemsPayload
+): Promise<APIResponse> {
+  try {
+    const result = await SavedTabsService.restoreSelectedItems(payload.items, payload.options)
     return response(result, result.success, result.errors?.[0])
   } catch (error) {
     return response(undefined, false, `恢复标签页失败: ${toErrorMessage(error)}`)
