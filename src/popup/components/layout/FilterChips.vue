@@ -47,7 +47,7 @@ const handleToggleFilter = (filterId: string) => {
 /* 筛选标签 */
 .filter-chips {
   display: flex;
-  gap: 6px;
+  gap: 7px;
   margin-top: 0;
   overflow-x: auto;
   padding-bottom: 2px;
@@ -66,11 +66,11 @@ const handleToggleFilter = (filterId: string) => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 30px;
-  padding: 5px 10px;
-  background: var(--bg-elevated);
+  min-height: 29px;
+  padding: 5px 11px;
+  background: var(--bg-secondary);
   border: 1px solid var(--border-secondary);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   font-size: 11px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -89,6 +89,7 @@ const handleToggleFilter = (filterId: string) => {
   background: var(--primary-color);
   border-color: var(--primary-color);
   color: var(--bg-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .chip-icon {
@@ -98,7 +99,7 @@ const handleToggleFilter = (filterId: string) => {
 
 .chip-count {
   padding: 0 4px;
-  background: var(--bg-tertiary);
+  background: color-mix(in oklab, currentColor 12%, transparent);
   border-radius: 999px;
   font-size: 10px;
 }

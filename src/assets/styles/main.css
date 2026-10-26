@@ -14,17 +14,20 @@ html {
                'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 
                'Noto Color Emoji';
   line-height: 1.5;
-  background: var(--bg-primary, #f5f5f2);
+  font-size: 13px;
+  background: var(--bg-primary, #f4f4f1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
   padding: 0;
-  color: var(--text-primary, #1b1b19);
-  background-color: var(--bg-primary, #f5f5f2);
+  color: var(--text-primary, #191918);
+  background-color: var(--bg-primary, #f4f4f1);
   min-width: 0;
+  min-height: 100%;
 }
 
 /* 滚动条样式 */
@@ -57,6 +60,11 @@ button {
   line-height: inherit;
   margin: 0;
   -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+[role='button'] {
+  cursor: pointer;
 }
 
 /* 输入框基础样式 */

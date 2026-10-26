@@ -134,15 +134,15 @@ const handleToggleMultiSelect = () => {
   align-items: center;
   justify-content: flex-start;
   gap: 2px;
-  padding: 8px 14px;
-  background: color-mix(in oklab, var(--bg-elevated) 94%, var(--bg-primary));
+  padding: 10px 14px 11px;
+  background: var(--bg-overlay);
   backdrop-filter: blur(16px);
   border-top: 1px solid var(--border-secondary);
   box-shadow: 0 -8px 20px color-mix(in oklab, var(--text-primary) 5%, transparent);
   flex-shrink: 0;
   z-index: 1000;
   overflow-x: auto;
-  min-height: 56px;
+  min-height: 60px;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -175,11 +175,11 @@ const handleToggleMultiSelect = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
-  padding: 8px 12px;
+  min-height: 38px;
+  padding: 8px 13px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   font-size: 12px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -196,9 +196,9 @@ const handleToggleMultiSelect = () => {
 }
 
 .tool-btn.active {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border-color: var(--border-primary);
+  background: var(--primary-color);
+  color: var(--bg-primary);
+  border-color: var(--primary-color);
   box-shadow: inset 0 1px 0 color-mix(in oklab, var(--bg-elevated) 35%, transparent);
 }
 

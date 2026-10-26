@@ -134,7 +134,7 @@ const handleOpenSettings = () => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 13px 16px 12px;
+  padding: 14px 16px 13px;
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-secondary);
   flex-shrink: 0;
@@ -152,7 +152,7 @@ const handleOpenSettings = () => {
   padding: 4px;
   box-sizing: border-box;
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius-sm);
+  border-radius: 9px;
   background: var(--bg-secondary);
   filter: grayscale(1) contrast(1.04);
   box-shadow: var(--shadow-sm);

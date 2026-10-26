@@ -107,7 +107,7 @@ onMounted(() => {
 
 <style scoped>
 .sidebar {
-  width: 216px;
+  width: 224px;
   background: var(--bg-elevated);
   border-right: 1px solid var(--border-secondary);
   display: flex;
@@ -116,7 +116,7 @@ onMounted(() => {
 }
 
 .sidebar-header {
-  padding: 20px 18px;
+  padding: 22px 20px;
   border-bottom: 1px solid var(--border-secondary);
   display: flex;
   align-items: center;
@@ -139,7 +139,7 @@ onMounted(() => {
 
 .sidebar-nav {
   flex: 1;
-  padding: 20px 12px;
+  padding: 24px 14px;
   overflow-y: auto;
 }
 
@@ -147,8 +147,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 10px 12px 10px 14px;
-  border-radius: 8px;
+  padding: 11px 12px 11px 14px;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition-colors), transform 160ms ease;

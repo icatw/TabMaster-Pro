@@ -383,8 +383,8 @@ const cancelEditGroupTitle = () => {
 /* 分组样式 */
 .tab-group {
   border-left: 2px solid color-mix(in oklab, var(--group-color) 62%, var(--border-primary));
-  background: color-mix(in oklab, var(--bg-secondary) 26%, transparent);
-  margin: 0 10px 10px 0;
+  background: color-mix(in oklab, var(--bg-secondary) 34%, transparent);
+  margin: 0 10px 12px 0;
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
   overflow: hidden;
 }
@@ -393,14 +393,14 @@ const cancelEditGroupTitle = () => {
   position: sticky;
   top: 0;
   z-index: 5;
-  background: color-mix(in oklab, var(--bg-secondary) 52%, var(--bg-primary));
+  background: color-mix(in oklab, var(--bg-secondary) 66%, var(--bg-primary));
   border-bottom: 1px solid var(--border-secondary);
 }
 
 .group-header-content {
   display: flex;
   align-items: center;
-  padding: 9px 12px 9px 10px;
+  padding: 10px 12px 10px 10px;
   gap: 8px;
   user-select: none;
   transition: all 0.15s;
@@ -457,7 +457,7 @@ const cancelEditGroupTitle = () => {
 .group-count {
   min-width: 24px;
   padding: 2px 7px;
-  background: var(--bg-tertiary);
+  background: color-mix(in oklab, var(--bg-tertiary) 82%, var(--bg-primary));
   border-radius: 999px;
   font-size: 11px;
   color: var(--text-secondary);
@@ -472,6 +472,10 @@ const cancelEditGroupTitle = () => {
 }
 
 .group-header-content:hover .group-actions {
+  opacity: 1;
+}
+
+.group-header-content:focus-within .group-actions {
   opacity: 1;
 }
 

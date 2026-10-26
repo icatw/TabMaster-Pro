@@ -381,11 +381,11 @@ watch([filteredTabs, bookmarkResults, displayedBookmarkGroups, collapsedBookmark
   background: var(--bg-primary);
   color: var(--text-primary);
   border: 1px solid var(--border-secondary);
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), 0 0 0 1px color-mix(in oklab, var(--bg-elevated) 40%, transparent);
   position: relative;
 }
 

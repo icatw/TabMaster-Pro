@@ -61,30 +61,31 @@ export function useTheme() {
 
     return {
       // Neutral ink surfaces keep the popup calm and make hierarchy come from spacing.
-      bgPrimary: isDarkTheme ? '#10100f' : '#f5f5f2',
-      bgSecondary: isDarkTheme ? '#181817' : '#eaeae6',
-      bgTertiary: isDarkTheme ? '#242421' : '#deded8',
-      bgHover: isDarkTheme ? '#21211f' : '#e5e5e0',
-      bgElevated: isDarkTheme ? '#191918' : '#fffefa',
+      bgPrimary: isDarkTheme ? '#111110' : '#f4f4f1',
+      bgSecondary: isDarkTheme ? '#191918' : '#ecece8',
+      bgTertiary: isDarkTheme ? '#252522' : '#e1e1dc',
+      bgHover: isDarkTheme ? '#22221f' : '#e8e8e3',
+      bgElevated: isDarkTheme ? '#1c1c1a' : '#fcfcfa',
+      bgOverlay: isDarkTheme ? 'rgba(28, 28, 26, 0.92)' : 'rgba(252, 252, 250, 0.9)',
 
       // 文字颜色
-      textPrimary: isDarkTheme ? '#f4f4f0' : '#1b1b19',
-      textSecondary: isDarkTheme ? '#c1c1ba' : '#555550',
-      textTertiary: isDarkTheme ? '#a1a19a' : '#676760',
+      textPrimary: isDarkTheme ? '#f5f5f0' : '#191918',
+      textSecondary: isDarkTheme ? '#c3c3ba' : '#555550',
+      textTertiary: isDarkTheme ? '#9e9e94' : '#76766f',
 
       // 边框颜色
-      borderPrimary: isDarkTheme ? '#72716a' : '#7a7a74',
-      borderSecondary: isDarkTheme ? '#353530' : '#d2d2cc',
+      borderPrimary: isDarkTheme ? '#65655e' : '#93938b',
+      borderSecondary: isDarkTheme ? '#343430' : '#d8d8d2',
 
       // Black and white are the only brand colors; semantic colors remain separate.
-      primaryColor: isDarkTheme ? '#f4f4f0' : '#1b1b19',
+      primaryColor: isDarkTheme ? '#f5f5f0' : '#191918',
       primaryHover: isDarkTheme ? '#ffffff' : '#393934',
-      primaryLight: isDarkTheme ? 'rgba(244, 244, 240, 0.11)' : 'rgba(27, 27, 25, 0.08)',
+      primaryLight: isDarkTheme ? 'rgba(245, 245, 240, 0.1)' : 'rgba(25, 25, 24, 0.07)',
 
       // 键盘导航高亮色
-      keyboardHighlight: isDarkTheme ? 'rgba(244, 244, 240, 0.1)' : 'rgba(27, 27, 25, 0.07)',
-      keyboardBorder: isDarkTheme ? '#f4f4f0' : '#1b1b19',
-      keyboardGlow: isDarkTheme ? 'rgba(244, 244, 240, 0.18)' : 'rgba(27, 27, 25, 0.14)',
+      keyboardHighlight: isDarkTheme ? 'rgba(245, 245, 240, 0.1)' : 'rgba(25, 25, 24, 0.07)',
+      keyboardBorder: isDarkTheme ? '#f5f5f0' : '#191918',
+      keyboardGlow: isDarkTheme ? 'rgba(245, 245, 240, 0.18)' : 'rgba(25, 25, 24, 0.14)',
 
       // 辅助色
       successColor: isDarkTheme ? '#75c995' : '#28734a',
@@ -95,16 +96,16 @@ export function useTheme() {
       // 阴影
       shadowSm: isDarkTheme
         ? '0 1px 2px rgba(0, 0, 0, 0.24)'
-        : '0 1px 2px rgba(27, 27, 25, 0.05), 0 3px 10px rgba(27, 27, 25, 0.035)',
+        : '0 1px 2px rgba(23, 23, 21, 0.04), 0 3px 10px rgba(23, 23, 21, 0.025)',
       shadowMd: isDarkTheme
         ? '0 8px 24px rgba(0, 0, 0, 0.28)'
-        : '0 8px 24px rgba(27, 27, 25, 0.075)',
+        : '0 8px 24px rgba(23, 23, 21, 0.065)',
       shadowLg: isDarkTheme
         ? '0 18px 44px rgba(0, 0, 0, 0.42)'
-        : '0 18px 44px rgba(27, 27, 25, 0.11)',
+        : '0 18px 44px rgba(23, 23, 21, 0.1)',
       ring: isDarkTheme
-        ? '0 0 0 3px rgba(244, 244, 240, 0.2)'
-        : '0 0 0 3px rgba(27, 27, 25, 0.16)'
+        ? '0 0 0 3px rgba(245, 245, 240, 0.2)'
+        : '0 0 0 3px rgba(23, 23, 21, 0.14)'
     }
   })
 
@@ -122,6 +123,7 @@ export function useTheme() {
     root.style.setProperty('--bg-tertiary', config.bgTertiary)
     root.style.setProperty('--bg-hover', config.bgHover)
     root.style.setProperty('--bg-elevated', config.bgElevated)
+    root.style.setProperty('--bg-overlay', config.bgOverlay)
 
     root.style.setProperty('--text-primary', config.textPrimary)
     root.style.setProperty('--text-secondary', config.textSecondary)

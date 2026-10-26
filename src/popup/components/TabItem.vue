@@ -124,7 +124,7 @@ const handleTabClick = (event: MouseEvent) => {
   position: relative;
   background: transparent;
   border-radius: var(--radius-sm);
-  margin: 2px 10px 2px 8px;
+  margin: 3px 10px 3px 8px;
   transition: var(--transition-colors), transform 160ms ease;
   border: 1px solid transparent;
   overflow: hidden;
@@ -221,8 +221,8 @@ const handleTabClick = (event: MouseEvent) => {
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 40px;
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 9px 11px;
   position: relative;
   z-index: 1;
 }
