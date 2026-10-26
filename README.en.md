@@ -23,10 +23,13 @@ TabMaster Pro also keeps its live-window tools for search, sorting, grouping, an
 - Keep lists after restoring items so they can be reused.
 - Deduplicate URLs within a list and migrate older storage data to a versioned format.
 - Show local list and tab totals plus the oldest list date; review lists by creation age and explicitly select what to delete. Cleanup never runs automatically.
+- Optionally generate a topic summary for a list. Chrome's on-device model is the default; custom OpenAI-compatible endpoints are supported, and summaries are cached locally.
 - Avoid closing tabs when saving fails; report actual partial success counts for restore and close operations.
 - Save restorable URLs before single-tab close, batch close, keyboard `Delete`, and group close.
 
-Saved Lists are stored only in the current browser's `chrome.storage.local`. They are not uploaded to a server.
+Saved Lists stay in the current browser's `chrome.storage.local` by default. Only when you request a summary with a custom endpoint selected, the extension sends the list name, tab titles, and site hostnames to that endpoint; it does not send full URLs. API keys stay in local extension storage.
+
+Custom models must support the OpenAI Chat Completions API. HTTPS endpoints can use hosted services; plain HTTP is limited to localhost for local model servers. Chrome's on-device model requires a browser and device that support the Prompt API, with the model ready to use.
 
 ### Tab Workflows
 

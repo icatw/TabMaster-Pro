@@ -66,6 +66,10 @@ const menuItems = [
     labelKey: 'settings.shortcuts'
   },
   {
+    id: 'ai',
+    labelKey: 'settings.aiTitle'
+  },
+  {
     id: 'about',
     labelKey: 'settings.about'
   }
@@ -96,6 +100,7 @@ const iconsBySection: Record<string, object> = {
   sort: IconSort,
   group: IconGroup,
   shortcuts: IconKeyboard,
+  ai: IconInfo,
   about: IconInfo
 }
 
