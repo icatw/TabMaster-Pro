@@ -44,6 +44,60 @@
         </div>
       </div>
 
+      <div class="setting-item">
+        <div class="toggle-wrapper">
+          <label class="toggle-label">
+            <input
+              type="checkbox"
+              v-model="localConfig.autoCollectEnabled"
+              @change="handleChange"
+              class="toggle-input"
+            />
+            <span class="toggle-slider"></span>
+          </label>
+          <div class="toggle-content">
+            <span class="toggle-title">{{ $t('settings.autoCollect') }}</span>
+            <p class="setting-desc">{{ $t('settings.autoCollectDescription') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <Transition name="slide">
+        <div v-if="localConfig.autoCollectEnabled" class="auto-collect-options">
+          <div class="setting-item">
+            <label class="setting-label" for="auto-collect-age">{{ $t('settings.autoCollectAfter') }}</label>
+            <select
+              id="auto-collect-age"
+              v-model.number="localConfig.autoCollectAfterDays"
+              class="form-select"
+              @change="handleChange"
+            >
+              <option :value="1">{{ $t('settings.days', { count: 1 }) }}</option>
+              <option :value="3">{{ $t('settings.days', { count: 3 }) }}</option>
+              <option :value="7">{{ $t('settings.days', { count: 7 }) }}</option>
+              <option :value="14">{{ $t('settings.days', { count: 14 }) }}</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label" for="auto-collect-exclusions">{{ $t('settings.autoCollectExclusions') }}</label>
+            <textarea
+              id="auto-collect-exclusions"
+              v-model="localConfig.autoCollectExcludedDomains"
+              class="form-textarea"
+              rows="3"
+              name="auto-collect-exclusions"
+              spellcheck="false"
+              :aria-describedby="'auto-collect-exclusions-hint'"
+              @change="handleChange"
+            />
+            <p id="auto-collect-exclusions-hint" class="setting-desc">
+              {{ $t('settings.autoCollectExclusionsDescription') }}
+            </p>
+          </div>
+        </div>
+      </Transition>
+
       <Transition name="slide">
         <div v-if="localConfig.autoSortEnabled" class="setting-item sub-setting">
           <label class="setting-label">
@@ -108,7 +162,10 @@ const localConfig = reactive({
   defaultSortRule: props.config.defaultSortRule,
   autoSortEnabled: props.config.autoSortEnabled,
   autoSortDelay: props.config.autoSortDelay || 1000,
-  autoGroupEnabled: props.config.autoGroupEnabled
+  autoGroupEnabled: props.config.autoGroupEnabled,
+  autoCollectEnabled: props.config.autoCollectEnabled,
+  autoCollectAfterDays: props.config.autoCollectAfterDays,
+  autoCollectExcludedDomains: props.config.autoCollectExcludedDomains
 })
 
 watch(() => props.config, (newConfig) => {
@@ -116,7 +173,10 @@ watch(() => props.config, (newConfig) => {
     defaultSortRule: newConfig.defaultSortRule,
     autoSortEnabled: newConfig.autoSortEnabled,
     autoSortDelay: newConfig.autoSortDelay || 1000,
-    autoGroupEnabled: newConfig.autoGroupEnabled
+    autoGroupEnabled: newConfig.autoGroupEnabled,
+    autoCollectEnabled: newConfig.autoCollectEnabled,
+    autoCollectAfterDays: newConfig.autoCollectAfterDays,
+    autoCollectExcludedDomains: newConfig.autoCollectExcludedDomains
   })
 }, { deep: true })
 
@@ -125,7 +185,10 @@ const handleChange = () => {
     defaultSortRule: localConfig.defaultSortRule,
     autoSortEnabled: localConfig.autoSortEnabled,
     autoSortDelay: localConfig.autoSortDelay,
-    autoGroupEnabled: localConfig.autoGroupEnabled
+    autoGroupEnabled: localConfig.autoGroupEnabled,
+    autoCollectEnabled: localConfig.autoCollectEnabled,
+    autoCollectAfterDays: localConfig.autoCollectAfterDays,
+    autoCollectExcludedDomains: localConfig.autoCollectExcludedDomains
   })
 }
 </script>
@@ -238,6 +301,23 @@ const handleChange = () => {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-textarea {
+  width: 100%;
+  max-width: 420px;
+  padding: 10px 12px;
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  font: inherit;
+  resize: vertical;
+}
+
+.form-textarea:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .toggle-wrapper {

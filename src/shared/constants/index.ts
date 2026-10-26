@@ -31,7 +31,8 @@ export const STORAGE_KEYS = {
   CONFIG: 'extension_config',
   CACHE: 'tab_cache',
   STATS: 'usage_stats',
-  SAVED_TABS: 'saved_tabs'
+  SAVED_TABS: 'saved_tabs',
+  AUTO_COLLECTION_PREVIEW: 'auto_collection_preview'
 } as const
 
 export const SAVED_TABS_SCHEMA_VERSION = 2
@@ -44,6 +45,9 @@ export const DEFAULT_CONFIG = {
   autoGroupEnabled: false,
   autoSortEnabled: false,  // 默认关闭自动排序
   autoSortDelay: 1000,     // 默认延迟1秒
+  autoCollectEnabled: false,
+  autoCollectAfterDays: 7,
+  autoCollectExcludedDomains: '',
   groupColorPreference: 'auto' as const,
   customColors: {},
   sortOptions: {
@@ -115,7 +119,10 @@ export const MESSAGE_TYPES = {
   RESTORE_SAVED_ITEM: 'RESTORE_SAVED_ITEM',
   RESTORE_SELECTED_ITEMS: 'RESTORE_SELECTED_ITEMS',
   UPDATE_LIST: 'UPDATE_LIST',
-  DELETE_LIST: 'DELETE_LIST'
+  DELETE_LIST: 'DELETE_LIST',
+  GET_AUTO_COLLECTION_PREVIEW: 'GET_AUTO_COLLECTION_PREVIEW',
+  CONFIRM_AUTO_COLLECTION: 'CONFIRM_AUTO_COLLECTION',
+  DISMISS_AUTO_COLLECTION: 'DISMISS_AUTO_COLLECTION'
 } as const
 
 /**
