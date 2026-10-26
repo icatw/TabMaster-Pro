@@ -381,8 +381,8 @@ onMounted(async () => {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e8e8e8;
-  border-top-color: #345454;
+  border: 4px solid var(--border-primary);
+  border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 16px;
@@ -391,8 +391,8 @@ onMounted(async () => {
 .btn-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 2px solid color-mix(in srgb, var(--bg-primary) 35%, transparent);
+  border-top-color: var(--bg-primary);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -439,14 +439,14 @@ onMounted(async () => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #345454 0%, #5b9c7a 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(52, 84, 84, 0.3);
+  background: var(--primary-color);
+  color: var(--bg-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 84, 84, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -485,13 +485,15 @@ onMounted(async () => {
 }
 
 .toast.success {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(91, 156, 122, 0.95) 100%);
-  color: white;
+  background: var(--bg-elevated);
+  border: 1px solid var(--success-color);
+  color: var(--success-color);
 }
 
 .toast.error {
-  background: linear-gradient(135deg, rgba(245, 101, 101, 0.95) 0%, rgba(237, 137, 54, 0.95) 100%);
-  color: white;
+  background: var(--bg-elevated);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
 }
 
 .toast-icon {
@@ -558,11 +560,11 @@ onMounted(async () => {
 }
 
 .main-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #345454 0%, #5b9c7a 100%);
-  border-radius: 4px;
+  background: var(--text-tertiary);
+  border-radius: 999px;
 }
 
 .main-content::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #2a4343 0%, #4a8b69 100%);
+  background: var(--text-secondary);
 }
 </style>

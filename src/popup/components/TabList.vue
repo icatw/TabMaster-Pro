@@ -452,10 +452,10 @@ const cancelEditGroupTitle = () => {
 
 .group-count {
   padding: 2px 8px;
-  background: var(--primary-color);
+  background: var(--text-primary);
   border-radius: 10px;
   font-size: 11px;
-  color: white;
+  color: var(--bg-primary);
   font-weight: 500;
 }
 

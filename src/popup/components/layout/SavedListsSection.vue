@@ -561,7 +561,7 @@ onMounted(loadLists)
 .action-button.primary {
   border-color: var(--primary-color);
   background: var(--primary-color);
-  color: #fff;
+  color: var(--bg-primary);
 }
 
 .action-button.danger-outline {
@@ -572,7 +572,7 @@ onMounted(loadLists)
 .action-button.danger-filled {
   border-color: var(--danger-color);
   background: var(--danger-color);
-  color: #fff;
+  color: var(--bg-primary);
 }
 
 .action-button:disabled,

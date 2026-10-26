@@ -21,8 +21,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  color: #374151;
-  background-color: #ffffff;
+  color: var(--text-primary, #18181b);
+  background-color: var(--bg-primary, #ffffff);
 }
 
 /* 滚动条样式 */
@@ -31,22 +31,20 @@ body {
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
+::-webkit-scrollbar-track { background: transparent; }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: var(--text-tertiary, #b8b8bf);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-secondary, #52525b);
 }
 
 /* 焦点样式 */
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--primary-color, #18181b);
   outline-offset: 2px;
 }
 
@@ -69,7 +67,7 @@ textarea {
 
 /* 链接样式 */
 a {
-  color: #3b82f6;
+  color: var(--primary-color, #18181b);
   text-decoration: none;
 }
 
@@ -114,18 +112,6 @@ a:hover {
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(-20px);
-}
-
-/* 暗色主题支持 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-  }
-  
-  body {
-    background-color: #111827;
-    color: #f9fafb;
-  }
 }
 
 /* 高对比度模式支持 */

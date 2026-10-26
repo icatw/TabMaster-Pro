@@ -46,7 +46,7 @@ const handleToggleFilter = (filterId: string) => {
 .filter-chips {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
   overflow-x: auto;
   padding-bottom: 2px;
 }
@@ -64,10 +64,10 @@ const handleToggleFilter = (filterId: string) => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 5px 10px;
   background: var(--bg-primary);
   border: 1px solid var(--border-primary);
-  border-radius: 12px;
+  border-radius: 999px;
   font-size: 11px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -82,9 +82,9 @@ const handleToggleFilter = (filterId: string) => {
 }
 
 .filter-chip.active {
-  background: var(--primary-light);
+  background: var(--primary-color);
   border-color: var(--primary-color);
-  color: var(--primary-color);
+  color: var(--bg-primary);
 }
 
 .chip-icon {
@@ -99,7 +99,7 @@ const handleToggleFilter = (filterId: string) => {
 }
 
 .filter-chip.active .chip-count {
-  background: var(--primary-light);
-  opacity: 0.7;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  color: inherit;
 }
 </style>

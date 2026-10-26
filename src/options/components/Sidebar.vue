@@ -158,8 +158,8 @@ onMounted(() => {
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-  color: white;
+  background: var(--primary-color);
+  color: var(--bg-primary);
   font-weight: 500;
 }
 
@@ -183,7 +183,7 @@ onMounted(() => {
   gap: 8px;
   padding: 8px 12px;
   background: #24292e;
-  color: white;
+  color: #ffffff;
   border-radius: 6px;
   text-decoration: none;
   font-size: 13px;

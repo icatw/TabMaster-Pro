@@ -210,7 +210,7 @@ onMounted(() => {
 .about-logo {
   width: 36px;
   height: 36px;
-  color: white;
+  color: var(--bg-primary);
 }
 
 .about-info {
@@ -233,13 +233,13 @@ onMounted(() => {
 .version-badge {
   display: inline-block;
   padding: 4px 12px;
-  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+  background: var(--success-color);
   border-radius: 12px;
 }
 
 .badge-text {
   font-size: 12px;
-  color: white;
+  color: var(--bg-primary);
   font-weight: 500;
 }
 
@@ -403,7 +403,7 @@ onMounted(() => {
 .dev-avatar svg {
   width: 28px;
   height: 28px;
-  color: white;
+  color: var(--bg-primary);
 }
 
 .dev-info {

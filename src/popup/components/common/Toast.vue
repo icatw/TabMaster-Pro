@@ -66,23 +66,23 @@ watch(() => props.message, (newMessage) => {
   left: 50%;
   transform: translateX(-50%);
   padding: 8px 16px;
-  background: white;
+  background: var(--bg-elevated);
   border-radius: 8px;
   font-size: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   max-width: 280px;
   white-space: nowrap;
 }
 
 .toast.success {
-  border-left: 3px solid #48bb78;
-  color: #2f855a;
+  border-left: 3px solid var(--success-color);
+  color: var(--success-color);
 }
 
 .toast.error {
-  border-left: 3px solid #fc8181;
-  color: #c53030;
+  border-left: 3px solid var(--danger-color);
+  color: var(--danger-color);
 }
 
 /* 过渡动画 */

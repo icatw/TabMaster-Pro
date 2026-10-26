@@ -135,21 +135,19 @@ onMounted(async () => {
 
 /* 黑夜模式下加强键盘导航效果 */
 [data-theme="dark"] .bookmark-item.keyboard-active {
-  background: rgba(106, 176, 143, 0.25);
-  border-color: #7fc0a0;
-  box-shadow:
-    0 0 0 1px rgba(127, 192, 160, 0.5),
-    inset 0 0 0 1px rgba(127, 192, 160, 0.3);
+  background: var(--keyboard-highlight);
+  border-color: var(--keyboard-border);
+  box-shadow: 0 0 0 1px var(--keyboard-glow);
 }
 
 [data-theme="dark"] .bookmark-item.keyboard-active .bookmark-title {
-  color: #e8f5f0;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 [data-theme="dark"] .bookmark-item.keyboard-active .bookmark-url,
 [data-theme="dark"] .bookmark-item.keyboard-active .bookmark-folder {
-  color: #b0d4c0;
+  color: var(--text-secondary);
 }
 
 .bookmark-icon {

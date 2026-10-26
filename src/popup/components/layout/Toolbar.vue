@@ -38,7 +38,7 @@
     >
       <svg class="tool-icon" viewBox="0 0 16 16" fill="currentColor">
         <path d="M1.5 3A1.5 1.5 0 0 1 3 1.5h10A1.5 1.5 0 0 1 14.5 3v10a1.5 1.5 0 0 1-1.5 1.5H3A1.5 1.5 0 0 1 1.5 13V3z"/>
-        <path fill="#fff" d="M5 5h6v1H5V5zm0 2h6v1H5V7zm0 2h6v1H5V9z"/>
+        <path d="M5 5h6v1H5V5zm0 2h6v1H5V7zm0 2h6v1H5V9z"/>
       </svg>
       <span class="tool-label">{{ $t('toolbar.group') }}</span>
     </button>
@@ -125,14 +125,16 @@ const handleToggleMultiSelect = () => {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
-  padding: 8px 24px;
+  gap: 6px;
+  padding: 8px 18px;
   background: var(--bg-primary);
+  background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+  backdrop-filter: blur(14px);
   border-top: 1px solid var(--border-secondary);
   flex-shrink: 0;
   z-index: 1000;
   overflow-x: auto;
-  min-height: 48px;
+  min-height: 52px;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -165,10 +167,10 @@ const handleToggleMultiSelect = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
+  padding: 8px 11px;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 12px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -185,6 +187,7 @@ const handleToggleMultiSelect = () => {
 .tool-btn.active {
   background: var(--primary-light);
   color: var(--primary-color);
+  box-shadow: inset 0 0 0 1px var(--border-primary);
 }
 
 .tool-btn:disabled {
@@ -204,12 +207,12 @@ const handleToggleMultiSelect = () => {
 /* 排序菜单 */
 .tool-menu {
   position: fixed;
-  bottom: 60px;
-  left: 24px;
+  bottom: 64px;
+  left: 18px;
   margin-bottom: 4px;
   background: var(--bg-primary);
   border: 1px solid var(--border-primary);
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: var(--shadow-lg);
   z-index: 10000;
   min-width: 140px;

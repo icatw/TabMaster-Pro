@@ -61,8 +61,8 @@ const toggleFilter = (filterId: string) => {
   top: 0;
   z-index: 100;
   background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-primary);
-  padding: 16px;
+  border-bottom: 1px solid var(--border-secondary);
+  padding: 12px 18px 14px;
   gap: 12px;
   display: flex;
   flex-direction: column;

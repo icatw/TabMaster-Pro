@@ -267,7 +267,7 @@ const collapseGroups = () => {
   overflow-x: hidden;
   background: var(--bg-primary);
   position: relative;
-  padding-bottom: 4px;
+  padding-bottom: 58px;
 }
 
 .search-layout {
@@ -404,11 +404,11 @@ const collapseGroups = () => {
 }
 
 .app-main::-webkit-scrollbar-thumb {
-  background: #d0d0d0;
-  border-radius: 3px;
+  background: var(--text-tertiary);
+  border-radius: 999px;
 }
 
 .app-main::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
+  background: var(--text-secondary);
 }
 </style>

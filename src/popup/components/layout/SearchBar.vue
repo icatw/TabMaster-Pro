@@ -52,49 +52,51 @@ const handleClear = () => {
 <style scoped>
 .search-wrapper {
   position: relative;
+  border-radius: 10px;
   display: flex;
   align-items: center;
 }
 
 .search-icon {
   position: absolute;
-  left: 10px;
+  left: 12px;
   width: 14px;
   height: 14px;
-  color: #999;
+  color: var(--text-tertiary);
   pointer-events: none;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 32px 8px 32px;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  padding: 10px 36px 10px 36px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
   font-size: 13px;
-  color: #333;
-  transition: all 0.2s;
+  color: var(--text-primary);
+  transition: var(--transition-colors), box-shadow 160ms ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  border-color: var(--primary-color);
+  background: var(--bg-elevated);
+  box-shadow: var(--ring);
 }
 
 .clear-btn {
   position: absolute;
-  right: 6px;
-  width: 24px;
-  height: 24px;
+  right: 7px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  color: #999;
+  color: var(--text-tertiary);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 7px;
   transition: all 0.15s;
 }
 

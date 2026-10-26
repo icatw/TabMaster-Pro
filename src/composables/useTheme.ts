@@ -60,47 +60,47 @@ export function useTheme() {
     const isDarkTheme = actualTheme.value === 'dark'
 
     return {
-      // 背景色
-      bgPrimary: isDarkTheme ? '#1e1e1e' : '#ffffff',
-      bgSecondary: isDarkTheme ? '#2d2d2d' : '#fafafa',
-      bgTertiary: isDarkTheme ? '#3a3a3a' : '#f0f0f0',
-      bgHover: isDarkTheme ? '#404040' : '#f8f9fa',
+      // Neutral ink surfaces keep the popup calm and make hierarchy come from spacing.
+      bgPrimary: isDarkTheme ? '#18181b' : '#ffffff',
+      bgSecondary: isDarkTheme ? '#202023' : '#f7f7f8',
+      bgTertiary: isDarkTheme ? '#2b2b30' : '#eeeeef',
+      bgHover: isDarkTheme ? '#303035' : '#f1f1f2',
 
       // 文字颜色
-      textPrimary: isDarkTheme ? '#f0f0f0' : '#333333',
-      textSecondary: isDarkTheme ? '#c0c0c0' : '#666666',
-      textTertiary: isDarkTheme ? '#a0a0a0' : '#999999',
+      textPrimary: isDarkTheme ? '#f4f4f5' : '#18181b',
+      textSecondary: isDarkTheme ? '#b8b8c0' : '#52525b',
+      textTertiary: isDarkTheme ? '#85858f' : '#8b8b93',
 
       // 边框颜色
-      borderPrimary: isDarkTheme ? '#505050' : '#e5e7eb',
-      borderSecondary: isDarkTheme ? '#404040' : '#f0f0f0',
+      borderPrimary: isDarkTheme ? '#3b3b43' : '#d9d9de',
+      borderSecondary: isDarkTheme ? '#2d2d33' : '#e9e9ec',
 
-      // 主题色（绿色系）
-      primaryColor: isDarkTheme ? '#6ab08f' : '#5b9c7a',
-      primaryHover: isDarkTheme ? '#7fc0a0' : '#4a8c6a',
-      primaryLight: isDarkTheme ? 'rgba(106, 176, 143, 0.2)' : 'rgba(91, 156, 122, 0.1)',
+      // Black and white are the only brand colors; semantic colors remain separate.
+      primaryColor: isDarkTheme ? '#f4f4f5' : '#18181b',
+      primaryHover: isDarkTheme ? '#ffffff' : '#3f3f46',
+      primaryLight: isDarkTheme ? 'rgba(244, 244, 245, 0.12)' : 'rgba(24, 24, 27, 0.08)',
 
       // 键盘导航高亮色
-      keyboardHighlight: isDarkTheme ? 'rgba(127, 192, 160, 0.35)' : 'rgba(91, 156, 122, 0.15)',
-      keyboardBorder: isDarkTheme ? '#7fc0a0' : '#5b9c7a',
-      keyboardGlow: isDarkTheme ? 'rgba(106, 176, 143, 0.4)' : 'rgba(91, 156, 122, 0.2)',
+      keyboardHighlight: isDarkTheme ? 'rgba(244, 244, 245, 0.11)' : 'rgba(24, 24, 27, 0.07)',
+      keyboardBorder: isDarkTheme ? '#f4f4f5' : '#18181b',
+      keyboardGlow: isDarkTheme ? 'rgba(244, 244, 245, 0.2)' : 'rgba(24, 24, 27, 0.14)',
 
       // 辅助色
-      successColor: isDarkTheme ? '#4ade80' : '#22c55e',
-      warningColor: isDarkTheme ? '#fbbf24' : '#f59e0b',
-      dangerColor: isDarkTheme ? '#f87171' : '#ef4444',
-      infoColor: isDarkTheme ? '#60a5fa' : '#3b82f6',
+      successColor: isDarkTheme ? '#75c995' : '#28734a',
+      warningColor: isDarkTheme ? '#e7b84b' : '#9a6700',
+      dangerColor: isDarkTheme ? '#ff8b82' : '#b42318',
+      infoColor: isDarkTheme ? '#86b7ff' : '#275dad',
 
       // 阴影
       shadowSm: isDarkTheme
-        ? '0 1px 2px 0 rgba(0, 0, 0, 0.5)'
-        : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        ? '0 1px 2px rgba(0, 0, 0, 0.24)'
+        : '0 1px 2px rgba(24, 24, 27, 0.05)',
       shadowMd: isDarkTheme
-        ? '0 4px 6px -1px rgba(0, 0, 0, 0.5)'
-        : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        ? '0 4px 14px rgba(0, 0, 0, 0.28)'
+        : '0 4px 12px rgba(24, 24, 27, 0.08)',
       shadowLg: isDarkTheme
-        ? '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
-        : '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+        ? '0 18px 42px rgba(0, 0, 0, 0.46)'
+        : '0 16px 40px rgba(24, 24, 27, 0.16)'
     }
   })
 

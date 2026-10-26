@@ -337,7 +337,7 @@ const decreaseMax = () => {
   position: absolute;
   width: 22px;
   height: 22px;
-  background: white;
+  background: var(--bg-elevated);
   border-radius: 50%;
   top: 2px;
   left: 2px;
@@ -346,7 +346,7 @@ const decreaseMax = () => {
 }
 
 .toggle-input:checked + .toggle-slider {
-  background: linear-gradient(135deg, #345454 0%, #5b9c7a 100%);
+  background: var(--primary-color);
 }
 
 .toggle-input:checked + .toggle-slider::after {
@@ -447,7 +447,7 @@ const decreaseMax = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--bg-elevated);
   border: 1px solid #e0e0e0;
   border-radius: 6px;
   color: #666;
@@ -457,9 +457,9 @@ const decreaseMax = () => {
 }
 
 .number-btn:hover {
-  background: #345454;
-  color: white;
-  border-color: #345454;
+  background: var(--primary-color);
+  color: var(--bg-primary);
+  border-color: var(--primary-color);
 }
 
 .number-input {
@@ -469,14 +469,14 @@ const decreaseMax = () => {
   border: 1px solid #e0e0e0;
   border-radius: 6px;
   font-size: 14px;
-  background: white;
+  background: var(--bg-elevated);
   color: #333;
   font-weight: 500;
 }
 
 .number-input:focus {
   outline: none;
-  border-color: #345454;
+  border-color: var(--primary-color);
 }
 
 .number-suffix {

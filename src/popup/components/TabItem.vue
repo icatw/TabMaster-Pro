@@ -147,21 +147,18 @@ const handleTabClick = (event: MouseEvent) => {
 
 /* 黑夜模式下加强键盘导航效果 */
 [data-theme="dark"] .tab-item.keyboard-active {
-  background: rgba(106, 176, 143, 0.2);
-  border-color: #7fc0a0;
-  box-shadow:
-    0 0 0 1px rgba(127, 192, 160, 0.5),
-    0 2px 8px rgba(106, 176, 143, 0.3),
-    inset 0 0 0 1px rgba(127, 192, 160, 0.2);
+  background: var(--keyboard-highlight);
+  border-color: var(--keyboard-border);
+  box-shadow: 0 0 0 1px var(--keyboard-glow), var(--shadow-md);
 }
 
 [data-theme="dark"] .tab-item.keyboard-active .tab-title {
-  color: #e8f5f0;
-  text-shadow: 0 0 8px rgba(106, 176, 143, 0.5);
+  color: var(--text-primary);
+  text-shadow: none;
 }
 
 [data-theme="dark"] .tab-item.keyboard-active .tab-url {
-  color: #b0d4c0;
+  color: var(--text-secondary);
 }
 
 /* 加强左侧指示条 */
@@ -172,7 +169,7 @@ const handleTabClick = (event: MouseEvent) => {
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(to bottom, var(--primary-color), var(--primary-hover));
+  background: var(--primary-color);
   border-radius: 0 2px 2px 0;
   animation: pulseGlow 1.5s ease-in-out infinite;
 }
@@ -193,17 +190,15 @@ const handleTabClick = (event: MouseEvent) => {
 }
 
 .tab-item.multi-select-mode:hover {
-  border-color: #4a90e2;
-  background: #f8faff;
+  border-color: var(--border-primary);
+  background: var(--bg-hover);
 }
 
 /* 选中状态样式 - 与整体UI协调的低饱和度设计 */
 .tab-item.selected {
-  background: linear-gradient(135deg, #f8faff 0%, #f0f4f8 100%);
-  border: 2px solid #e2e8f0;
-  box-shadow:
-    0 0 0 1px rgba(148, 163, 184, 0.1),
-    0 2px 8px rgba(148, 163, 184, 0.15);
+  background: var(--primary-light);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
   position: relative;
 }
@@ -215,18 +210,16 @@ const handleTabClick = (event: MouseEvent) => {
   left: -1px;
   right: -1px;
   bottom: -1px;
-  background: linear-gradient(45deg, #f1f5f9, #e2e8f0);
+  background: var(--bg-tertiary);
   border-radius: 7px;
   z-index: -1;
   opacity: 0.6;
 }
 
 .tab-item.selected:hover {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  border-color: #cbd5e1;
-  box-shadow:
-    0 0 0 1px rgba(148, 163, 184, 0.2),
-    0 4px 12px rgba(148, 163, 184, 0.2);
+  background: var(--bg-hover);
+  border-color: var(--text-secondary);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
@@ -271,18 +264,16 @@ const handleTabClick = (event: MouseEvent) => {
 }
 
 .tab-item.selected .checkbox-indicator {
-  background: linear-gradient(135deg, #5b9c7a 0%, #345454 100%);
-  border: 2px solid #345454;
+  background: var(--primary-color);
+  border: 2px solid var(--primary-color);
   transform: scale(1.1);
-  box-shadow:
-    0 0 0 1px rgba(52, 84, 84, 0.1),
-    0 2px 4px rgba(52, 84, 84, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .check-icon {
   width: 12px;
   height: 12px;
-  color: white;
+  color: var(--bg-primary);
   opacity: 0;
   transform: scale(0.5);
   transition: all 0.2s ease;
@@ -292,7 +283,7 @@ const handleTabClick = (event: MouseEvent) => {
 .tab-item.selected .check-icon {
   opacity: 1;
   transform: scale(1);
-  color: #ffffff;
+  color: var(--bg-primary);
   font-weight: 600;
 }
 
@@ -327,7 +318,7 @@ const handleTabClick = (event: MouseEvent) => {
 }
 
 .tab-item.selected .tab-title {
-  color: #1e293b;
+  color: var(--text-primary);
   font-weight: 600;
   text-shadow: none;
   letter-spacing: 0;
@@ -343,7 +334,7 @@ const handleTabClick = (event: MouseEvent) => {
 }
 
 .tab-item.selected .tab-url {
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 500;
   text-shadow: none;
 }
@@ -386,22 +377,22 @@ const handleTabClick = (event: MouseEvent) => {
 }
 
 .close-btn:hover {
-  color: #e74c3c;
-  background: rgba(231, 76, 60, 0.1);
+  color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 12%, transparent);
 }
 
 .tab-item.selected .close-btn {
-  color: #64748b;
-  background: rgba(148, 163, 184, 0.1);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
 }
 
 .tab-item.selected .close-btn:hover {
-  color: #dc2626;
-  background: rgba(220, 38, 38, 0.1);
-  border-color: rgba(220, 38, 38, 0.2);
-  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.2);
+  color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 12%, transparent);
+  border-color: color-mix(in srgb, var(--danger-color) 30%, transparent);
+  box-shadow: var(--shadow-sm);
   transform: none;
 }
 
@@ -412,11 +403,11 @@ const handleTabClick = (event: MouseEvent) => {
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(to bottom, #5b9c7a 0%, #345454 100%);
+  background: var(--primary-color);
   border-radius: 0 2px 2px 0;
   animation: slideInSubtle 0.3s ease-out;
   box-shadow:
-    1px 0 3px rgba(91, 156, 122, 0.2);
+    1px 0 3px var(--keyboard-glow);
 }
 
 @keyframes slideInSubtle {
@@ -476,11 +467,11 @@ const handleTabClick = (event: MouseEvent) => {
 @media (prefers-contrast: high) {
   .tab-item.selected {
     border-width: 3px;
-    background: #f8faff;
-    color: #1e293b;
+    background: var(--bg-hover);
+    color: var(--text-primary);
     box-shadow:
-      0 0 0 2px #64748b,
-      0 4px 12px rgba(100, 116, 139, 0.3);
+      0 0 0 2px var(--text-primary),
+      var(--shadow-md);
   }
 
   .checkbox-indicator {
@@ -488,12 +479,12 @@ const handleTabClick = (event: MouseEvent) => {
   }
 
   .tab-item.selected .checkbox-indicator {
-    background: #334155;
-    border-color: #1e293b;
+    background: var(--text-primary);
+    border-color: var(--text-primary);
   }
 
   .tab-item.selected .tab-title {
-    color: #0f172a;
+    color: var(--text-primary);
     font-weight: 700;
   }
 

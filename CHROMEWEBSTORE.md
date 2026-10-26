@@ -43,10 +43,10 @@ Chinese (Simplified)
 | Asset | Dimensions | Status | Filename |
 |---|---|---|---|
 | Store Icon | 128×128 PNG | ✅ Ready | `src/assets/icons/icon-128.png` |
-| Screenshot 1 | 1280×800 PNG | ✅ Ready | `screenshots/store-saved-tabs-1280x800.png` |
-| Screenshot 2 | 1280×800 PNG | ✅ Ready | `screenshots/store-confirmation-1280x800.png` |
-| Screenshot 3 | 1280×800 PNG | ✅ Ready | `screenshots/store-dark-mode-1280x800.png` |
-| Screenshot 4 | 1280×800 PNG | ✅ Ready | `screenshots/store-settings-1280x800.png` |
+| Screenshot 1 | 1280×800 PNG | 🟡 Refresh after UI polish | `screenshots/store-saved-tabs-1280x800.png` |
+| Screenshot 2 | 1280×800 PNG | 🟡 Refresh after UI polish | `screenshots/store-confirmation-1280x800.png` |
+| Screenshot 3 | 1280×800 PNG | 🟡 Refresh after UI polish | `screenshots/store-dark-mode-1280x800.png` |
+| Screenshot 4 | 1280×800 PNG | 🟡 Refresh after UI polish | `screenshots/store-settings-1280x800.png` |
 | Small Promo Tile | 440×280 | ⬜ Not created | TODO |
 | Marquee Promo Tile | 1400×560 | ⬜ Not created | TODO |
 
@@ -138,6 +138,7 @@ TODO — 上架前托管公开隐私政策并填入 URL。政策需要说明标�
 | Version | Date | Changes | Status |
 |---|---|---|---|
 | 0.1.0 | Unreleased | Initial development version | Draft |
+| Next | 2026-10-26 | Refined popup and options UI with a neutral ink palette, consistent light/dark surfaces, focus states, and semantic status colors. Refresh store screenshots before submission. | In progress |
 
 ## Review Notes
 

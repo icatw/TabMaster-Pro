@@ -129,7 +129,7 @@ const handleOpenSettings = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 24px;
+  padding: 14px 18px 12px;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-secondary);
   flex-shrink: 0;
@@ -138,13 +138,17 @@ const handleOpenSettings = () => {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .logo {
-  width: 24px;
-  height: 24px;
-  color: #4a90e2;
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: var(--primary-color);
+  filter: grayscale(1) contrast(1.1);
   flex-shrink: 0;
 }
 
@@ -156,8 +160,8 @@ const handleOpenSettings = () => {
 
 .title {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.2px;
 }
@@ -165,7 +169,7 @@ const handleOpenSettings = () => {
 .stats-line {
   display: flex;
   align-items: center;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
@@ -175,21 +179,21 @@ const handleOpenSettings = () => {
 
 .header-right {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
 .auto-sort-btn,
 .language-btn,
 .theme-btn,
 .settings-btn {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s;
@@ -200,7 +204,7 @@ const handleOpenSettings = () => {
 .theme-btn:hover,
 .settings-btn:hover {
   background: var(--bg-hover);
-  border-color: var(--primary-color);
+  border-color: var(--border-primary);
   color: var(--primary-color);
 }
 

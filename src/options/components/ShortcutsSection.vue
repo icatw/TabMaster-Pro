@@ -296,8 +296,8 @@ const openShortcutsPage = () => {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-  color: white;
+  background: var(--primary-color);
+  color: var(--bg-primary);
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -336,7 +336,7 @@ const openShortcutsPage = () => {
   padding: 12px;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 3px solid #5b9c7a;
+  border-left: 3px solid var(--primary-color);
 }
 
 .tip-icon {
