@@ -59,6 +59,14 @@
               : $t('savedTabs.saveAndCloseSelected', { count: props.selectedTabIds.size })
           }}
         </button>
+        <button
+          type="button"
+          class="action-button"
+          :disabled="isScanningDuplicates || isClosingDuplicates"
+          @click="reviewDuplicates"
+        >
+          {{ isScanningDuplicates ? $t('common.loading') : $t('savedTabs.reviewDuplicates') }}
+        </button>
       </form>
 
       <div class="list-status" aria-live="polite">
@@ -110,6 +118,24 @@
             {{ isRestoringSelection ? $t('common.loading') : $t('savedTabs.restoreSelected') }}
           </button>
         </div>
+      </div>
+
+      <div class="backup-actions">
+        <button type="button" class="action-button" :disabled="isExporting" @click="exportBackup">
+          {{ isExporting ? $t('common.loading') : $t('savedTabs.exportBackup') }}
+        </button>
+        <button type="button" class="action-button" @click="importFileInput?.click()">
+          {{ $t('savedTabs.importBackup') }}
+        </button>
+        <input
+          ref="importFileInput"
+          class="sr-only"
+          type="file"
+          name="saved-tabs-backup"
+          accept="application/json,.json"
+          :aria-label="$t('savedTabs.importBackup')"
+          @change="readImportFile"
+        />
       </div>
 
       <div v-if="filteredLists.length > 0" class="lists">
@@ -284,6 +310,86 @@
         </div>
       </form>
     </dialog>
+
+    <dialog
+      ref="duplicatesDialog"
+      class="saved-list-dialog duplicates-dialog"
+      aria-labelledby="duplicates-dialog-title"
+      aria-describedby="duplicates-dialog-description"
+    >
+      <form method="dialog" @submit.prevent="closeDuplicateTabs">
+        <h2 id="duplicates-dialog-title">{{ $t('savedTabs.duplicatesTitle') }}</h2>
+        <p id="duplicates-dialog-description">
+          {{ $t('savedTabs.duplicatesDescription', { count: duplicateCloseIds.length }) }}
+        </p>
+        <div class="duplicate-groups">
+          <fieldset v-for="(group, groupIndex) in duplicateGroups" :key="group.url" class="duplicate-group">
+            <legend>{{ $t('savedTabs.duplicateGroup', { count: group.tabs.length }) }}</legend>
+            <label v-for="tab in group.tabs" :key="tab.id" class="duplicate-choice">
+              <input
+                v-model="duplicateKeepIds[groupIndex]"
+                type="radio"
+                :name="`duplicate-keep-${groupIndex}`"
+                :value="tab.id"
+                :disabled="isClosingDuplicates"
+              />
+              <span class="duplicate-choice-copy">
+                <strong>{{ tab.title }}</strong>
+                <small>{{ tab.url }}</small>
+              </span>
+              <span v-if="tab.active" class="duplicate-badge">{{ $t('tabs.active') }}</span>
+              <span v-else-if="tab.audible" class="duplicate-badge">{{ $t('tabs.audible') }}</span>
+              <span v-if="tab.pinned" class="duplicate-badge">{{ $t('tabs.pinned') }}</span>
+            </label>
+          </fieldset>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="action-button" :disabled="isClosingDuplicates" @click="duplicatesDialog?.close()">
+            {{ $t('common.cancel') }}
+          </button>
+          <button
+            type="submit"
+            class="action-button danger-filled"
+            :disabled="duplicateCloseIds.length === 0 || isClosingDuplicates"
+          >
+            {{ isClosingDuplicates ? $t('common.loading') : $t('savedTabs.saveAndCloseDuplicates', { count: duplicateCloseIds.length }) }}
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog
+      ref="importDialog"
+      class="saved-list-dialog"
+      aria-labelledby="import-dialog-title"
+      aria-describedby="import-dialog-description"
+    >
+      <form method="dialog" @submit.prevent="confirmImport">
+        <h2 id="import-dialog-title">{{ $t('savedTabs.importPreviewTitle') }}</h2>
+        <p id="import-dialog-description">
+          {{ $t('savedTabs.importPreviewDescription', {
+            lists: importPreview?.lists.length ?? 0,
+            tabs: importItemCount,
+            file: importFileName
+          }) }}
+        </p>
+        <ul v-if="importPreview?.lists.length" class="backup-preview-lists">
+          <li v-for="list in importPreview.lists" :key="list.id">
+            <span>{{ list.name }}</span>
+            <span>{{ $t('savedTabs.itemCount', { count: list.items.length }) }}</span>
+          </li>
+        </ul>
+        <p v-if="importError" class="import-error" role="alert">{{ importError }}</p>
+        <div class="dialog-actions">
+          <button type="button" class="action-button" :disabled="isImporting" @click="importDialog?.close()">
+            {{ $t('common.cancel') }}
+          </button>
+          <button type="submit" class="action-button primary" :disabled="!importPreview || isImporting">
+            {{ isImporting ? $t('common.loading') : $t('savedTabs.confirmImport') }}
+          </button>
+        </div>
+      </form>
+    </dialog>
   </section>
 </template>
 
@@ -295,10 +401,16 @@ import type {
   SavedTabList,
   SavedTabReference,
   SavedTabRestoreOptions,
-  SavedTabRestoreTarget
+  SavedTabRestoreTarget,
+  SavedTabsData
 } from '@/shared/types'
 import { MESSAGE_TYPES } from '@/shared/constants'
-import { filterSavedTabLists } from '@/shared/utils/savedTabs'
+import { filterSavedTabLists, validateSavedTabsImport } from '@/shared/utils/savedTabs'
+import {
+  findDuplicateTabGroups,
+  haveDuplicateGroupsChanged,
+  type DuplicateTabGroup
+} from '@/shared/utils/duplicates'
 import { getCurrentLocale, i18n } from '@/i18n'
 
 interface Props {
@@ -329,6 +441,18 @@ const busyListId = ref<string | null>(null)
 const busyItemKey = ref<string | null>(null)
 const renameDialog = ref<HTMLDialogElement | null>(null)
 const deleteDialog = ref<HTMLDialogElement | null>(null)
+const duplicatesDialog = ref<HTMLDialogElement | null>(null)
+const importDialog = ref<HTMLDialogElement | null>(null)
+const importFileInput = ref<HTMLInputElement | null>(null)
+const importPreview = ref<SavedTabsData | null>(null)
+const importFileName = ref('')
+const importError = ref('')
+const isExporting = ref(false)
+const isImporting = ref(false)
+const duplicateGroups = ref<DuplicateTabGroup[]>([])
+const duplicateKeepIds = ref<number[]>([])
+const isScanningDuplicates = ref(false)
+const isClosingDuplicates = ref(false)
 const editingList = ref<SavedTabList | null>(null)
 const deletingList = ref<SavedTabList | null>(null)
 const renameValue = ref('')
@@ -337,6 +461,12 @@ const isDeleting = ref(false)
 const isRestoringSelection = ref(false)
 
 const filteredLists = computed(() => filterSavedTabLists(lists.value, searchQuery.value))
+const duplicateCloseIds = computed(() => duplicateGroups.value.flatMap((group, groupIndex) =>
+  group.tabs.filter(tab => tab.id !== duplicateKeepIds.value[groupIndex]).map(tab => tab.id)
+))
+const importItemCount = computed(() => importPreview.value?.lists.reduce(
+  (total, list) => total + list.items.length, 0
+) ?? 0)
 
 const visibleItemReferences = computed(() => filteredLists.value.flatMap(({ list, items }) =>
   items.map(({ index }) => ({ listId: list.id, itemIndex: index }))
@@ -509,6 +639,122 @@ async function saveAndCloseSelected() {
     emit('notify', error instanceof Error ? error.message : i18n.global.t('errors.batchCloseFailed'), 'error')
   } finally {
     isSavingAndClosing.value = false
+  }
+}
+
+async function reviewDuplicates() {
+  if (isScanningDuplicates.value) return
+  isScanningDuplicates.value = true
+  try {
+    const tabs = await chrome.tabs.query({ currentWindow: true })
+    duplicateGroups.value = findDuplicateTabGroups(tabs)
+    duplicateKeepIds.value = duplicateGroups.value.map(group => group.recommendedKeepId)
+    if (duplicateGroups.value.length === 0) {
+      emit('notify', i18n.global.t('savedTabs.noDuplicates'), 'success')
+      return
+    }
+    duplicatesDialog.value?.showModal()
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.duplicateScanFailed'), 'error')
+  } finally {
+    isScanningDuplicates.value = false
+  }
+}
+
+async function closeDuplicateTabs() {
+  if (duplicateCloseIds.value.length === 0 || isClosingDuplicates.value) return
+  isClosingDuplicates.value = true
+  try {
+    const currentTabs = await chrome.tabs.query({ currentWindow: true })
+    const currentGroups = findDuplicateTabGroups(currentTabs)
+    if (haveDuplicateGroupsChanged(duplicateGroups.value, currentGroups)) {
+      duplicateGroups.value = currentGroups
+      duplicateKeepIds.value = currentGroups.map(group => group.recommendedKeepId)
+      emit('notify', i18n.global.t('savedTabs.duplicatesChanged'), 'error')
+      return
+    }
+
+    const tabIds = duplicateCloseIds.value
+    const response = await send<BatchOperationResult>(MESSAGE_TYPES.SAVE_AND_CLOSE_TABS, {
+      tabIds,
+      name: listName.value.trim() || i18n.global.t('savedTabs.duplicatesListName')
+    })
+    const result = response.data
+    if (!result || result.successfulOperations === 0) {
+      throw new Error(response.error || i18n.global.t('savedTabs.saveFailed'))
+    }
+    await loadLists()
+    emit('tabs-updated')
+    listName.value = ''
+    duplicatesDialog.value?.close()
+    emit('notify', i18n.global.t('savedTabs.duplicatesClosed', { count: result.successfulOperations }),
+      result.failedOperations > 0 ? 'error' : 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'), 'error')
+  } finally {
+    isClosingDuplicates.value = false
+  }
+}
+
+async function exportBackup() {
+  if (isExporting.value) return
+  isExporting.value = true
+  try {
+    const response = await send<SavedTabsData>(MESSAGE_TYPES.EXPORT_SAVED_TABS)
+    if (!response.success || !response.data) {
+      throw new Error(response.error || i18n.global.t('savedTabs.backupFailed'))
+    }
+    const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `tabmaster-backup-${new Date().toISOString().slice(0, 10)}.json`
+    link.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    emit('notify', i18n.global.t('savedTabs.backupExported'), 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.backupFailed'), 'error')
+  } finally {
+    isExporting.value = false
+  }
+}
+
+async function readImportFile(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  importError.value = ''
+  importPreview.value = null
+  importFileName.value = file.name
+  try {
+    if (file.size > 5 * 1024 * 1024) throw new Error(i18n.global.t('savedTabs.backupTooLarge'))
+    const parsed: unknown = JSON.parse(await file.text())
+    importPreview.value = validateSavedTabsImport(parsed)
+    importDialog.value?.showModal()
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.backupInvalid'), 'error')
+  }
+}
+
+async function confirmImport() {
+  if (!importPreview.value || isImporting.value) return
+  isImporting.value = true
+  importError.value = ''
+  try {
+    const response = await send<{ listCount: number, itemCount: number }>(
+      MESSAGE_TYPES.IMPORT_SAVED_TABS,
+      importPreview.value
+    )
+    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.backupInvalid'))
+    await loadLists()
+    importDialog.value?.close()
+    importPreview.value = null
+    emit('notify', i18n.global.t('savedTabs.backupImported', response.data), 'success')
+  } catch (error) {
+    importError.value = error instanceof Error ? error.message : i18n.global.t('savedTabs.backupFailed')
+  } finally {
+    isImporting.value = false
   }
 }
 
@@ -717,6 +963,13 @@ onMounted(loadLists)
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   padding-top: 8px;
+}
+
+.backup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  margin: 8px 0 12px;
 }
 
 .saved-search input,
@@ -1015,6 +1268,116 @@ onMounted(loadLists)
   margin: 0 0 16px;
   color: var(--text-secondary);
   font-size: 13px;
+}
+
+.import-error {
+  padding: 9px 10px;
+  border: 1px solid var(--border-danger, var(--border-primary));
+  border-radius: 8px;
+  color: var(--text-danger, var(--text-primary)) !important;
+}
+
+.backup-preview-lists {
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  overflow: auto;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backup-preview-lists li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.backup-preview-lists li span:first-child {
+  overflow: hidden;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duplicates-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 32px));
+  overflow: auto;
+}
+
+.duplicate-groups {
+  display: grid;
+  gap: 12px;
+  max-height: 54vh;
+  overflow: auto;
+}
+
+.duplicate-group {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 10px;
+}
+
+.duplicate-group legend {
+  padding-inline: 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.duplicate-choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 7px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.duplicate-choice:hover {
+  background: var(--bg-secondary);
+}
+
+.duplicate-choice-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.duplicate-choice-copy strong,
+.duplicate-choice-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duplicate-choice-copy strong {
+  font-size: 12px;
+}
+
+.duplicate-choice-copy small {
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
+.duplicate-badge {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 9px;
 }
 
 .dialog-field {

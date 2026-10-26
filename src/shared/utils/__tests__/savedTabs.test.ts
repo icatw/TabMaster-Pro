@@ -7,7 +7,8 @@ import {
   filterSavedTabLists,
   normalizeSavedTabsData,
   removeSavedTabList,
-  renameSavedTabList
+  renameSavedTabList,
+  validateSavedTabsImport
 } from '@/shared/utils/savedTabs'
 
 const item = (url: string, title = url): SavedTabItem => ({
@@ -112,6 +113,26 @@ describe('saved tab data', () => {
     })
     expect(session.lists[0].items).toHaveLength(2)
     expect(session.lists[0].items[1].session?.tabIndex).toBe(1)
+  })
+
+  it('validates versioned backups and rejects unsupported or active-content URLs', () => {
+    const backup = {
+      version: 2,
+      lists: [{
+        id: 'backup',
+        name: 'Imported',
+        createdAt: 1,
+        updatedAt: 1,
+        items: [item('https://example.com')]
+      }]
+    }
+
+    expect(validateSavedTabsImport(backup).lists).toHaveLength(1)
+    expect(() => validateSavedTabsImport({ ...backup, version: 1 })).toThrow(/Unsupported/)
+    expect(() => validateSavedTabsImport({
+      ...backup,
+      lists: [{ ...backup.lists[0], items: [item('javascript:alert(1)')] }]
+    })).toThrow(/URL/)
   })
 
   it('renames, reorders, adds, and removes saved lists', () => {

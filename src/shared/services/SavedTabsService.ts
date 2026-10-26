@@ -14,7 +14,8 @@ import {
   createSavedTabList,
   normalizeSavedTabsData,
   removeSavedTabList,
-  renameSavedTabList
+  renameSavedTabList,
+  validateSavedTabsImport
 } from '../utils/savedTabs'
 
 interface SavedTabsStore {
@@ -88,6 +89,33 @@ export class SavedTabsService {
 
   static async getLists(): Promise<SavedTabList[]> {
     return (await this.getData()).lists
+  }
+
+  static async importData(
+    value: unknown,
+    store: SavedTabsStore = localStore
+  ): Promise<{ listCount: number, itemCount: number }> {
+    return withStorageMutation(async () => {
+      const imported = validateSavedTabsImport(value)
+      const current = await this.getData(store)
+      const existingIds = new Set(current.lists.map(list => list.id))
+      const lists = imported.lists.map(list => {
+        let id = list.id
+        if (existingIds.has(id)) {
+          id = globalThis.crypto?.randomUUID?.() ?? `import-${Date.now()}-${Math.random().toString(36).slice(2)}`
+        }
+        existingIds.add(id)
+        return { ...list, id }
+      })
+      await this.setData({
+        version: SAVED_TABS_SCHEMA_VERSION,
+        lists: [...lists, ...current.lists]
+      }, store)
+      return {
+        listCount: lists.length,
+        itemCount: lists.reduce((total, list) => total + list.items.length, 0)
+      }
+    })
   }
 
   static async saveTabs(

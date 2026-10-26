@@ -88,16 +88,18 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 })
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  handleMessage(message)
-    .then(sendResponse)
-    .catch(error => {
+  void (async () => {
+    try {
+      sendResponse(await handleMessage(message))
+    } catch (error) {
       console.error('Message handling error:', error)
       sendResponse(response(
         undefined,
         false,
         error instanceof Error ? error.message : '未知错误'
       ))
-    })
+    }
+  })()
 
   return true
 })
@@ -150,6 +152,10 @@ async function handleMessage(message: {
     return handleSaveAndCloseTabs(payload as SaveAndClosePayload)
   case MESSAGE_TYPES.GET_SAVED_LISTS:
     return response(await SavedTabsService.getLists())
+  case MESSAGE_TYPES.EXPORT_SAVED_TABS:
+    return response(await SavedTabsService.getData())
+  case MESSAGE_TYPES.IMPORT_SAVED_TABS:
+    return response(await SavedTabsService.importData(payload))
   case MESSAGE_TYPES.RESTORE_LIST:
     return handleRestoreList(payload as RestoreListPayload)
   case MESSAGE_TYPES.RESTORE_SAVED_ITEM:
