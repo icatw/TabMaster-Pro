@@ -1,7 +1,9 @@
 import type {
   SavedTabItem,
+  SavedTabGroupSnapshot,
   SavedTabList,
-  SavedTabsData
+  SavedTabsData,
+  SavedWindowSnapshot
 } from '../types'
 import { SAVED_TABS_SCHEMA_VERSION } from '../constants'
 
@@ -33,6 +35,64 @@ export function dedupeSavedItems(items: SavedTabItem[]): SavedTabItem[] {
   }).map(item => ({ ...item, url: normalizeUrl(item.url) }))
 }
 
+function normalizeWindows(value: unknown): SavedWindowSnapshot[] {
+  if (!Array.isArray(value)) return []
+  const colors = new Set<chrome.tabGroups.ColorEnum>([
+    'grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'
+  ])
+
+  return value.flatMap((rawWindow, index) => {
+    if (!isRecord(rawWindow)) return []
+    const groups: SavedTabGroupSnapshot[] = Array.isArray(rawWindow.groups)
+      ? rawWindow.groups.flatMap(rawGroup => {
+        if (!isRecord(rawGroup) || typeof rawGroup.id !== 'number') return []
+        return [{
+          id: rawGroup.id,
+          title: typeof rawGroup.title === 'string' ? rawGroup.title : '',
+          color: colors.has(rawGroup.color as chrome.tabGroups.ColorEnum)
+            ? rawGroup.color as chrome.tabGroups.ColorEnum
+            : 'grey',
+          collapsed: rawGroup.collapsed === true
+        }]
+      })
+      : []
+
+    return [{
+      index: Number.isInteger(rawWindow.index) && (rawWindow.index as number) >= 0
+        ? rawWindow.index as number
+        : index,
+      focused: rawWindow.focused === true,
+      groups
+    }]
+  })
+}
+
+export interface FilteredSavedTabList {
+  list: SavedTabList
+  items: Array<{ item: SavedTabItem, index: number }>
+}
+
+export function filterSavedTabLists(
+  lists: SavedTabList[],
+  query: string
+): FilteredSavedTabList[] {
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  return lists.flatMap(list => {
+    if (!normalizedQuery) {
+      return [{ list, items: list.items.map((item, index) => ({ item, index })) }]
+    }
+
+    const listMatches = list.name.toLocaleLowerCase().includes(normalizedQuery)
+    const items = list.items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => listMatches ||
+        item.title.toLocaleLowerCase().includes(normalizedQuery) ||
+        item.url.toLocaleLowerCase().includes(normalizedQuery))
+
+    return items.length > 0 ? [{ list, items }] : []
+  })
+}
+
 export function normalizeSavedTabsData(
   value: unknown,
   now = Date.now()
@@ -56,22 +116,38 @@ export function normalizeSavedTabsData(
     }
     seenListIds.add(id)
 
+    const kind = rawList.kind === 'session' ? 'session' : 'links'
     const rawItems: SavedTabItem[] = []
     for (const rawItem of rawList.items) {
       if (!isRecord(rawItem) || typeof rawItem.url !== 'string') continue
       const url = normalizeUrl(rawItem.url)
       if (!url) continue
 
+      const session = isRecord(rawItem.session) &&
+        Number.isInteger(rawItem.session.windowIndex) &&
+        Number.isInteger(rawItem.session.tabIndex)
+        ? {
+          windowIndex: rawItem.session.windowIndex as number,
+          tabIndex: rawItem.session.tabIndex as number,
+          active: rawItem.session.active === true,
+          ...(Number.isInteger(rawItem.session.groupId)
+            ? { groupId: rawItem.session.groupId as number }
+            : {})
+        }
+        : undefined
+
       rawItems.push({
         title: typeof rawItem.title === 'string' ? rawItem.title : url,
         url,
         favIconUrl: typeof rawItem.favIconUrl === 'string' ? rawItem.favIconUrl : undefined,
         pinned: rawItem.pinned === true,
-        createdAt: toTimestamp(rawItem.createdAt, now)
+        createdAt: toTimestamp(rawItem.createdAt, now),
+        ...(kind === 'session' && session ? { session } : {})
       })
     }
 
-    const items = dedupeSavedItems(rawItems)
+    const windows = kind === 'session' ? normalizeWindows(rawList.windows) : []
+    const items = kind === 'session' ? rawItems : dedupeSavedItems(rawItems)
     if (items.length === 0) continue
 
     const createdAt = toTimestamp(rawList.createdAt, now)
@@ -82,7 +158,8 @@ export function normalizeSavedTabsData(
         : `Saved tabs (${items.length})`,
       createdAt,
       updatedAt: toTimestamp(rawList.updatedAt, createdAt),
-      items
+      items,
+      ...(kind === 'session' && windows.length > 0 ? { kind, windows } : {})
     })
   }
 
@@ -96,17 +173,21 @@ export function createSavedTabList(
   items: SavedTabItem[],
   name: string,
   now = Date.now(),
-  id: string = globalThis.crypto?.randomUUID?.() ?? `saved-${now}-${Math.random().toString(36).slice(2)}`
+  id: string = globalThis.crypto?.randomUUID?.() ?? `saved-${now}-${Math.random().toString(36).slice(2)}`,
+  options: { kind?: 'links' | 'session', windows?: SavedWindowSnapshot[], preserveDuplicates?: boolean } = {}
 ): SavedTabList | null {
-  const uniqueItems = dedupeSavedItems(items)
-  if (uniqueItems.length === 0) return null
+  const normalizedItems = options.preserveDuplicates
+    ? items.map(item => ({ ...item, url: normalizeUrl(item.url) })).filter(item => item.url)
+    : dedupeSavedItems(items)
+  if (normalizedItems.length === 0) return null
 
   return {
     id,
-    name: name.trim().slice(0, 120) || `Saved tabs (${uniqueItems.length})`,
+    name: name.trim().slice(0, 120) || `Saved tabs (${normalizedItems.length})`,
     createdAt: now,
     updatedAt: now,
-    items: uniqueItems
+    items: normalizedItems,
+    ...(options.kind === 'session' ? { kind: 'session' as const, windows: options.windows ?? [] } : {})
   }
 }
 

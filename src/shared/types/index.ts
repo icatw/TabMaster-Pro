@@ -109,6 +109,25 @@ export interface SavedTabItem {
   favIconUrl?: string
   pinned: boolean
   createdAt: number
+  session?: {
+    windowIndex: number
+    tabIndex: number
+    active: boolean
+    groupId?: number
+  }
+}
+
+export interface SavedTabGroupSnapshot {
+  id: number
+  title: string
+  color: chrome.tabGroups.ColorEnum
+  collapsed: boolean
+}
+
+export interface SavedWindowSnapshot {
+  index: number
+  focused: boolean
+  groups: SavedTabGroupSnapshot[]
 }
 
 /**
@@ -120,6 +139,20 @@ export interface SavedTabList {
   createdAt: number
   updatedAt: number
   items: SavedTabItem[]
+  kind?: 'links' | 'session'
+  windows?: SavedWindowSnapshot[]
+}
+
+export type SavedTabRestoreTarget = 'current' | 'new'
+
+export interface SavedTabRestoreOptions {
+  target?: SavedTabRestoreTarget
+  skipAlreadyOpen?: boolean
+}
+
+export interface SavedTabReference {
+  listId: string
+  itemIndex: number
 }
 
 /**
@@ -165,6 +198,7 @@ export interface BatchOperationResult {
   totalOperations: number
   successfulOperations: number
   failedOperations: number
+  skippedOperations?: number
   errors?: APIError[]
   operations?: TabMoveOperation[]
   message?: string
