@@ -1,5 +1,67 @@
 import type { GroupOptions, GroupResult, GroupInfo, TabInfo, BatchOperationResult } from '../types'
-import { TAB_GROUP_COLORS, PERFORMANCE_CONFIG } from '../constants'
+import { TAB_GROUP_COLORS } from '../constants'
+import { SavedTabsService } from '../services/SavedTabsService'
+
+function hashString(value: string): number {
+  let hash = 0
+  for (let index = 0; index < value.length; index++) {
+    hash = ((hash << 5) - hash) + value.charCodeAt(index)
+    hash &= hash
+  }
+  return Math.abs(hash)
+}
+
+export function chooseGroupColor(
+  domain: string,
+  existingColors: chrome.tabGroups.ColorEnum[] = [],
+  options: GroupOptions = {}
+): chrome.tabGroups.ColorEnum {
+  const strategy = options.colorStrategy ?? 'auto'
+  if (strategy === 'manual') {
+    return options.manualColor ?? 'blue'
+  }
+
+  if (strategy === 'random') {
+    const randomIndex = Math.floor(Math.random() * TAB_GROUP_COLORS.length)
+    return TAB_GROUP_COLORS[randomIndex]
+  }
+
+  const usage = new Map<chrome.tabGroups.ColorEnum, number>()
+  for (const color of TAB_GROUP_COLORS) {
+    usage.set(color, existingColors.filter(existing => existing === color).length)
+  }
+  const minimumUsage = Math.min(...usage.values())
+  const leastUsedColors = TAB_GROUP_COLORS.filter(color => usage.get(color) === minimumUsage)
+  return leastUsedColors[hashString(domain) % leastUsedColors.length]
+}
+
+export function planDomainGroups(
+  tabs: TabInfo[],
+  options: GroupOptions,
+  maxNewGroups: number
+): Record<string, TabInfo[]> {
+  if (maxNewGroups <= 0) return {}
+
+  const minimumSize = Math.max(2, options.minTabsPerGroup ?? 2)
+  const groupedByDomain = new Map<string, TabInfo[]>()
+
+  for (const tab of tabs) {
+    if (tab.pinned || tab.groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE) continue
+    const domain = tab.domain || 'unknown'
+    const existing = groupedByDomain.get(domain) ?? []
+    existing.push(tab)
+    groupedByDomain.set(domain, existing)
+  }
+
+  return Object.fromEntries(
+    [...groupedByDomain.entries()]
+      .filter(([, domainTabs]) => domainTabs.length >= minimumSize)
+      .sort(([domainA, tabsA], [domainB, tabsB]) =>
+        tabsB.length - tabsA.length || domainA.localeCompare(domainB)
+      )
+      .slice(0, maxNewGroups)
+  )
+}
 
 /**
  * 标签分组服务
@@ -15,20 +77,20 @@ export class GroupService {
     try {
       const queryOptions = windowId ? { windowId } : {}
       const groups = await chrome.tabGroups.query(queryOptions)
-      
+
       const groupsWithInfo: GroupInfo[] = []
-      
+
       for (const group of groups) {
         const tabs = await chrome.tabs.query({ groupId: group.id })
         const domains = [...new Set(tabs.map(tab => this.extractDomain(tab.url || '')))]
-        
+
         groupsWithInfo.push({
           ...group,
           tabCount: tabs.length,
           domains
         })
       }
-      
+
       return groupsWithInfo
     } catch (error) {
       console.error('Failed to get groups:', error)
@@ -43,34 +105,39 @@ export class GroupService {
    * @returns Promise<GroupResult> 分组结果
    */
   static async groupTabsByDomain(
-    tabs: TabInfo[], 
+    tabs: TabInfo[],
     options: GroupOptions = {}
   ): Promise<GroupResult> {
     const startTime = performance.now()
-    
+
     try {
       // 统计已分组和未分组的标签页
       const groupedTabs = tabs.filter(tab => tab.groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE)
       const ungroupedTabs = tabs.filter(tab => !tab.pinned && tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE)
-      
-      // 按域名分组标签
-      const domainGroups = this.groupTabsByDomainLogic(tabs, options)
+
+      const windowId = tabs[0]?.windowId
+      const existingGroups = await this.getAllGroups(windowId)
+      const maxGroupsPerWindow = Math.max(1, options.maxGroupsPerWindow ?? 10)
+      const availableSlots = Math.max(0, maxGroupsPerWindow - existingGroups.length)
+      const domainGroups = planDomainGroups(tabs, options, availableSlots)
       const newGroupsCount = Object.keys(domainGroups).length
-      
+
       // 如果没有可分组的标签页，返回相应信息
       if (newGroupsCount === 0) {
         const endTime = performance.now()
         const duration = endTime - startTime
-        
+
         let message = ''
         if (groupedTabs.length > 0 && ungroupedTabs.length === 0) {
           message = '所有标签页已经分组完成'
+        } else if (existingGroups.length >= maxGroupsPerWindow) {
+          message = `当前窗口已达到 ${maxGroupsPerWindow} 个分组的上限`
         } else if (ungroupedTabs.length > 0) {
-          message = `需要至少 ${options.minTabsPerGroup || 2} 个相同域名的标签页才能创建分组`
+          message = `需要至少 ${Math.max(2, options.minTabsPerGroup ?? 2)} 个相同域名的标签页才能创建分组`
         } else {
           message = '没有可分组的标签页'
         }
-        
+
         return {
           success: true,
           groupCount: 0,
@@ -80,13 +147,17 @@ export class GroupService {
           alreadyGroupedCount: groupedTabs.length
         }
       }
-      
+
       // 应用分组到浏览器
-      const result = await this.applyGrouping(domainGroups, options)
-      
+      const result = await this.applyGrouping(
+        domainGroups,
+        options,
+        existingGroups.map(group => group.color)
+      )
+
       const endTime = performance.now()
       const duration = endTime - startTime
-      
+
       return {
         success: result.success,
         groupCount: newGroupsCount,
@@ -150,7 +221,7 @@ export class GroupService {
    * @returns Promise<boolean> 是否成功
    */
   static async updateGroup(
-    groupId: number, 
+    groupId: number,
     properties: chrome.tabGroups.UpdateProperties
   ): Promise<boolean> {
     try {
@@ -171,11 +242,11 @@ export class GroupService {
     try {
       const tabs = await chrome.tabs.query({ groupId })
       const tabIds = tabs.map(tab => tab.id!)
-      
+
       if (tabIds.length > 0) {
         await chrome.tabs.ungroup(tabIds)
       }
-      
+
       return true
     } catch (error) {
       console.error('Failed to ungroup tabs:', error)
@@ -192,11 +263,11 @@ export class GroupService {
     const startTime = performance.now()
     const errors: string[] = []
     let successfulOperations = 0
-    
+
     try {
       const groups = await this.getAllGroups(windowId)
       const totalOperations = groups.length
-      
+
       if (totalOperations === 0) {
         return {
           success: true,
@@ -206,7 +277,7 @@ export class GroupService {
           message: '当前窗口没有分组需要取消'
         }
       }
-      
+
       for (const group of groups) {
         try {
           const success = await this.ungroupTabs(group.id)
@@ -221,9 +292,9 @@ export class GroupService {
           errors.push(errorMsg)
         }
       }
-      
+
       const duration = performance.now() - startTime
-      
+
       return {
         success: errors.length === 0,
         totalOperations,
@@ -254,29 +325,8 @@ export class GroupService {
   static async closeGroup(groupId: number): Promise<BatchOperationResult> {
     try {
       const tabs = await chrome.tabs.query({ groupId })
-      const tabIds = tabs.map(tab => tab.id!)
-      
-      const errors: string[] = []
-      let successfulOperations = 0
-      
-      for (const tabId of tabIds) {
-        try {
-          await chrome.tabs.remove(tabId)
-          successfulOperations++
-        } catch (error) {
-          const errorMsg = `关闭标签 ${tabId} 失败: ${error}`
-          console.error(errorMsg)
-          errors.push(errorMsg)
-        }
-      }
-      
-      return {
-        success: errors.length === 0,
-        totalOperations: tabIds.length,
-        successfulOperations,
-        failedOperations: tabIds.length - successfulOperations,
-        errors: errors.length > 0 ? errors : undefined
-      }
+      const tabIds = tabs.flatMap(tab => tab.id === undefined ? [] : [tab.id])
+      return SavedTabsService.saveAndCloseTabs(tabIds)
     } catch (error) {
       console.error('Failed to close group:', error)
       return {
@@ -306,16 +356,16 @@ export class GroupService {
       const groups = await this.getAllGroups()
       const groupsByColor: Record<string, number> = {}
       let largestGroup: { id: number; title: string; tabCount: number } | null = null
-      
+
       let totalGroupedTabs = 0
-      
+
       for (const group of groups) {
         totalGroupedTabs += group.tabCount || 0
-        
+
         // 统计颜色分布
         const color = group.color || 'grey'
         groupsByColor[color] = (groupsByColor[color] || 0) + 1
-        
+
         // 找到最大的分组
         if (!largestGroup || (group.tabCount || 0) > largestGroup.tabCount) {
           largestGroup = {
@@ -325,7 +375,7 @@ export class GroupService {
           }
         }
       }
-      
+
       return {
         totalGroups: groups.length,
         totalGroupedTabs,
@@ -352,59 +402,11 @@ export class GroupService {
    * @returns chrome.tabGroups.ColorEnum 颜色
    */
   static selectGroupColor(
-    domain: string, 
-    existingColors: chrome.tabGroups.ColorEnum[] = []
+    domain: string,
+    existingColors: chrome.tabGroups.ColorEnum[] = [],
+    options: GroupOptions = {}
   ): chrome.tabGroups.ColorEnum {
-    // 基于域名哈希选择颜色
-    const hash = this.hashString(domain)
-    const availableColors = TAB_GROUP_COLORS.filter(color => !existingColors.includes(color as chrome.tabGroups.ColorEnum))
-    
-    if (availableColors.length === 0) {
-      // 如果所有颜色都被使用，回到完整列表
-      return TAB_GROUP_COLORS[hash % TAB_GROUP_COLORS.length] as chrome.tabGroups.ColorEnum
-    }
-    
-    return availableColors[hash % availableColors.length] as chrome.tabGroups.ColorEnum
-  }
-
-  /**
-   * 按域名逻辑分组标签
-   * @param tabs 标签数组
-   * @param options 分组选项
-   * @returns Record<string, TabInfo[]> 域名分组映射
-   */
-  private static groupTabsByDomainLogic(
-    tabs: TabInfo[], 
-    options: GroupOptions
-  ): Record<string, TabInfo[]> {
-    const domainGroups: Record<string, TabInfo[]> = {}
-    const minTabsPerGroup = options.minTabsPerGroup || 2
-    
-    // 按域名分组
-    for (const tab of tabs) {
-      // 跳过已分组和固定的标签
-      if (tab.pinned || tab.groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE) {
-        continue
-      }
-      
-      const domain = tab.domain || 'unknown'
-      
-      if (!domainGroups[domain]) {
-        domainGroups[domain] = []
-      }
-      
-      domainGroups[domain].push(tab)
-    }
-    
-    // 过滤掉标签数量不足的分组
-    const filteredGroups: Record<string, TabInfo[]> = {}
-    for (const [domain, groupTabs] of Object.entries(domainGroups)) {
-      if (groupTabs.length >= minTabsPerGroup) {
-        filteredGroups[domain] = groupTabs
-      }
-    }
-    
-    return filteredGroups
+    return chooseGroupColor(domain, existingColors, options)
   }
 
   /**
@@ -414,24 +416,25 @@ export class GroupService {
    * @returns Promise<BatchOperationResult> 操作结果
    */
   private static async applyGrouping(
-    domainGroups: Record<string, TabInfo[]>, 
-    options: GroupOptions
+    domainGroups: Record<string, TabInfo[]>,
+    options: GroupOptions,
+    existingColors: chrome.tabGroups.ColorEnum[] = []
   ): Promise<BatchOperationResult> {
     const errors: string[] = []
     let successfulOperations = 0
     const totalOperations = Object.keys(domainGroups).length
-    
+
     try {
-      const existingColors: chrome.tabGroups.ColorEnum[] = []
-      
+      const usedColors = [...existingColors]
+
       for (const [domain, tabs] of Object.entries(domainGroups)) {
         try {
           const tabIds = tabs.map(tab => tab.id)
-          const color = this.selectGroupColor(domain, existingColors)
-          existingColors.push(color)
-          
+          const color = this.selectGroupColor(domain, usedColors, options)
+          usedColors.push(color)
+
           const groupId = await this.createGroup(tabIds, domain, color)
-          
+
           if (groupId) {
             successfulOperations++
           } else {
@@ -473,7 +476,7 @@ export class GroupService {
       if (!url || url.startsWith('chrome://') || url.startsWith('chrome-extension://')) {
         return url.split('://')[0] || 'unknown'
       }
-      
+
       const urlObj = new URL(url)
       return urlObj.hostname
     } catch {
@@ -481,20 +484,6 @@ export class GroupService {
     }
   }
 
-  /**
-   * 字符串哈希函数
-   * @param str 字符串
-   * @returns number 哈希值
-   */
-  private static hashString(str: string): number {
-    let hash = 0
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash // 转换为32位整数
-    }
-    return Math.abs(hash)
-  }
 }
 
 // 导出便捷方法

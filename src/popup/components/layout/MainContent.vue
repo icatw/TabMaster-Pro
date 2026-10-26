@@ -154,7 +154,7 @@ interface Props {
 
 interface Emits {
   // 书签事件
-  (e: 'toggle-bookmark-collapse', groupName: string): void
+  (e: 'toggle-bookmark-collapse', groupName: string, collapsed: boolean): void
   (e: 'expand-all-groups'): void
   (e: 'collapse-groups'): void
 
@@ -203,8 +203,8 @@ const searchLayoutClasses = computed(() => {
 })
 
 // 事件处理函数
-const handleBookmarkGroupCollapse = (groupName: string) => {
-  emit('toggle-bookmark-collapse', groupName)
+const handleBookmarkGroupCollapse = (groupName: string, collapsed: boolean) => {
+  emit('toggle-bookmark-collapse', groupName, collapsed)
 }
 
 const refreshTabList = () => {

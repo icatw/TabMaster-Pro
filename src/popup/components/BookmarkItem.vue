@@ -64,7 +64,7 @@ const displayUrl = computed(() => {
     const url = new URL(props.bookmark.url)
     return url.hostname
   } catch {
-    return props.bookmark.url.slice(0, 50) + '...'
+    return `${props.bookmark.url.slice(0, 50)  }...`
   }
 })
 

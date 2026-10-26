@@ -1,408 +1,146 @@
-# 🚀 TabMaster Pro
+# TabMaster Pro
 
-**专业的标签页管理大师**
+**中文** | [English](./README.en.md) | [问题反馈](https://github.com/icatw/TabMaster-Pro/issues)
 
-TabMaster Pro 是一个现代、高效的 Chrome 扩展，专为专业用户打造，帮助您轻松掌控和组织浏览器标签页。基于 Manifest V3、Vue 3、TypeScript 和 Vite 构建，提供企业级的功能和流畅的用户体验。
+TabMaster Pro 是一个基于 Manifest V3、Vue 3、TypeScript 和 Vite 的 Chrome 标签页管理扩展。它提供实时标签页搜索、排序、分组、多选操作，以及可跨浏览器会话恢复的本地标签集合。
 
-**中文** | [English](./README.en.md) | [报告问题](https://github.com/icatw/TabMaster-Pro/issues) | [功能建议](https://github.com/icatw/TabMaster-Pro/issues)
+![TabMaster Pro 主界面](./screenshots/main-interface.png)
 
-## 📸 应用截图
+## 与 OneTab 的定位
 
-### 🏠 主界面
-<div align="center">
-<img src="./screenshots/main-interface.png" alt="TabMaster Pro 主界面" width="600">
-<br>
-<em>现代化的标签页管理界面，支持深色/浅色主题切换</em>
-</div>
+OneTab 的核心价值是把大量标签低摩擦地收拢到列表中，之后再恢复。TabMaster Pro 现在也提供这条完整路径：可以保存当前窗口，也可以保存并关闭已选标签；保存结果会持久化到 `chrome.storage.local`，浏览器重启后仍可恢复。
 
-<details>
-<summary>🖼️ <strong>查看更多功能截图</strong></summary>
+TabMaster Pro 同时保留了面向当前窗口的搜索、排序、分组和多选能力。Saved Lists 目前仅保存在当前浏览器内，不提供云同步、跨设备同步或公开分享。
 
-### 🔍 智能搜索
-<div align="center">
-<img src="./screenshots/search-feature.png" alt="智能搜索功能" width="600">
-<br>
-<em>统一搜索标签页和书签，实时高亮匹配结果</em>
-</div>
+## 功能
 
-### ⚡ 快速排序
-<div align="center">
-<img src="./screenshots/quick-sort.png" alt="快速排序功能" width="600">
-<br>
-<em>多维度排序选项，支持按域名、标题、时间等规则一键整理</em>
-</div>
+### Saved Lists
 
-### 🎯 智能分组
-<div align="center">
-<img src="./screenshots/smart-grouping.png" alt="智能分组功能" width="600">
-<br>
-<em>AI 驱动的智能分组，自动整理相关标签页</em>
-</div>
+- 将当前窗口保存为命名列表，不关闭原标签。
+- 多选标签后一次性保存并关闭。
+- 恢复整个列表，或只恢复其中一个链接。
+- 重命名或删除列表；删除前使用原生确认对话框。
+- 列表保存后不会因单项恢复而自动删除，可重复使用。
+- 同一列表内按 URL 去重；旧存储数据会迁移到版本化格式。
+- 保存失败时不会执行关闭；部分恢复或关闭会报告实际成功与失败数量。
+- 单标签关闭、批量关闭、键盘 `Delete` 和分组关闭都会先保存可恢复的 URL。
 
-### ⚡ 批量操作
-<div align="center">
-<img src="./screenshots/batch-operations.png" alt="批量操作" width="600">
-<br>
-<em>多选模式下的批量管理操作</em>
-</div>
+Saved Lists 数据仅存储在本机浏览器的 `chrome.storage.local` 中，不会上传到服务器。
 
-### ⚙️ 设置界面
-<div align="center">
-<img src="./screenshots/settings-page.png" alt="设置页面" width="600">
-<br>
-<em>丰富的个性化配置选项</em>
-</div>
+### 标签页工作流
 
-### 🎮 键盘导航
-<div align="center">
-<img src="./screenshots/keyboard-navigation.png" alt="键盘导航" width="600">
-<br>
-<em>完整的键盘快捷键操作体验</em>
-</div>
+- 同时搜索已打开的标签页和书签，并高亮匹配内容。
+- 按域名、标题、URL、最后访问时间或标签顺序排序。
+- 按域名分组；固定标签和已有分组中的标签会跳过自动分组。
+- 支持多标签选择、批量关闭和批量分组。
+- 分组支持折叠和重命名。
+- 键盘导航支持方向键、`Enter`、`Delete`、`Escape` 和 `Ctrl/Cmd+A`。
 
-</details>
+### 界面与配置
 
-## 💎 为什么选择 TabMaster Pro？
+- 中文和英文界面。
+- 自动、浅色、深色三种主题模式；自动模式会跟随系统主题变化。
+- 配置保存在当前浏览器中。
+- 弹窗和设置页使用响应式布局，并补充了键盘焦点、可访问名称和对话框语义。
 
-TabMaster Pro 不仅仅是一个标签管理工具，更是您的**数字工作空间管理大师**。无论您是开发者、设计师、研究员还是知识工作者，TabMaster Pro 都能让您的浏览器标签页井然有序，工作效率倍增。
+## 安装与开发
 
-## ✨ 核心功能
+### 环境要求
 
-### 🔍 智能搜索系统
-- **统一搜索入口**：在单一搜索框中即时查找所有打开的标签页和已保存的书签
-- **智能高亮**：搜索结果中自动高亮显示匹配关键词，快速定位目标
-- **实时响应**：输入即搜索，无需等待，瞬间获得结果
+| 工具 | 要求 |
+|---|---|
+| Node.js | 18 或更高版本，推荐 20 LTS |
+| npm | 8 或更高版本 |
+| Chrome / Chromium | 100 或更高版本 |
 
-### ⚡ 专业排序引擎
-- **多维度排序**：支持按域名、标题、URL、最后访问时间等多种规则排序
-- **自动排序**：可配置的智能自动排序，新标签页自动按规则排列
-- **一键整理**：快捷键 `Ctrl/Cmd+Shift+S` 瞬间整理所有标签页
+### 本地开发
 
-### 🎯 智能分组管理
-- **AI 自动分组**：基于域名和内容相似性智能创建标签组
-- **批量操作**：多选标签页进行批量分组、关闭或移动
-- **可视化管理**：直观的分组界面，支持拖拽、重命名、颜色标记
-
-### 🎮 全键盘操作
-- **完整键盘导航**：支持方向键、Tab、Enter 等全键盘操作
-- **专业快捷键**：`Ctrl/Cmd+Shift+G` 分组，`Ctrl/Cmd+Shift+U` 取消分组
-- **效率优先**：为专业用户设计的无鼠标操作体验
-
-### 🎨 现代化界面
-- **深色/浅色主题**：完美适配系统主题，自动切换
-- **响应式设计**：适配不同屏幕尺寸，保持最佳视觉体验
-- **流畅动画**：精心设计的过渡动画，提升操作体验
-
-### ⚙️ 企业级配置
-- **丰富设置项**：排序规则、分组策略、主题偏好等全面可配置
-- **云端同步**：设置自动在设备间同步，无缝切换工作环境
-- **导入导出**：支持配置备份和迁移
-
-## 🛠️ 技术架构
-
-TabMaster Pro 采用现代化的技术栈，确保性能、可维护性和扩展性：
-
-- **🎯 核心框架**: Vue 3 + Composition API - 响应式组件架构
-- **💪 开发语言**: TypeScript - 类型安全保障
-- **⚡ 构建工具**: Vite + CRXJS - 极速开发体验
-- **🎨 样式方案**: UnoCSS - 原子化CSS，按需生成
-- **📦 状态管理**: Pinia - 轻量级状态管理
-- **🔧 扩展标准**: Manifest V3 - 最新Chrome扩展规范
-- **🌐 国际化**: Vue I18n - 多语言支持
-- **🎮 工具库**: VueUse - 强大的组合式函数集合
-
-## 📁 项目架构
-
-```
-tabmaster-pro/
-├── 📦 dist/                         # 构建输出
-├── 📂 src/
-│   ├── 🎨 assets/                   # 静态资源
-│   │   ├── icons/                   # 应用图标
-│   │   └── styles/                  # 全局样式
-│   ├── ⚙️ background/               # Service Worker
-│   │   └── service-worker.ts        # 后台核心逻辑
-│   ├── 🧩 composables/              # 组合式函数
-│   │   ├── useTabManagement.ts      # 标签管理
-│   │   ├── useKeyboardNavigation.ts # 键盘导航
-│   │   └── useTheme.ts              # 主题管理
-│   ├── 🌍 locales/                  # 国际化文件
-│   ├── 🎛️ options/                  # 设置页面
-│   │   ├── components/              # 设置组件
-│   │   └── App.vue                  # 设置主应用
-│   ├── 🚀 popup/                    # 主界面
-│   │   ├── components/              # UI组件
-│   │   └── App.vue                  # 主应用
-│   └── 📚 shared/                   # 共享代码
-│       ├── constants/               # 常量定义
-│       ├── types/                   # TypeScript类型
-│       └── utils/                   # 工具函数
-├── ⚙️ 配置文件
-│   ├── manifest.config.ts           # 扩展配置
-│   ├── vite.config.ts              # 构建配置
-│   └── tsconfig.json               # TypeScript配置
-└── 📋 package.json                  # 项目依赖
-```
-
-## 🚀 快速开始
-
-### 📋 环境要求
-
-确保您的开发环境满足以下要求：
-
-| 工具 | 版本要求 | 说明 |
-|------|----------|------|
-| Node.js | `>= 18.0.0` | 推荐使用 LTS 版本 |
-| pnpm | `>= 8.0.0` | 推荐包管理器 |
-| Chrome | `>= 100.0` | 支持 Manifest V3 |
-
-### ⚡ 开发环境搭建
-
-#### 1️⃣ 克隆项目
 ```bash
 git clone https://github.com/icatw/TabMaster-Pro.git
 cd TabMaster-Pro
+npm ci
+npm run dev
 ```
 
-#### 2️⃣ 安装依赖
-```bash
-pnpm install
-```
+保持开发服务器运行，然后：
 
-#### 3️⃣ 启动开发服务器
-```bash
-pnpm dev
-```
-> 💡 开发服务器支持热重载，修改代码后自动更新扩展
+1. 打开 `chrome://extensions/`。
+2. 开启右上角的“开发者模式”。
+3. 点击“加载已解压的扩展程序”。
+4. 选择项目中的 `dist` 文件夹。
 
-#### 4️⃣ 加载到 Chrome 浏览器
-1. 打开 Chrome，访问 `chrome://extensions/`
-2. 开启右上角的 **"开发者模式"**
-3. 点击 **"加载已解压的扩展程序"**
-4. 选择项目的 `dist` 文件夹
-
-### 📦 构建生产版本
+### 生产构建
 
 ```bash
-# 构建生产版本
-pnpm build
-
-# 构建并打包为 ZIP
-pnpm build:zip
+npm run build
 ```
 
-构建完成后，`dist` 目录包含可发布的扩展文件。
-
-## 📖 使用指南
-
-### 🎯 基础操作
-
-#### 打开 TabMaster Pro
-- 点击浏览器工具栏中的 TabMaster Pro 图标
-- 或使用快捷键 `Ctrl/Cmd+Shift+T`
-
-#### 🔍 智能搜索
-1. 在顶部搜索框输入关键词
-2. 实时显示匹配的标签页和书签
-3. 使用方向键导航，回车键打开
-
-#### ⚡ 一键排序
-- **快捷键**: `Ctrl/Cmd+Shift+S`
-- **手动操作**: 点击底部工具栏的排序按钮，选择排序规则
-- **自动排序**: 在设置中启用，新标签页自动排列
-
-#### 🎯 智能分组
-- **自动分组**: `Ctrl/Cmd+Shift+G` 按域名自动创建分组
-- **手动分组**: 多选标签页后点击分组按钮
-- **取消分组**: `Ctrl/Cmd+Shift+U` 解散所有分组
-
-### 🎮 高级操作
-
-#### 多选标签页
-1. 点击多选模式按钮（底部工具栏）
-2. 点击标签页进行选择
-3. 使用批量操作：关闭、分组、移动
-
-#### 键盘导航
-| 按键 | 功能 |
-|------|------|
-| `↑↓` | 导航标签页 |
-| `Enter` | 切换到选中标签页 |
-| `Delete` | 关闭选中标签页 |
-| `Ctrl/Cmd+A` | 全选 |
-| `Escape` | 清除选择 |
-
-#### 分组管理
-- **重命名**: 双击分组标题编辑
-- **折叠**: 点击分组前的箭头图标
-- **颜色**: 在设置中配置分组颜色策略
-
-### ⚙️ 个性化设置
-
-右键扩展图标选择"选项"，或点击设置按钮进入配置页面：
-
-#### 排序设置
-- 默认排序规则（域名/标题/时间）
-- 自动排序开关
-- 排序方向（升序/降序）
-
-#### 分组设置
-- 自动分组策略
-- 最小分组标签数
-- 分组颜色方案
-
-#### 界面设置
-- 深色/浅色主题
-- 语言切换（中文/英文）
-- 界面布局偏好
-
-## 🔧 开发指南
-
-### 🏗️ 核心架构
-
-#### Service Worker (`background/service-worker.ts`)
-- 扩展的核心大脑，处理所有浏览器 API 调用
-- 管理标签页操作、分组管理、配置存储
-- 通过消息机制与前端通信
-
-#### 组合式函数 (`src/composables/`)
-- **useTabManagement**: 标签页核心管理逻辑
-- **useKeyboardNavigation**: 键盘导航控制
-- **useTheme**: 主题管理和切换
-- **useToast**: 消息提示系统
-
-#### 组件架构
-```
-📂 components/
-├── 🎛️ layout/          # 布局组件
-│   ├── AppHeader.vue    # 应用头部
-│   ├── SearchSection.vue # 搜索区域
-│   └── Toolbar.vue      # 工具栏
-├── 📋 common/           # 通用组件
-│   ├── Toast.vue        # 消息提示
-│   └── LazyComponent.vue # 懒加载组件
-└── 🎯 business/         # 业务组件
-    ├── TabList.vue      # 标签列表
-    └── BookmarkList.vue # 书签列表
-```
-
-### 🔄 通信机制
-
-#### 前后端通信
-```typescript
-// Frontend → Service Worker
-const response = await chrome.runtime.sendMessage({
-  type: 'SORT_TABS',
-  payload: { rule: 'domain' }
-})
-
-// Service Worker → Frontend
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // 处理消息
-})
-```
-
-#### 组件间通信
-- **Props Down**: 父组件传递数据到子组件
-- **Events Up**: 子组件通过事件向父组件通信
-- **Provide/Inject**: 跨层级组件通信
-
-### 📋 开发规范
-
-#### 代码风格
-- 使用 ESLint + Prettier 保证代码质量
-- 遵循 Vue 3 Composition API 最佳实践
-- TypeScript 严格模式，确保类型安全
-
-#### 提交规范
-```bash
-feat: 新功能
-fix: 修复bug
-docs: 文档更新
-style: 代码格式调整
-refactor: 重构
-test: 测试相关
-chore: 构建过程或辅助工具的变动
-```
-
-### 🧪 测试策略
+构建完成后，从 `dist` 目录加载扩展。如需生成 ZIP：
 
 ```bash
-# 运行测试
-pnpm test
-
-# 测试覆盖率
-pnpm test:coverage
-
-# 测试UI
-pnpm test:ui
+npm run build:zip
 ```
 
-## 🗺️ 发展路线
+### 验证
 
-### ✅ 已完成
-- [x] **核心架构** - Manifest V3 + Vue 3 + TypeScript
-- [x] **标签管理** - 排序、分组、搜索功能
-- [x] **用户界面** - 现代化UI设计
-- [x] **键盘导航** - 完整的快捷键支持
-- [x] **深色主题** - 主题切换系统
-- [x] **国际化** - 中英文支持
-- [x] **配置系统** - 云端同步设置
+```bash
+npm run type-check
+npm run lint:check
+npm test -- --run
+npm run build
+```
 
-### 🚧 进行中
-- [ ] **性能优化** - 大量标签页处理优化
-- [ ] **书签管理** - 书签编辑和组织功能
-- [ ] **标签页预览** - 悬停预览功能
+## 快捷键
 
-### 🔮 计划中
-- [ ] **AI 智能分组** - 基于内容的智能分组
-- [ ] **工作区管理** - 多工作区切换
-- [ ] **数据分析** - 浏览习惯分析
-- [ ] **云端备份** - 标签页历史备份
-- [ ] **团队协作** - 分享标签页集合
+扩展在 Manifest 中提供以下建议快捷键，可在 `chrome://extensions/shortcuts` 查看实际绑定并修改：
 
-## 🤝 贡献指南
+| 功能 | Windows / Linux | macOS |
+|---|---|---|
+| 打开 TabMaster Pro | `Ctrl+Shift+T` | `Command+Shift+T` |
+| 排序当前窗口 | `Ctrl+Shift+S` | `Command+Shift+S` |
+| 按域名分组 | `Ctrl+Shift+G` | `Command+Shift+G` |
+| 取消所有分组 | `Ctrl+Shift+U` | `Command+Shift+U` |
 
-欢迎参与 TabMaster Pro 的开发！
+浏览器或操作系统可能占用部分组合键；以扩展快捷键设置页显示的结果为准。
 
-### 🐛 报告问题
-- 使用 [GitHub Issues](https://github.com/icatw/TabMaster-Pro/issues)
-- 提供详细的复现步骤和环境信息
+## 权限说明
 
-### 💡 功能建议
-- 在 Issues 中使用 `enhancement` 标签
-- 描述使用场景和期望效果
+| 权限 | 用途 |
+|---|---|
+| `tabs` | 读取当前窗口标签、切换或关闭标签、创建恢复标签，以及生成可见标签缩略图。 |
+| `tabGroups` | 创建、读取和取消标签分组。 |
+| `storage` | 在当前浏览器保存设置和 Saved Lists。 |
+| `bookmarks` | 搜索用户已存在的书签。 |
+| `<all_urls>` | 允许 Chrome 的 `captureVisibleTab` 获取当前可见标签缩略图；扩展不读取或修改页面内容。 |
 
-### 🔧 代码贡献
-1. Fork 项目
-2. 创建功能分支: `git checkout -b feature/amazing-feature`
-3. 提交更改: `git commit -m 'feat: add amazing feature'`
-4. 推送分支: `git push origin feature/amazing-feature`
-5. 开启 Pull Request
+## 技术结构
 
-### 📚 文档贡献
-- 改进 README 和代码注释
-- 编写使用教程和最佳实践
+```text
+src/
+├── background/              # Manifest V3 service worker 和消息处理
+├── composables/             # 标签、搜索、键盘、主题等组合式逻辑
+├── locales/                 # 中英文文案
+├── options/                 # 设置页
+├── popup/                   # 扩展弹窗
+└── shared/
+    ├── services/            # 标签、Saved Lists、缩略图服务
+    ├── types/               # 共享类型
+    └── utils/               # 排序、分组、存储和数据迁移
+```
 
-## 📄 许可证
+扩展页面通过 `chrome.runtime.sendMessage` 调用 service worker；共享业务逻辑位于 `src/shared`。测试使用 Vitest，并通过独立的 `vitest.config.ts` 避免开发构建插件影响测试进程。
 
-本项目采用 MIT 许可证。详情请见 [LICENSE](./LICENSE) 文件。
+## 已知限制
 
-## 🙏 致谢
+- Saved Lists 仅保存在当前浏览器，不支持云同步或跨设备恢复。
+- 没有 AI 分组、账户、团队协作或配置导入导出功能。
+- `chrome://` 页面、Chrome Web Store 等受保护页面无法由扩展重新打开。
+- 自动分组只使用域名规则，不分析页面内容。
 
-感谢以下开源项目和技术：
-- [Vue.js](https://vuejs.org/) - 渐进式 JavaScript 框架
-- [Vite](https://vitejs.dev/) - 下一代前端构建工具
-- [UnoCSS](https://uno.antfu.me/) - 即时原子化 CSS 引擎
-- [CRXJS](https://crxjs.dev/) - Chrome 扩展开发工具
+## 贡献
 
----
+欢迎在 [GitHub Issues](https://github.com/icatw/TabMaster-Pro/issues) 报告问题和提出建议。提交代码前请运行“验证”部分列出的命令。
 
-<div align="center">
+## 许可证
 
-**TabMaster Pro** - 让标签页管理变得专业而高效
-
-[![⭐ Star on GitHub](https://img.shields.io/github/stars/icatw/TabMaster-Pro?style=social)](https://github.com/icatw/TabMaster-Pro)
-[![📥 Download](https://img.shields.io/badge/Download-Chrome%20Web%20Store-blue)](https://chrome.google.com/webstore)
-
-</div>
+[MIT](./LICENSE)

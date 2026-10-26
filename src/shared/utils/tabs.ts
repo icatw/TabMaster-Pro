@@ -1,6 +1,7 @@
 import type { SortRule, SortOptions, TabInfo, SortResult, TabMoveOperation, BatchOperationResult } from '../types'
-import { SORT_RULES, PERFORMANCE_CONFIG } from '../constants'
+import { SORT_RULES } from '../constants'
 import { ThumbnailService } from '../services/ThumbnailService'
+import { SavedTabsService } from '../services/SavedTabsService'
 
 /**
  * 标签管理服务
@@ -57,15 +58,28 @@ export class TabService {
    */
   static sortTabs(tabs: TabInfo[], options: SortOptions): SortResult {
     const startTime = performance.now()
-    
+
     try {
-      const sortedTabs = [...tabs].sort((a, b) => {
-        return this.compareTabsByRule(a, b, options.rule, options.ascending)
-      })
-      
+      const pinnedTabs = tabs
+        .filter(tab => tab.pinned)
+        .sort((a, b) => a.index - b.index)
+      const sortedUnpinnedTabs = tabs
+        .filter(tab => !tab.pinned)
+        .sort((a, b) => {
+          const result = this.compareTabsByRule(
+            a,
+            b,
+            options.rule,
+            options.ascending,
+            options.caseSensitive ?? false
+          )
+          return result || a.index - b.index
+        })
+      const sortedTabs = [...pinnedTabs, ...sortedUnpinnedTabs]
+
       const endTime = performance.now()
       const duration = endTime - startTime
-      
+
       return {
         success: true,
         tabs: sortedTabs,
@@ -79,7 +93,7 @@ export class TabService {
       console.error('Failed to sort tabs:', error)
       return {
         success: false,
-        tabs: tabs,
+        tabs,
         originalCount: tabs.length,
         sortedCount: tabs.length,
         rule: options.rule,
@@ -111,27 +125,22 @@ export class TabService {
     let successfulOperations = 0
 
     try {
-      // 批量移动标签
-      for (let i = 0; i < sortResult.tabs.length; i++) {
-        const tab = sortResult.tabs[i]
-        const targetIndex = i
-        
-        if (tab.index !== targetIndex) {
-          operations.push({
-            tabId: tab.id,
-            fromIndex: tab.index,
-            toIndex: targetIndex
-          })
+      // Move into the desired order one position at a time. Reusing the
+      // snapshot indexes after the first move makes later moves drift.
+      for (let targetIndex = 0; targetIndex < sortResult.tabs.length; targetIndex++) {
+        const tab = sortResult.tabs[targetIndex]
+        const operation: TabMoveOperation = {
+          tabId: tab.id,
+          fromIndex: tab.index,
+          toIndex: targetIndex
         }
-      }
+        operations.push(operation)
 
-      // 执行移动操作
-      for (const operation of operations) {
         try {
-          await chrome.tabs.move(operation.tabId, { index: operation.toIndex })
+          await chrome.tabs.move(tab.id, { index: targetIndex })
           successfulOperations++
         } catch (error) {
-          const errorMsg = `移动标签 ${operation.tabId} 失败: ${error}`
+          const errorMsg = `移动标签 ${tab.id} 失败: ${error}`
           console.error(errorMsg)
           errors.push(errorMsg)
         }
@@ -195,7 +204,7 @@ export class TabService {
       const tabs = await this.getAllTabs()
       const domains = tabs.map(tab => this.extractDomain(tab.url)).filter(Boolean)
       const uniqueDomains = [...new Set(domains)]
-      
+
       return {
         totalTabs: tabs.length,
         pinnedTabs: tabs.filter(tab => tab.pinned).length,
@@ -227,14 +236,14 @@ export class TabService {
     try {
       const allTabs = tabs || await this.getAllTabs()
       const lowerQuery = query.toLowerCase()
-      
+
       return allTabs.filter(tab => {
         const title = tab.title?.toLowerCase() || ''
         const url = tab.url?.toLowerCase() || ''
         const domain = this.extractDomain(tab.url)?.toLowerCase() || ''
-        
-        return title.includes(lowerQuery) || 
-               url.includes(lowerQuery) || 
+
+        return title.includes(lowerQuery) ||
+               url.includes(lowerQuery) ||
                domain.includes(lowerQuery)
       })
     } catch (error) {
@@ -271,7 +280,10 @@ export class TabService {
       discarded: tab.discarded || false,
       autoDiscardable: tab.autoDiscardable || false,
       groupId: tab.groupId || chrome.tabGroups.TAB_GROUP_ID_NONE,
-      lastAccessed: tab.active ? Date.now() : (Date.now() - (tab.index * 1000)), // 活动标签页使用当前时间，其他根据位置估算
+      // Chrome exposes lastAccessed when the "tabs" permission is granted.
+      // Keep the fallback at zero so an unsupported browser can never present
+      // an index-derived value as real usage history.
+      lastAccessed: (tab as chrome.tabs.Tab & { lastAccessed?: number }).lastAccessed ?? 0,
       status: tab.status as 'loading' | 'complete' | undefined,
       audible: tab.audible,
       mutedInfo: tab.mutedInfo,
@@ -293,7 +305,7 @@ export class TabService {
       if (!url || url.startsWith('chrome://') || url.startsWith('chrome-extension://')) {
         return url.split('://')[0] || 'unknown'
       }
-      
+
       const urlObj = new URL(url)
       return urlObj.hostname
     } catch {
@@ -310,38 +322,40 @@ export class TabService {
    * @returns number 比较结果
    */
   private static compareTabsByRule(
-    a: TabInfo, 
-    b: TabInfo, 
-    rule: SortRule, 
-    ascending: boolean
+    a: TabInfo,
+    b: TabInfo,
+    rule: SortRule,
+    ascending: boolean,
+    caseSensitive: boolean
   ): number {
     let result = 0
-    
+    const normalize = (value: string) => caseSensitive ? value : value.toLocaleLowerCase()
+
     switch (rule) {
-      case SORT_RULES.DOMAIN:
-        result = (a.domain || '').localeCompare(b.domain || '')
-        break
-        
-      case SORT_RULES.TITLE:
-        result = (a.title || '').localeCompare(b.title || '')
-        break
-        
-      case SORT_RULES.URL:
-        result = (a.url || '').localeCompare(b.url || '')
-        break
-        
-      case SORT_RULES.LAST_ACCESSED:
-        result = (a.lastAccessed || 0) - (b.lastAccessed || 0)
-        break
-        
-      case SORT_RULES.INDEX:
-        result = a.index - b.index
-        break
-        
-      default:
-        result = 0
+    case SORT_RULES.DOMAIN:
+      result = normalize(a.domain || '').localeCompare(normalize(b.domain || ''))
+      break
+
+    case SORT_RULES.TITLE:
+      result = normalize(a.title || '').localeCompare(normalize(b.title || ''))
+      break
+
+    case SORT_RULES.URL:
+      result = normalize(a.url || '').localeCompare(normalize(b.url || ''))
+      break
+
+    case SORT_RULES.LAST_ACCESSED:
+      result = (a.lastAccessed || 0) - (b.lastAccessed || 0)
+      break
+
+    case SORT_RULES.INDEX:
+      result = a.index - b.index
+      break
+
+    default:
+      result = 0
     }
-    
+
     return ascending ? result : -result
   }
 
@@ -351,38 +365,7 @@ export class TabService {
    * @returns Promise<BatchOperationResult> 操作结果
    */
   static async closeTabs(tabIds: number[]): Promise<BatchOperationResult> {
-    const errors: string[] = []
-    let successfulOperations = 0
-
-    try {
-      for (const tabId of tabIds) {
-        try {
-          await chrome.tabs.remove(tabId)
-          successfulOperations++
-        } catch (error) {
-          const errorMsg = `关闭标签 ${tabId} 失败: ${error}`
-          console.error(errorMsg)
-          errors.push(errorMsg)
-        }
-      }
-
-      return {
-        success: errors.length === 0,
-        totalOperations: tabIds.length,
-        successfulOperations,
-        failedOperations: tabIds.length - successfulOperations,
-        errors: errors.length > 0 ? errors : undefined
-      }
-    } catch (error) {
-      console.error('Failed to close tabs:', error)
-      return {
-        success: false,
-        totalOperations: tabIds.length,
-        successfulOperations,
-        failedOperations: tabIds.length - successfulOperations,
-        errors: [error instanceof Error ? error.message : '关闭标签失败']
-      }
-    }
+    return SavedTabsService.saveAndCloseTabs(tabIds)
   }
 
   /**

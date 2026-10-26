@@ -133,7 +133,7 @@ import ShortcutsSection from './components/ShortcutsSection.vue'
 import AboutSection from './components/AboutSection.vue'
 
 // 初始化主题
-const { isDark, themeMode, actualTheme, setTheme } = useTheme()
+const { themeMode, setTheme } = useTheme()
 
 // 响应式数据
 const activeSection = ref('general')

@@ -67,7 +67,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getCurrentLocale, setLocale, getSupportedLocales } from '@/i18n'
-import { useI18n } from 'vue-i18n'
 
 // Props定义
 interface Props {
@@ -80,7 +79,6 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const { t } = useI18n()
 
 // Emits定义
 const emit = defineEmits<{

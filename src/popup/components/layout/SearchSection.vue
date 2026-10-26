@@ -18,7 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import SearchBar from '@/popup/components/layout/SearchBar.vue'
 import FilterChips from '@/popup/components/layout/FilterChips.vue'
 import type { FilterConfig } from '@/shared/types'
@@ -36,7 +35,7 @@ interface Emits {
   (e: 'toggle-filter', filterId: string): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const updateSearchQuery = (value: string) => {

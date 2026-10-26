@@ -148,7 +148,7 @@
           v-for="color in colors"
           :key="color.value"
           :class="['color-item', color.value]"
-          :title="color.label"
+          :title="$t(`settings.colorLabels.${color.value}`)"
         >
           <span class="color-dot"></span>
           <span class="color-name">{{ $t(`settings.colorLabels.${color.value}`) }}</span>

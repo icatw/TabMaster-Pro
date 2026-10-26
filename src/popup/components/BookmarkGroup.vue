@@ -3,16 +3,23 @@
     <!-- 分组标题 -->
     <div class="group-header">
       <div class="group-header-content">
-        <svg
-          class="collapse-icon"
-          :class="{ collapsed: isCollapsed }"
-          viewBox="0 0 16 16"
-          fill="currentColor"
+        <button
+          class="collapse-button"
+          :aria-label="$t('bookmarks.toggleGroup', { name: groupName })"
+          :aria-expanded="!isCollapsed"
           @click="toggleCollapse"
         >
-          <path d="M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z"/>
-        </svg>
-        
+          <svg
+            class="collapse-icon"
+            :class="{ collapsed: isCollapsed }"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z"/>
+          </svg>
+        </button>
+
         <div class="group-icon">
           <!-- 文件夹图标 -->
           <svg v-if="groupType === 'folder'" viewBox="0 0 16 16" fill="currentColor">
@@ -41,7 +48,8 @@
           <button
             class="group-action-btn"
             @click="openAllBookmarks"
-            title="打开所有书签"
+            :title="$t('bookmarks.openAll')"
+            :aria-label="$t('bookmarks.openAllNamed', { name: groupName })"
           >
             <svg viewBox="0 0 16 16" fill="currentColor">
               <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
@@ -66,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import BookmarkItem from './BookmarkItem.vue'
 import type { BookmarkInfo } from '@/shared/utils/bookmarks'
 import { openBookmark } from '@/shared/utils/bookmarks'
@@ -93,6 +101,10 @@ const emit = defineEmits<{
 
 // 状态
 const isCollapsed = ref(props.collapsed)
+
+watch(() => props.collapsed, collapsed => {
+  isCollapsed.value = collapsed
+})
 
 // 方法
 const isBookmarkActive = (bookmark: BookmarkInfo) => {
@@ -124,13 +136,13 @@ const openAllBookmarks = async () => {
     // 限制同时打开的书签数量，避免浏览器卡顿
     const maxTabs = 10
     const bookmarksToOpen = props.bookmarks.slice(0, maxTabs)
-    
+
     for (const bookmark of bookmarksToOpen) {
       if (bookmark.url) {
         await openBookmark(bookmark.url, true)
       }
     }
-    
+
     if (props.bookmarks.length > maxTabs) {
       console.warn(`只打开了前 ${maxTabs} 个书签，共有 ${props.bookmarks.length} 个书签`)
     }
@@ -165,11 +177,31 @@ const openAllBookmarks = async () => {
   gap: 10px;
   user-select: none;
   transition: all 0.15s;
-  cursor: pointer;
 }
 
 .group-header-content:hover {
   background: var(--bg-hover);
+}
+
+.collapse-button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.collapse-button:focus-visible,
+.group-action-btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .collapse-icon {
@@ -177,11 +209,6 @@ const openAllBookmarks = async () => {
   height: 16px;
   color: var(--text-secondary);
   transition: transform 0.2s;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .collapse-icon.collapsed {
@@ -228,6 +255,10 @@ const openAllBookmarks = async () => {
 }
 
 .group-header-content:hover .group-actions {
+  opacity: 1;
+}
+
+.group-header-content:focus-within .group-actions {
   opacity: 1;
 }
 

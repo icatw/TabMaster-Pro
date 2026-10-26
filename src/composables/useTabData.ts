@@ -1,8 +1,16 @@
 import { ref, type Ref } from 'vue'
-import type { TabInfo, SortRule, ExtensionConfig, APIResponse, ComposableOptions } from '@/shared/types'
+import type {
+  TabInfo,
+  SortRule,
+  ExtensionConfig,
+  APIResponse,
+  BatchOperationResult,
+  ComposableOptions
+} from '@/shared/types'
 import { TabService } from '@/shared/utils/tabs'
 import { MESSAGE_TYPES } from '@/shared/constants'
 import { ErrorHandler, ErrorCode } from '@/shared/utils/errorHandler'
+import { i18n } from '@/i18n'
 
 interface UseTabDataOptions extends ComposableOptions {
   config: Ref<ExtensionConfig | null>
@@ -86,9 +94,26 @@ export function useTabData(options: UseTabDataOptions) {
   const closeTab = async (tabId: number) => {
     const result = await ErrorHandler.safeExecute(
       async () => {
-        await chrome.tabs.remove(tabId)
+        const response: APIResponse = await chrome.runtime.sendMessage({
+          type: MESSAGE_TYPES.SAVE_AND_CLOSE_TABS,
+          payload: { tabIds: [tabId] }
+        })
+        const operation = response.data as BatchOperationResult | undefined
+        if (!operation || operation.successfulOperations === 0) {
+          throw new Error(response.error || '标签页保存失败，未关闭标签页')
+        }
+
         await refreshTabList()
-        return { closedTabId: tabId }
+        const message = operation.failedOperations > 0
+          ? i18n.global.t('savedTabs.partialClose', {
+            count: operation.successfulOperations,
+            failed: operation.failedOperations
+          })
+          : i18n.global.t('savedTabs.savedAndClosed', {
+            count: operation.successfulOperations
+          })
+        showToast?.(message, operation.failedOperations > 0 ? 'error' : 'success')
+        return { closedTabId: tabId, operation }
       },
       ErrorCode.TAB_ACCESS_DENIED,
       'Failed to close tab',

@@ -1,46 +1,59 @@
-import { useDark, useToggle, usePreferredDark } from '@vueuse/core'
-import { computed, watchEffect } from 'vue'
+import { usePreferredDark } from '@vueuse/core'
+import { computed, ref, watch, watchEffect } from 'vue'
+import type { ThemeMode } from '@/shared/types'
 
-export function useTheme() {
-  // 检测系统是否偏好暗色模式
-  const prefersDark = usePreferredDark()
+const THEME_MODE_STORAGE_KEY = 'tab-manager-theme-mode'
+const LEGACY_THEME_STORAGE_KEY = 'tab-manager-theme'
 
-  // 创建响应式的暗色模式状态
-  // 这会自动将状态持久化到 localStorage
-  const isDark = useDark({
-    selector: 'html',
-    attribute: 'data-theme',
-    valueDark: 'dark',
-    valueLight: 'light',
-    storageKey: 'tab-manager-theme',
-    initialValue: 'auto', // 默认跟随系统
-  })
+function readStoredThemeMode(): ThemeMode {
+  if (typeof localStorage === 'undefined') return 'auto'
 
-  // 创建切换函数
-  const toggleTheme = useToggle(isDark)
-
-  // 设置特定主题的函数
-  const setTheme = (mode: 'light' | 'dark' | 'auto') => {
-    if (mode === 'auto') {
-      isDark.value = prefersDark.value
-    } else {
-      isDark.value = mode === 'dark'
-    }
+  const storedMode = localStorage.getItem(THEME_MODE_STORAGE_KEY)
+  if (storedMode === 'auto' || storedMode === 'light' || storedMode === 'dark') {
+    return storedMode
   }
 
-  // 主题模式：light | dark | auto
-  const themeMode = computed(() => {
-    if (isDark.value === undefined) return 'auto'
-    return isDark.value ? 'dark' : 'light'
-  })
+  const legacyMode = localStorage.getItem(LEGACY_THEME_STORAGE_KEY)
+  return legacyMode === 'light' || legacyMode === 'dark' ? legacyMode : 'auto'
+}
 
-  // 实际使用的主题（考虑自动模式）
-  const actualTheme = computed(() => {
+export function useTheme() {
+  const prefersDark = usePreferredDark()
+  const themeMode = ref<ThemeMode>(readStoredThemeMode())
+
+  const actualTheme = computed<'light' | 'dark'>(() => {
     if (themeMode.value === 'auto') {
       return prefersDark.value ? 'dark' : 'light'
     }
     return themeMode.value
   })
+
+  // Keep a writable compatibility facade for popup callers while preserving
+  // the independent persisted mode used by the options page.
+  const isDark = computed({
+    get: () => actualTheme.value === 'dark',
+    set: value => {
+      themeMode.value = value ? 'dark' : 'light'
+    }
+  })
+
+  watch(themeMode, mode => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(THEME_MODE_STORAGE_KEY, mode)
+    }
+  })
+
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(THEME_MODE_STORAGE_KEY, themeMode.value)
+  }
+
+  const setTheme = (mode: ThemeMode) => {
+    themeMode.value = mode
+  }
+
+  const toggleTheme = () => {
+    themeMode.value = actualTheme.value === 'dark' ? 'light' : 'dark'
+  }
 
   // 主题配置
   const themeConfig = computed(() => {
@@ -87,7 +100,7 @@ export function useTheme() {
         : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
       shadowLg: isDarkTheme
         ? '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
-        : '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        : '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
     }
   })
 
@@ -95,6 +108,9 @@ export function useTheme() {
   watchEffect(() => {
     const root = document.documentElement
     const config = themeConfig.value
+
+    root.dataset.theme = actualTheme.value
+    root.style.colorScheme = actualTheme.value
 
     // 设置 CSS 变量
     root.style.setProperty('--bg-primary', config.bgPrimary)
@@ -134,6 +150,6 @@ export function useTheme() {
     themeMode,
     actualTheme,
     themeConfig,
-    prefersDark,
+    prefersDark
   }
 }

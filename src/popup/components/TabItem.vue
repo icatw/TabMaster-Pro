@@ -56,7 +56,7 @@
       ×
     </button>
     </div>
-    
+
     <!-- 选中状态指示条 -->
     <div v-if="props.isSelected && props.isMultiSelect" class="selection-indicator"></div>
   </div>
@@ -201,7 +201,7 @@ const handleTabClick = (event: MouseEvent) => {
 .tab-item.selected {
   background: linear-gradient(135deg, #f8faff 0%, #f0f4f8 100%);
   border: 2px solid #e2e8f0;
-  box-shadow: 
+  box-shadow:
     0 0 0 1px rgba(148, 163, 184, 0.1),
     0 2px 8px rgba(148, 163, 184, 0.15);
   transform: translateY(-1px);
@@ -224,7 +224,7 @@ const handleTabClick = (event: MouseEvent) => {
 .tab-item.selected:hover {
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   border-color: #cbd5e1;
-  box-shadow: 
+  box-shadow:
     0 0 0 1px rgba(148, 163, 184, 0.2),
     0 4px 12px rgba(148, 163, 184, 0.2);
   transform: translateY(-2px);
@@ -447,26 +447,26 @@ const handleTabClick = (event: MouseEvent) => {
     padding: 6px 8px;
     gap: 6px;
   }
-  
+
   .checkbox-wrapper {
     width: 16px;
     height: 16px;
   }
-  
+
   .checkbox-indicator {
     width: 16px;
     height: 16px;
   }
-  
+
   .check-icon {
     width: 10px;
     height: 10px;
   }
-  
+
   .tab-title {
     font-size: 11px;
   }
-  
+
   .tab-url {
     font-size: 9px;
   }
@@ -478,30 +478,30 @@ const handleTabClick = (event: MouseEvent) => {
     border-width: 3px;
     background: #f8faff;
     color: #1e293b;
-    box-shadow: 
+    box-shadow:
       0 0 0 2px #64748b,
       0 4px 12px rgba(100, 116, 139, 0.3);
   }
-  
+
   .checkbox-indicator {
     border-width: 3px;
   }
-  
+
   .tab-item.selected .checkbox-indicator {
     background: #334155;
     border-color: #1e293b;
   }
-  
+
   .tab-item.selected .tab-title {
     color: #0f172a;
     font-weight: 700;
   }
-  
+
   .tab-item.selected .tab-url {
     color: #334155;
     font-weight: 600;
   }
-  
+
   .selection-indicator {
     background: #334155;
     width: 6px;
@@ -519,7 +519,7 @@ const handleTabClick = (event: MouseEvent) => {
   .indicator {
     transition: none;
   }
-  
+
   .selection-indicator {
     animation: none;
   }

@@ -14,7 +14,7 @@ export const SORT_RULES = {
  */
 export const TAB_GROUP_COLORS = [
   'grey',
-  'blue', 
+  'blue',
   'red',
   'yellow',
   'green',
@@ -30,15 +30,18 @@ export const TAB_GROUP_COLORS = [
 export const STORAGE_KEYS = {
   CONFIG: 'extension_config',
   CACHE: 'tab_cache',
-  STATS: 'usage_stats'
+  STATS: 'usage_stats',
+  SAVED_TABS: 'saved_tabs'
 } as const
+
+export const SAVED_TABS_SCHEMA_VERSION = 1
 
 /**
  * 默认配置
  */
 export const DEFAULT_CONFIG = {
   defaultSortRule: 'domain' as const,
-  autoGroupEnabled: true,
+  autoGroupEnabled: false,
   autoSortEnabled: false,  // 默认关闭自动排序
   autoSortDelay: 1000,     // 默认延迟1秒
   groupColorPreference: 'auto' as const,
@@ -52,7 +55,8 @@ export const DEFAULT_CONFIG = {
   groupOptions: {
     minTabsPerGroup: 2,
     maxGroupsPerWindow: 10,
-    colorStrategy: 'auto' as const
+    colorStrategy: 'auto' as const,
+    manualColor: 'blue' as const
   }
 } as const
 
@@ -100,7 +104,14 @@ export const MESSAGE_TYPES = {
   UPDATE_CONFIG: 'UPDATE_CONFIG',
   GET_CONFIG: 'GET_CONFIG',
   GET_STATS: 'GET_STATS',
-  CONFIG_UPDATED: 'CONFIG_UPDATED'
+  CONFIG_UPDATED: 'CONFIG_UPDATED',
+  SAVE_WINDOW: 'SAVE_WINDOW',
+  SAVE_AND_CLOSE_TABS: 'SAVE_AND_CLOSE_TABS',
+  GET_SAVED_LISTS: 'GET_SAVED_LISTS',
+  RESTORE_LIST: 'RESTORE_LIST',
+  RESTORE_SAVED_ITEM: 'RESTORE_SAVED_ITEM',
+  UPDATE_LIST: 'UPDATE_LIST',
+  DELETE_LIST: 'DELETE_LIST'
 } as const
 
 /**

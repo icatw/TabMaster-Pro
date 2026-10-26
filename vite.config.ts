@@ -12,14 +12,14 @@ export default defineConfig({
     UnoCSS(),
     crx({ manifest })
   ],
-  
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       'vue-i18n': 'vue-i18n/dist/vue-i18n.runtime.esm-bundler.js'
     }
   },
-  
+
   build: {
     rollupOptions: {
       input: {
@@ -42,7 +42,7 @@ export default defineConfig({
     sourcemap: process.env.NODE_ENV === 'development',
     target: 'es2020'
   },
-  
+
   // 开发服务器配置
   server: {
     port: 5173,
@@ -51,7 +51,7 @@ export default defineConfig({
       port: 5174
     }
   },
-  
+
   // 优化依赖预构建
   optimizeDeps: {
     include: [
@@ -60,7 +60,7 @@ export default defineConfig({
       'vue-i18n'
     ]
   },
-  
+
   // 定义全局常量
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '0.1.0'),

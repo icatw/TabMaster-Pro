@@ -27,13 +27,13 @@ module.exports = {
     'vue/no-mutating-props': 'error',
     'vue/require-default-prop': 'off',
     'vue/require-prop-types': 'error',
-    
+
     // TypeScript 相关规则
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    
+
     // 通用规则
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
@@ -42,7 +42,7 @@ module.exports = {
     'no-var': 'error',
     'object-shorthand': 'error',
     'prefer-template': 'error',
-    
+
     // 代码风格
     'indent': ['error', 2],
     'quotes': ['error', 'single'],

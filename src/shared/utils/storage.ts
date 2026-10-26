@@ -14,13 +14,13 @@ export class StorageService {
     try {
       const result = await chrome.storage.sync.get(STORAGE_KEYS.CONFIG)
       const config = result[STORAGE_KEYS.CONFIG] as ExtensionConfig
-      
+
       // 如果没有配置或配置不完整，返回默认配置
       if (!config || !this.isValidConfig(config)) {
         await this.setConfig(DEFAULT_CONFIG)
         return DEFAULT_CONFIG
       }
-      
+
       // 合并默认配置，确保新增的配置项有默认值
       return { ...DEFAULT_CONFIG, ...config }
     } catch (error) {
@@ -70,12 +70,12 @@ export class StorageService {
    */
   private static deepMerge<T>(target: T, source: Partial<T>): T {
     const result = { ...target }
-    
+
     for (const key in source) {
-      if (source.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
         const sourceValue = source[key]
         const targetValue = result[key]
-        
+
         if (sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue) &&
             targetValue && typeof targetValue === 'object' && !Array.isArray(targetValue)) {
           result[key] = this.deepMerge(targetValue, sourceValue)
@@ -84,7 +84,7 @@ export class StorageService {
         }
       }
     }
-    
+
     return result
   }
 
@@ -138,7 +138,7 @@ export class StorageService {
     }
 
     chrome.storage.onChanged.addListener(listener)
-    
+
     // 返回取消监听的函数
     return () => {
       chrome.storage.onChanged.removeListener(listener)
@@ -158,7 +158,7 @@ export class StorageService {
       const bytesInUse = await chrome.storage.sync.getBytesInUse()
       const quotaBytes = chrome.storage.sync.QUOTA_BYTES
       const usagePercentage = Math.round((bytesInUse / quotaBytes) * 100)
-      
+
       return {
         bytesInUse,
         quotaBytes,
@@ -226,11 +226,11 @@ export class StorageService {
   static async importConfig(configJson: string): Promise<boolean> {
     try {
       const config = JSON.parse(configJson) as ExtensionConfig
-      
+
       if (!this.isValidConfig(config)) {
         throw new Error('无效的配置格式')
       }
-      
+
       return await this.setConfig(config)
     } catch (error) {
       console.error('Failed to import config:', error)

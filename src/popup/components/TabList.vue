@@ -4,10 +4,10 @@
     <div v-if="selectedIds.size > 0" class="batch-actions">
       <span class="selected-count">{{ selectedCountText }}</span>
       <div class="actions">
-        <button class="batch-btn" @click="$emit('select-all')">{{ $t('selection.selectAll') }}</button>
-        <button class="batch-btn" @click="$emit('clear-selection')">{{ $t('selection.clearSelection') }}</button>
-        <button class="batch-btn danger" @click="$emit('batch-close')">{{ $t('selection.batchClose') }}</button>
-        <button class="batch-btn" @click="$emit('batch-group')">{{ $t('selection.batchGroup') }}</button>
+        <button class="batch-btn" @click="emit('select-all')">{{ $t('selection.selectAll') }}</button>
+        <button class="batch-btn" @click="emit('clear-selection')">{{ $t('selection.clearSelection') }}</button>
+        <button class="batch-btn danger" @click="emit('batch-close')">{{ $t('selection.batchClose') }}</button>
+        <button class="batch-btn" @click="emit('batch-group')">{{ $t('selection.batchGroup') }}</button>
       </div>
     </div>
 
@@ -86,11 +86,11 @@
               :is-keyboard-active="isTabActive(tab)"
               :nav-id="`tab-${tab.id}`"
               :group-color="getGroupColor(group.color)"
-              @hover="(e: MouseEvent) => $emit('hover', tab, e)"
-              @leave="$emit('leave')"
-              @click="(e: MouseEvent) => $emit('click', tab, e)"
-              @close="$emit('close', tab.id)"
-              @toggle-select="$emit('toggle-select', tab.id)"
+              @hover="(e: MouseEvent) => emit('hover', tab, e)"
+              @leave="emit('leave')"
+              @click="(e: MouseEvent) => emit('click', tab, e)"
+              @close="emit('close', tab.id)"
+              @toggle-select="emit('toggle-select', tab.id)"
             />
           </div>
         </div>
@@ -105,11 +105,11 @@
             :is-multi-select="isMultiSelect"
             :is-keyboard-active="isTabActive(tab)"
             :nav-id="`tab-${tab.id}`"
-            @hover="(e: MouseEvent) => $emit('hover', tab, e)"
-            @leave="$emit('leave')"
-            @click="(e: MouseEvent) => $emit('click', tab, e)"
-            @close="$emit('close', tab.id)"
-            @toggle-select="$emit('toggle-select', tab.id)"
+            @hover="(e: MouseEvent) => emit('hover', tab, e)"
+            @leave="emit('leave')"
+            @click="(e: MouseEvent) => emit('click', tab, e)"
+            @close="emit('close', tab.id)"
+            @toggle-select="emit('toggle-select', tab.id)"
           />
         </div>
 
