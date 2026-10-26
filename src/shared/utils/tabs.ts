@@ -328,7 +328,7 @@ export class TabService {
     ascending: boolean,
     caseSensitive: boolean
   ): number {
-    let result = 0
+    let result: number
     const normalize = (value: string) => caseSensitive ? value : value.toLocaleLowerCase()
 
     switch (rule) {

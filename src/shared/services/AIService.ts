@@ -112,7 +112,9 @@ async function requestChatCompletion(
     if (typeof text !== 'string' || !text.trim()) throw new Error('The model returned no text')
     return text.trim().slice(0, 4000)
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') throw new Error('Model request timed out')
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Model request timed out', { cause: error })
+    }
     throw error
   } finally {
     globalThis.clearTimeout(timeout)

@@ -214,7 +214,7 @@ export class StorageService {
       return JSON.stringify(config, null, 2)
     } catch (error) {
       console.error('Failed to export config:', error)
-      throw new Error('导出配置失败')
+      throw new Error('导出配置失败', { cause: error })
     }
   }
 

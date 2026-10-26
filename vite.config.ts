@@ -4,7 +4,7 @@ import { crx } from '@crxjs/vite-plugin'
 import UnoCSS from 'unocss/vite'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { fileURLToPath, URL } from 'node:url'
-import manifest from './src/manifest.config'
+import manifest from './src/manifest.config.ts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
