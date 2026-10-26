@@ -4,6 +4,8 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-26
+
 ### Added
 
 - Recoverable Saved Lists backed by `chrome.storage.local`.
@@ -14,6 +16,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 - Unit tests for Saved List data handling and tab close/restore behavior.
 - Pull-request CI for type checking, linting, tests, and production builds.
 - Chrome Web Store listing and permission documentation.
+- Optional saved-list summaries using Chrome's on-device Prompt API or a user-configured OpenAI-compatible endpoint. Custom summaries are sent only after an explicit user request and include list names, tab titles, and hostnames, not full URLs.
 
 ### Changed
 
