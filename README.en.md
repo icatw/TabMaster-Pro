@@ -4,7 +4,7 @@
 
 TabMaster Pro is a Chrome extension built with Manifest V3, Vue 3, TypeScript, and Vite. It combines live tab search, sorting, grouping, and multi-select actions with persistent local tab collections that survive browser restarts.
 
-![TabMaster Pro popup](./screenshots/main-interface.png)
+![TabMaster Pro popup](./screenshots/store-saved-tabs-1280x800.png)
 
 ## How It Compares with OneTab
 
@@ -96,9 +96,9 @@ The manifest suggests the shortcuts below. Open `chrome://extensions/shortcuts` 
 
 | Action | Windows / Linux | macOS |
 |---|---|---|
-| Open TabMaster Pro | `Ctrl+Shift+T` | `Command+Shift+T` |
+| Open TabMaster Pro | `Ctrl+Shift+Y` | `Command+Shift+Y` |
 | Sort the current window | `Ctrl+Shift+S` | `Command+Shift+S` |
-| Group tabs by domain | `Ctrl+Shift+G` | `Command+Shift+G` |
+| Group tabs by domain | `Ctrl+Shift+X` | `Command+Shift+X` |
 | Ungroup all tabs | `Ctrl+Shift+U` | `Command+Shift+U` |
 
 Chrome or the operating system may reserve some combinations, so use the binding shown on the shortcuts page.

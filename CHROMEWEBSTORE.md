@@ -43,13 +43,37 @@ Chinese (Simplified)
 | Asset | Dimensions | Status | Filename |
 |---|---|---|---|
 | Store Icon | 128×128 PNG | ✅ Ready | `src/assets/icons/icon-128.png` |
-| Screenshot 1 | 1280×800 或 640×400 | 🟡 Needs update | `screenshots/main-interface.png` |
-| Screenshot 2 | 1280×800 或 640×400 | 🟡 Needs update | `screenshots/search-feature.png` |
-| Screenshot 3 | 1280×800 或 640×400 | 🟡 Needs update | `screenshots/settings-page.png` |
+| Screenshot 1 | 1280×800 PNG | ✅ Ready | `screenshots/store-saved-tabs-1280x800.png` |
+| Screenshot 2 | 1280×800 PNG | ✅ Ready | `screenshots/store-confirmation-1280x800.png` |
+| Screenshot 3 | 1280×800 PNG | ✅ Ready | `screenshots/store-dark-mode-1280x800.png` |
+| Screenshot 4 | 1280×800 PNG | ✅ Ready | `screenshots/store-settings-1280x800.png` |
 | Small Promo Tile | 440×280 | ⬜ Not created | TODO |
 | Marquee Promo Tile | 1400×560 | ⬜ Not created | TODO |
 
-Existing screenshots document the interface but do not use the Chrome Web Store's required dimensions. Capture updated screenshots that include Saved Lists before submission.
+The store screenshots were captured from the built extension in Chromium 131 on
+Linux. The popup is shown at its real 620×600 rendered size.
+
+## Validation Evidence
+
+Validated on 2026-10-26 with the production `dist` build loaded as an unpacked
+extension in Chromium 131:
+
+- The Manifest V3 manifest, service worker, popup, options page, declared
+  permissions, and 16×16, 48×48, and 128×128 icons loaded successfully.
+- The tested popup exposed accessible names for all 20 visible buttons.
+- Saving the current window persisted across a popup reload; restoring one
+  saved item created a new tab.
+- Delete confirmation cancel and confirm paths worked with native modal dialog
+  behavior.
+- “Save and close selected” preserved the selected tabs in Saved Lists before
+  closing them.
+- Live light/dark theme switching and the options page worked.
+- All four shortcuts were bound: `Ctrl+Shift+Y` (open), `Ctrl+Shift+S` (sort),
+  `Ctrl+Shift+X` (group), and `Ctrl+Shift+U` (ungroup).
+- No console errors were captured during the tested workflows.
+
+These checks supplement the automated type, lint, unit-test, and production
+build checks documented in the repository.
 
 ## Permissions Justification
 

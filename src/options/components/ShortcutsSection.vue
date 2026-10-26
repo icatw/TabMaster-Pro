@@ -86,7 +86,7 @@ const shortcuts = ref([
     id: 'open',
     nameKey: 'openManager',
     descKey: 'openManager',
-    key: 'T',
+    key: 'Y',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="7" width="18" height="13" rx="2"/>
       <path d="M5 7V5a2 2 0 012-2h10a2 2 0 012 2v2M9 11h6M9 15h4"/>
@@ -105,7 +105,7 @@ const shortcuts = ref([
     id: 'group',
     nameKey: 'smartGroup',
     descKey: 'smartGroup',
-    key: 'G',
+    key: 'X',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="3" width="7" height="7" rx="1"/>
       <rect x="14" y="3" width="7" height="7" rx="1"/>

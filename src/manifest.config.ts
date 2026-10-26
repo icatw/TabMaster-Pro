@@ -55,8 +55,8 @@ export default defineManifest(async (env) => ({
   commands: {
     '_execute_action': {
       suggested_key: {
-        default: 'Ctrl+Shift+T',
-        mac: 'Command+Shift+T'
+        default: 'Ctrl+Shift+Y',
+        mac: 'Command+Shift+Y'
       },
       description: '打开TabMaster Pro'
     },
@@ -69,8 +69,8 @@ export default defineManifest(async (env) => ({
     },
     'group-tabs': {
       suggested_key: {
-        default: 'Ctrl+Shift+G',
-        mac: 'Command+Shift+G'
+        default: 'Ctrl+Shift+X',
+        mac: 'Command+Shift+X'
       },
       description: '一键分组标签页'
     },

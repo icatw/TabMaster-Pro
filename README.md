@@ -4,7 +4,7 @@
 
 TabMaster Pro 是一个基于 Manifest V3、Vue 3、TypeScript 和 Vite 的 Chrome 标签页管理扩展。它提供实时标签页搜索、排序、分组、多选操作，以及可跨浏览器会话恢复的本地标签集合。
 
-![TabMaster Pro 主界面](./screenshots/main-interface.png)
+![TabMaster Pro 主界面](./screenshots/store-saved-tabs-1280x800.png)
 
 ## 与 OneTab 的定位
 
@@ -96,9 +96,9 @@ npm run build
 
 | 功能 | Windows / Linux | macOS |
 |---|---|---|
-| 打开 TabMaster Pro | `Ctrl+Shift+T` | `Command+Shift+T` |
+| 打开 TabMaster Pro | `Ctrl+Shift+Y` | `Command+Shift+Y` |
 | 排序当前窗口 | `Ctrl+Shift+S` | `Command+Shift+S` |
-| 按域名分组 | `Ctrl+Shift+G` | `Command+Shift+G` |
+| 按域名分组 | `Ctrl+Shift+X` | `Command+Shift+X` |
 | 取消所有分组 | `Ctrl+Shift+U` | `Command+Shift+U` |
 
 浏览器或操作系统可能占用部分组合键；以扩展快捷键设置页显示的结果为准。
