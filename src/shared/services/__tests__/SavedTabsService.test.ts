@@ -63,3 +63,33 @@ describe('saved tabs import', () => {
     expect(new Set(ids).size).toBe(2)
   })
 })
+
+describe('saved tabs retention cleanup', () => {
+  it('deletes only selected lists that still fall before the cutoff', async () => {
+    const data: SavedTabsData = {
+      version: SAVED_TABS_SCHEMA_VERSION,
+      lists: [
+        { id: 'old-selected', name: 'Old selected', createdAt: 10, updatedAt: 10, items: [
+          { title: 'One', url: 'https://one.example', pinned: false, createdAt: 10 },
+          { title: 'Two', url: 'https://two.example', pinned: false, createdAt: 10 }
+        ] },
+        { id: 'old-unselected', name: 'Old unselected', createdAt: 20, updatedAt: 20, items: [
+          { title: 'Three', url: 'https://three.example', pinned: false, createdAt: 20 }
+        ] },
+        { id: 'new-selected', name: 'New selected', createdAt: 101, updatedAt: 101, items: [
+          { title: 'Four', url: 'https://four.example', pinned: false, createdAt: 101 }
+        ] }
+      ]
+    }
+    let stored: unknown = data
+    const store = {
+      get: async () => ({ [STORAGE_KEYS.SAVED_TABS]: stored }),
+      set: async (items: Record<string, unknown>) => { stored = items[STORAGE_KEYS.SAVED_TABS] }
+    }
+
+    const result = await SavedTabsService.cleanupLists(['old-selected', 'new-selected'], 100, store)
+
+    expect(result).toEqual({ listCount: 1, itemCount: 2 })
+    expect(new Set((stored as SavedTabsData).lists.map(list => list.id))).toEqual(new Set(['old-unselected', 'new-selected']))
+  })
+})
