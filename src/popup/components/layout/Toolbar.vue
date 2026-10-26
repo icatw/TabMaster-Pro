@@ -6,6 +6,9 @@
         @click="handleToggleSortMenu"
         class="tool-btn"
         :class="{ active: showSortMenu }"
+        type="button"
+        aria-haspopup="menu"
+        :aria-expanded="showSortMenu"
       >
         <svg class="tool-icon" viewBox="0 0 16 16" fill="currentColor">
           <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
@@ -22,6 +25,7 @@
             @click="handleSort(rule.value)"
             class="menu-item"
             :class="{ active: currentRule === rule.value }"
+            type="button"
           >
             <span class="menu-icon">{{ rule.icon }}</span>
             <span class="menu-label">{{ rule.label }}</span>
@@ -35,6 +39,7 @@
       @click="handleGroup"
       class="tool-btn"
       :disabled="hasGroups"
+      type="button"
     >
       <svg class="tool-icon" viewBox="0 0 16 16" fill="currentColor">
         <path d="M1.5 3A1.5 1.5 0 0 1 3 1.5h10A1.5 1.5 0 0 1 14.5 3v10a1.5 1.5 0 0 1-1.5 1.5H3A1.5 1.5 0 0 1 1.5 13V3z"/>
@@ -48,6 +53,7 @@
       v-if="hasGroups"
       @click="handleUngroup"
       class="tool-btn"
+      type="button"
     >
       <svg class="tool-icon" viewBox="0 0 16 16" fill="currentColor">
         <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
@@ -60,6 +66,8 @@
       @click="handleToggleMultiSelect"
       class="tool-btn"
       :class="{ active: isMultiSelectMode }"
+      type="button"
+      :aria-pressed="isMultiSelectMode"
     >
       <svg class="tool-icon" viewBox="0 0 16 16" fill="currentColor">
         <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
@@ -125,16 +133,16 @@ const handleToggleMultiSelect = () => {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
-  padding: 8px 18px;
-  background: var(--bg-primary);
-  background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
-  backdrop-filter: blur(14px);
+  gap: 2px;
+  padding: 8px 14px;
+  background: color-mix(in oklab, var(--bg-elevated) 94%, var(--bg-primary));
+  backdrop-filter: blur(16px);
   border-top: 1px solid var(--border-secondary);
+  box-shadow: 0 -8px 20px color-mix(in oklab, var(--text-primary) 5%, transparent);
   flex-shrink: 0;
   z-index: 1000;
   overflow-x: auto;
-  min-height: 52px;
+  min-height: 56px;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -167,28 +175,34 @@ const handleToggleMultiSelect = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 11px;
+  min-height: 36px;
+  padding: 8px 12px;
   background: transparent;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   font-size: 12px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: var(--transition-colors), transform 160ms ease;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .tool-btn:hover {
   background: var(--bg-hover);
+  border-color: var(--border-secondary);
   color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .tool-btn.active {
-  background: var(--primary-light);
-  color: var(--primary-color);
-  box-shadow: inset 0 0 0 1px var(--border-primary);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--bg-elevated) 35%, transparent);
 }
+
+.tool-btn:active { transform: scale(0.96); }
 
 .tool-btn:disabled {
   opacity: 0.4;
@@ -210,7 +224,7 @@ const handleToggleMultiSelect = () => {
   bottom: 64px;
   left: 18px;
   margin-bottom: 4px;
-  background: var(--bg-primary);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-primary);
   border-radius: 10px;
   box-shadow: var(--shadow-lg);
@@ -251,7 +265,8 @@ const handleToggleMultiSelect = () => {
 }
 
 .menu-icon {
-  font-size: 14px;
+  /* Keep sort options aligned across platforms with different emoji fonts. */
+  display: none;
 }
 
 /* 过渡动画 */

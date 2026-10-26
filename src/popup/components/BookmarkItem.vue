@@ -108,7 +108,7 @@ onMounted(async () => {
   background: transparent;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: var(--transition-colors), transform 160ms ease;
   position: relative;
 }
 
@@ -120,9 +120,9 @@ onMounted(async () => {
 /* 键盘导航高亮样式 */
 .bookmark-item.keyboard-active {
   background: var(--primary-light);
-  border: 2px solid var(--primary-color);
-  padding-left: 5px;
-  box-shadow: 0 0 0 2px var(--primary-light);
+  border: 1px solid var(--primary-color);
+  padding-left: 7px;
+  box-shadow: var(--shadow-sm);
   position: relative;
   z-index: 1;
 }
@@ -130,7 +130,7 @@ onMounted(async () => {
 .bookmark-item.keyboard-active::before {
   opacity: 1;
   background: var(--primary-color);
-  width: 4px;
+  width: 3px;
 }
 
 /* 黑夜模式下加强键盘导航效果 */
@@ -157,7 +157,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--warning-color);
+  color: var(--text-secondary);
   opacity: 0.8;
 }
 
@@ -165,6 +165,7 @@ onMounted(async () => {
   width: 16px;
   height: 16px;
   object-fit: contain;
+  filter: grayscale(1);
 }
 
 .bookmark-icon svg {

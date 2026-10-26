@@ -138,7 +138,7 @@ TODO — 上架前托管公开隐私政策并填入 URL。政策需要说明标�
 | Version | Date | Changes | Status |
 |---|---|---|---|
 | 0.1.0 | Unreleased | Initial development version | Draft |
-| Next | 2026-10-26 | Refined popup and options UI with a neutral ink palette, consistent light/dark surfaces, focus states, and semantic status colors. Refresh store screenshots before submission. | In progress |
+| Next | 2026-10-26 | Refined popup and options UI with a neutral ink palette, consistent light/dark surfaces, stronger focus states, and semantic status colors. Refresh store screenshots before submission. | In progress |
 
 ## Review Notes
 

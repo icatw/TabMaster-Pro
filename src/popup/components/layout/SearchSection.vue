@@ -60,10 +60,11 @@ const toggleFilter = (filterId: string) => {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg-primary);
+  background: color-mix(in oklab, var(--bg-primary) 94%, transparent);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-secondary);
-  padding: 12px 18px 14px;
-  gap: 12px;
+  padding: 12px 16px 13px;
+  gap: 10px;
   display: flex;
   flex-direction: column;
 }

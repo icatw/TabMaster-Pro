@@ -1,93 +1,101 @@
-/* TabMaster's neutral ink system: quiet surfaces, crisp type, restrained state colors. */
+/* TabMaster's ink/paper system: hierarchy comes from tone, spacing and type. */
 :root {
   color-scheme: light dark;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f7f7f8;
-  --bg-tertiary: #eeeeef;
-  --bg-hover: #f1f1f2;
-  --bg-elevated: #ffffff;
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-tertiary: #8b8b93;
-  --border-primary: #d9d9de;
-  --border-secondary: #e9e9ec;
-  --primary-color: #18181b;
-  --primary-hover: #3f3f46;
-  --primary-light: rgba(24, 24, 27, 0.08);
-  --keyboard-highlight: rgba(24, 24, 27, 0.07);
-  --keyboard-border: #18181b;
-  --keyboard-glow: rgba(24, 24, 27, 0.14);
+  --bg-primary: #f5f5f2;
+  --bg-secondary: #eaeae6;
+  --bg-tertiary: #deded8;
+  --bg-hover: #e5e5e0;
+  --bg-elevated: #fffefa;
+  --text-primary: #1b1b19;
+  --text-secondary: #555550;
+  --text-tertiary: #676760;
+  /* The stronger border clears 3:1 against paper for controls and cards. */
+  --border-primary: #7a7a74;
+  --border-secondary: #d2d2cc;
+  --primary-color: #1b1b19;
+  --primary-hover: #393934;
+  --primary-light: rgba(27, 27, 25, 0.08);
+  --keyboard-highlight: rgba(27, 27, 25, 0.07);
+  --keyboard-border: #1b1b19;
+  --keyboard-glow: rgba(27, 27, 25, 0.14);
   --success-color: #28734a;
   --warning-color: #9a6700;
   --danger-color: #b42318;
   --info-color: #275dad;
-  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.05);
-  --shadow-md: 0 4px 12px rgba(24, 24, 27, 0.08);
-  --shadow-lg: 0 16px 40px rgba(24, 24, 27, 0.16);
-  --ring: 0 0 0 3px rgba(24, 24, 27, 0.12);
+  --shadow-sm: 0 1px 2px rgba(23, 23, 21, 0.05), 0 3px 10px rgba(23, 23, 21, 0.035);
+  --shadow-md: 0 8px 24px rgba(23, 23, 21, 0.075);
+  --shadow-lg: 0 18px 44px rgba(23, 23, 21, 0.11);
+  --ring: 0 0 0 3px rgba(23, 23, 21, 0.16);
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 12px;
   --transition-colors: color 160ms ease, background-color 160ms ease, border-color 160ms ease, fill 160ms ease, stroke 160ms ease;
   accent-color: var(--primary-color);
-  scrollbar-color: #b8b8bf transparent;
+  --scrollbar-thumb: #aaa9a2;
+  --scrollbar-track: transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg-primary: #18181b;
-    --bg-secondary: #202023;
-    --bg-tertiary: #2b2b30;
-    --bg-hover: #303035;
-    --bg-elevated: #242428;
-    --text-primary: #f4f4f5;
-    --text-secondary: #b8b8c0;
-    --text-tertiary: #85858f;
-    --border-primary: #3b3b43;
-    --border-secondary: #2d2d33;
-    --primary-color: #f4f4f5;
+    --bg-primary: #10100f;
+    --bg-secondary: #181817;
+    --bg-tertiary: #242421;
+    --bg-hover: #21211f;
+    --bg-elevated: #191918;
+    --text-primary: #f4f4f0;
+    --text-secondary: #c1c1ba;
+    --text-tertiary: #a1a19a;
+    --border-primary: #72716a;
+    --border-secondary: #353530;
+    --primary-color: #f4f4f0;
     --primary-hover: #ffffff;
-    --primary-light: rgba(244, 244, 245, 0.12);
-    --keyboard-highlight: rgba(244, 244, 245, 0.11);
-    --keyboard-border: #f4f4f5;
-    --keyboard-glow: rgba(244, 244, 245, 0.2);
+    --primary-light: rgba(244, 244, 240, 0.11);
+    --keyboard-highlight: rgba(244, 244, 240, 0.1);
+    --keyboard-border: #f4f4f0;
+    --keyboard-glow: rgba(244, 244, 240, 0.18);
     --success-color: #75c995;
     --warning-color: #e7b84b;
     --danger-color: #ff8b82;
     --info-color: #86b7ff;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
-    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.28);
-    --shadow-lg: 0 18px 42px rgba(0, 0, 0, 0.46);
-    --ring: 0 0 0 3px rgba(244, 244, 245, 0.18);
-    scrollbar-color: #5e5e68 transparent;
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
+    --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.42);
+    --ring: 0 0 0 3px rgba(244, 244, 240, 0.2);
+    --scrollbar-thumb: #5e5f59;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg-primary: #18181b;
-  --bg-secondary: #202023;
-  --bg-tertiary: #2b2b30;
-  --bg-hover: #303035;
-  --bg-elevated: #242428;
-  --text-primary: #f4f4f5;
-  --text-secondary: #b8b8c0;
-  --text-tertiary: #85858f;
-  --border-primary: #3b3b43;
-  --border-secondary: #2d2d33;
-  --primary-color: #f4f4f5;
+  --bg-primary: #10100f;
+  --bg-secondary: #181817;
+  --bg-tertiary: #242421;
+  --bg-hover: #21211f;
+  --bg-elevated: #191918;
+  --text-primary: #f4f4f0;
+  --text-secondary: #c1c1ba;
+  --text-tertiary: #a1a19a;
+  --border-primary: #72716a;
+  --border-secondary: #353530;
+  --primary-color: #f4f4f0;
   --primary-hover: #ffffff;
-  --primary-light: rgba(244, 244, 245, 0.12);
-  --keyboard-highlight: rgba(244, 244, 245, 0.11);
-  --keyboard-border: #f4f4f5;
-  --keyboard-glow: rgba(244, 244, 245, 0.2);
+  --primary-light: rgba(244, 244, 240, 0.11);
+  --keyboard-highlight: rgba(244, 244, 240, 0.1);
+  --keyboard-border: #f4f4f0;
+  --keyboard-glow: rgba(244, 244, 240, 0.18);
   --success-color: #75c995;
   --warning-color: #e7b84b;
   --danger-color: #ff8b82;
   --info-color: #86b7ff;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.28);
-  --shadow-lg: 0 18px 42px rgba(0, 0, 0, 0.46);
-  --ring: 0 0 0 3px rgba(244, 244, 245, 0.18);
-  scrollbar-color: #5e5e68 transparent;
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.42);
+  --ring: 0 0 0 3px rgba(244, 244, 240, 0.2);
+  --scrollbar-thumb: #5e5f59;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 [data-theme="light"] { color-scheme: light; }
@@ -98,16 +106,18 @@ body {
   color: var(--text-primary);
 }
 
-body { transition: var(--transition-colors); }
+html {
+  scrollbar-gutter: stable;
+}
 
-*,
-*::before,
-*::after { transition: var(--transition-colors); }
+::selection {
+  background: var(--primary-color);
+  color: var(--bg-primary);
+}
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #b8b8bf; border-radius: 999px; }
-[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #5e5e68; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
 input,
@@ -147,6 +157,22 @@ hr { border-color: var(--border-secondary); }
     --primary-color: Highlight;
     --primary-hover: HighlightText;
     --primary-light: Highlight;
+    --scrollbar-thumb: ButtonText;
+  }
+
+  :where(button, a, input, textarea, select):focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border-primary: currentColor;
+    --border-secondary: currentColor;
+    --text-secondary: var(--text-primary);
+    --text-tertiary: var(--text-primary);
   }
 }
 

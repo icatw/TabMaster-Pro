@@ -5,6 +5,8 @@
       :key="filter.id"
       @click="handleToggleFilter(filter.id)"
       :class="['filter-chip', { active: activeFilters.includes(filter.id) }]"
+      type="button"
+      :aria-pressed="activeFilters.includes(filter.id)"
     >
       <span class="chip-icon">{{ filter.icon }}</span>
       <span class="chip-label">{{ filter.label }}</span>
@@ -46,7 +48,7 @@ const handleToggleFilter = (filterId: string) => {
 .filter-chips {
   display: flex;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 0;
   overflow-x: auto;
   padding-bottom: 2px;
 }
@@ -64,10 +66,11 @@ const handleToggleFilter = (filterId: string) => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-height: 30px;
   padding: 5px 10px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
   font-size: 11px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -78,7 +81,8 @@ const handleToggleFilter = (filterId: string) => {
 
 .filter-chip:hover {
   background: var(--bg-hover);
-  border-color: var(--primary-color);
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .filter-chip.active {
@@ -88,18 +92,19 @@ const handleToggleFilter = (filterId: string) => {
 }
 
 .chip-icon {
-  font-size: 12px;
+  /* Text labels carry the meaning; hiding emoji avoids platform-dependent glyphs. */
+  display: none;
 }
 
 .chip-count {
   padding: 0 4px;
   background: var(--bg-tertiary);
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 10px;
 }
 
 .filter-chip.active .chip-count {
-  background: color-mix(in srgb, currentColor 18%, transparent);
+  background: color-mix(in oklab, currentColor 18%, transparent);
   color: inherit;
 }
 </style>

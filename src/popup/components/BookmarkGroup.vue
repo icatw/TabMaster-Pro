@@ -115,12 +115,12 @@ const isBookmarkActive = (bookmark: BookmarkInfo) => {
 
 // 计算属性
 const groupColor = computed(() => {
-  // 根据分组类型返回不同颜色（更柔和的配色）
+  // Keep bookmark categories distinct with subtle grayscale values.
   const colors = {
-    domain: '91, 156, 122',     // 绿色 - 域名分组
-    folder: '100, 116, 139',    // 灰蓝色 - 文件夹分组
-    recent: '147, 197, 253',    // 浅蓝色 - 最近书签
-    frequent: '251, 146, 60'    // 橙色 - 常用书签
+    domain: '95, 95, 91',
+    folder: '112, 112, 106',
+    recent: '128, 128, 120',
+    frequent: '82, 82, 78'
   }
   return colors[props.groupType] || colors.folder
 })
@@ -155,18 +155,19 @@ const openAllBookmarks = async () => {
 <style scoped>
 /* 分组样式 */
 .bookmark-group {
-  margin: 8px 0;
-  border-radius: 6px;
+  margin: 8px 10px 8px 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: color-mix(in oklab, var(--bg-secondary) 32%, transparent);
   border: 1px solid var(--border-secondary);
+  border-left: 2px solid rgb(var(--group-color));
 }
 
 .group-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--bg-primary);
+  background: color-mix(in oklab, var(--bg-secondary) 58%, var(--bg-primary));
   border-bottom: 1px solid var(--border-secondary);
 }
 
@@ -223,7 +224,7 @@ const openAllBookmarks = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.8;
+  opacity: 0.68;
 }
 
 .group-icon svg {
@@ -241,7 +242,7 @@ const openAllBookmarks = async () => {
 .group-count {
   padding: 2px 8px;
   background: var(--bg-tertiary);
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 11px;
   color: var(--text-secondary);
   font-weight: 500;
@@ -288,7 +289,7 @@ const openAllBookmarks = async () => {
 
 /* 分组内容 */
 .group-bookmarks {
-  padding: 0 12px 8px 32px;
+  padding: 0 12px 8px 28px;
   position: relative;
 }
 
@@ -296,7 +297,7 @@ const openAllBookmarks = async () => {
 .group-bookmarks::before {
   content: '';
   position: absolute;
-  left: 20px;
+  left: 18px;
   top: 0;
   bottom: 0;
   width: 1px;

@@ -317,17 +317,28 @@ const decreaseMax = () => {
 .toggle-label {
   position: relative;
   cursor: pointer;
+  display: inline-flex;
+  min-width: 48px;
+  min-height: 26px;
 }
 
 .toggle-input {
-  display: none;
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .toggle-slider {
   display: block;
   width: 48px;
   height: 26px;
-  background: #e0e0e0;
+  background: var(--bg-tertiary);
   border-radius: 13px;
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
@@ -342,11 +353,16 @@ const decreaseMax = () => {
   top: 2px;
   left: 2px;
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .toggle-input:checked + .toggle-slider {
   background: var(--primary-color);
+}
+
+.toggle-input:focus-visible + .toggle-slider {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 3px;
 }
 
 .toggle-input:checked + .toggle-slider::after {
@@ -381,6 +397,7 @@ const decreaseMax = () => {
   transition: all 0.2s;
   background: var(--bg-primary);
   color: var(--text-primary);
+  position: relative;
 }
 
 .color-option:hover {
@@ -394,7 +411,21 @@ const decreaseMax = () => {
 }
 
 .color-radio {
-  display: none;
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.color-radio:focus-visible + .color-option-content {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .color-option-content {
@@ -422,21 +453,21 @@ const decreaseMax = () => {
   border-radius: 50%;
 }
 
-.color-preview.auto span:nth-child(1) { background: #6B7280; }
-.color-preview.auto span:nth-child(2) { background: #3B82F6; }
-.color-preview.auto span:nth-child(3) { background: #10B981; }
+.color-preview.auto span:nth-child(1) { background: #5d5d59; }
+.color-preview.auto span:nth-child(2) { background: #85857e; }
+.color-preview.auto span:nth-child(3) { background: #b0b0a8; }
 
-.color-preview.manual span { background: #8B5CF6; }
+.color-preview.manual span { background: #777771; }
 
-.color-preview.random span:nth-child(1) { background: #EF4444; }
-.color-preview.random span:nth-child(2) { background: #F59E0B; }
-.color-preview.random span:nth-child(3) { background: #EC4899; }
+.color-preview.random span:nth-child(1) { background: #4f4f4b; }
+.color-preview.random span:nth-child(2) { background: #94948d; }
+.color-preview.random span:nth-child(3) { background: #c2c2ba; }
 
 .number-control {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
   padding: 4px;
 }
@@ -448,9 +479,9 @@ const decreaseMax = () => {
   align-items: center;
   justify-content: center;
   background: var(--bg-elevated);
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 18px;
   cursor: pointer;
   transition: all 0.2s;
@@ -466,11 +497,11 @@ const decreaseMax = () => {
   width: 60px;
   padding: 6px;
   text-align: center;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 14px;
   background: var(--bg-elevated);
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -481,7 +512,7 @@ const decreaseMax = () => {
 
 .number-suffix {
   padding: 0 8px;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
@@ -518,14 +549,14 @@ const decreaseMax = () => {
   color: var(--text-secondary);
 }
 
-.grey .color-dot { background: #6B7280; }
-.blue .color-dot { background: #3B82F6; }
-.red .color-dot { background: #EF4444; }
-.yellow .color-dot { background: #F59E0B; }
-.green .color-dot { background: #10B981; }
-.pink .color-dot { background: #EC4899; }
-.purple .color-dot { background: #8B5CF6; }
-.cyan .color-dot { background: #06B6D4; }
+.grey .color-dot { background: #777771; }
+.blue .color-dot { background: #5f5f5b; }
+.red .color-dot { background: #6a6a65; }
+.yellow .color-dot { background: #85857d; }
+.green .color-dot { background: #65655f; }
+.pink .color-dot { background: #76766f; }
+.purple .color-dot { background: #6d6d68; }
+.cyan .color-dot { background: #5c5c57; }
 
 @keyframes fadeIn {
   from {

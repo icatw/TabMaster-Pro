@@ -334,7 +334,7 @@ const openShortcutsPage = () => {
   align-items: flex-start;
   gap: 12px;
   padding: 12px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
   border-left: 3px solid var(--primary-color);
 }
@@ -346,7 +346,7 @@ const openShortcutsPage = () => {
 
 .tip-text {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 

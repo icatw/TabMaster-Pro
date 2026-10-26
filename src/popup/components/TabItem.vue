@@ -6,6 +6,7 @@
       'multi-select-mode': props.isMultiSelect,
       'keyboard-active': props.isKeyboardActive
     }"
+    :style="{ '--group-color': props.groupColor }"
     :data-nav-id="props.navId"
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
@@ -42,9 +43,17 @@
     </div>
 
     <!-- 状态指示器 -->
-    <div class="tab-indicators">
-      <span v-if="props.tab.audible" class="indicator audio" :title="$t('tabs.audible')">🔊</span>
-      <span v-if="props.tab.pinned" class="indicator pinned" :title="$t('tabs.pinned')">📌</span>
+    <div v-if="props.tab.audible || props.tab.pinned" class="tab-indicators">
+      <span v-if="props.tab.audible" class="indicator audio" :title="$t('tabs.audible')">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M2 6.5h2.2L7.5 3v10l-3.3-3.5H2v-3zM10.1 5.1a.75.75 0 0 1 1.06 0 4.1 4.1 0 0 1 0 5.8.75.75 0 1 1-1.06-1.06 2.6 2.6 0 0 0 0-3.68.75.75 0 0 1 0-1.06z"/>
+        </svg>
+      </span>
+      <span v-if="props.tab.pinned" class="indicator pinned" :title="$t('tabs.pinned')">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4.5 1.5h7l-.8 3.2 1.8 2.1v1.2H8.75v5.5L8 14l-.75-.5V8H3.5V6.8l1.8-2.1-.8-3.2zM5.8 2.5l.55 2.35-.16.55L4.9 7h6.2L9.8 5.4l-.15-.55.55-2.35H5.8z"/>
+        </svg>
+      </span>
     </div>
 
     <!-- 关闭按钮 -->
@@ -72,6 +81,7 @@ interface Props {
   inGroup?: boolean
   isKeyboardActive?: boolean
   navId?: string
+  groupColor?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -112,26 +122,23 @@ const handleTabClick = (event: MouseEvent) => {
 <style scoped>
 .tab-item {
   position: relative;
-  background: var(--bg-primary);
-  border-radius: 6px;
-  margin: 2px 0;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  margin: 2px 10px 2px 8px;
+  transition: var(--transition-colors), transform 160ms ease;
   border: 1px solid transparent;
   overflow: hidden;
 }
 
 .tab-item:hover {
   background: var(--bg-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
 }
 
 /* 键盘导航高亮样式 */
 .tab-item.keyboard-active {
   background: var(--primary-light);
-  border: 2px solid var(--primary-color);
-  box-shadow: 0 0 0 2px var(--primary-light);
-  transform: translateY(-1px);
+  border: 1px solid var(--primary-color);
+  box-shadow: var(--shadow-sm);
   position: relative;
   z-index: 1;
 }
@@ -168,10 +175,10 @@ const handleTabClick = (event: MouseEvent) => {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 3px;
   background: var(--primary-color);
   border-radius: 0 2px 2px 0;
-  animation: pulseGlow 1.5s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes pulseGlow {
@@ -186,41 +193,27 @@ const handleTabClick = (event: MouseEvent) => {
 /* 多选模式下的样式 */
 .tab-item.multi-select-mode {
   cursor: pointer;
-  border: 1px solid var(--border-primary);
+  border-color: transparent;
 }
 
 .tab-item.multi-select-mode:hover {
-  border-color: var(--border-primary);
+  border-color: var(--border-secondary);
   background: var(--bg-hover);
 }
 
 /* 选中状态样式 - 与整体UI协调的低饱和度设计 */
 .tab-item.selected {
   background: var(--primary-light);
-  border: 2px solid var(--border-primary);
+  border-color: var(--border-primary);
   box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
   position: relative;
-}
-
-.tab-item.selected::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  right: -1px;
-  bottom: -1px;
-  background: var(--bg-tertiary);
-  border-radius: 7px;
-  z-index: -1;
-  opacity: 0.6;
 }
 
 .tab-item.selected:hover {
   background: var(--bg-hover);
   border-color: var(--text-secondary);
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  transform: none;
 }
 
 .tab-item-content {
@@ -228,6 +221,7 @@ const handleTabClick = (event: MouseEvent) => {
   align-items: center;
   gap: 8px;
   width: 100%;
+  min-height: 40px;
   padding: 8px 10px;
   position: relative;
   z-index: 1;
@@ -293,10 +287,16 @@ const handleTabClick = (event: MouseEvent) => {
   border-radius: 3px;
   flex-shrink: 0;
   transition: transform 0.2s ease;
+  filter: grayscale(1) saturate(0.35);
 }
 
 .tab-item.selected .tab-icon {
   transform: scale(1.05);
+}
+
+.tab-item:hover .tab-icon,
+.tab-item.keyboard-active .tab-icon {
+  filter: grayscale(0.55) saturate(0.65);
 }
 
 .tab-info {
@@ -346,9 +346,19 @@ const handleTabClick = (event: MouseEvent) => {
 }
 
 .indicator {
-  font-size: 11px;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0.7;
   transition: opacity 0.2s ease;
+}
+
+.indicator svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
 }
 
 .tab-item.selected .indicator {
@@ -366,7 +376,7 @@ const handleTabClick = (event: MouseEvent) => {
   color: var(--text-tertiary);
   font-size: 18px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   opacity: 0;
   transition: all 0.15s;
   flex-shrink: 0;
@@ -376,9 +386,13 @@ const handleTabClick = (event: MouseEvent) => {
   opacity: 1;
 }
 
+.close-btn:focus-visible {
+  opacity: 1;
+}
+
 .close-btn:hover {
   color: var(--danger-color);
-  background: color-mix(in srgb, var(--danger-color) 12%, transparent);
+  background: color-mix(in oklab, var(--danger-color) 12%, transparent);
 }
 
 .tab-item.selected .close-btn {
@@ -390,8 +404,8 @@ const handleTabClick = (event: MouseEvent) => {
 
 .tab-item.selected .close-btn:hover {
   color: var(--danger-color);
-  background: color-mix(in srgb, var(--danger-color) 12%, transparent);
-  border-color: color-mix(in srgb, var(--danger-color) 30%, transparent);
+  background: color-mix(in oklab, var(--danger-color) 12%, transparent);
+  border-color: color-mix(in oklab, var(--danger-color) 30%, transparent);
   box-shadow: var(--shadow-sm);
   transform: none;
 }
@@ -403,7 +417,7 @@ const handleTabClick = (event: MouseEvent) => {
   top: 0;
   bottom: 0;
   width: 4px;
-  background: var(--primary-color);
+  background: var(--group-color, var(--primary-color));
   border-radius: 0 2px 2px 0;
   animation: slideInSubtle 0.3s ease-out;
   box-shadow:
@@ -489,12 +503,12 @@ const handleTabClick = (event: MouseEvent) => {
   }
 
   .tab-item.selected .tab-url {
-    color: #334155;
+    color: var(--text-primary);
     font-weight: 600;
   }
 
   .selection-indicator {
-    background: #334155;
+    background: var(--text-primary);
     width: 6px;
   }
 }

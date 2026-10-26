@@ -380,7 +380,8 @@ watch([filteredTabs, bookmarkResults, displayedBookmarkGroups, collapsedBookmark
   max-height: 600px;
   background: var(--bg-primary);
   color: var(--text-primary);
-  border-radius: 14px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;

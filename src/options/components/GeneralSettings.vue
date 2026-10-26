@@ -249,10 +249,21 @@ const handleChange = () => {
 .toggle-label {
   position: relative;
   cursor: pointer;
+  display: inline-flex;
+  min-width: 48px;
+  min-height: 26px;
 }
 
 .toggle-input {
-  display: none;
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .toggle-slider {
@@ -279,7 +290,12 @@ const handleChange = () => {
 }
 
 .toggle-input:checked + .toggle-slider {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  background: var(--primary-color);
+}
+
+.toggle-input:focus-visible + .toggle-slider {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 3px;
 }
 
 .toggle-input:checked + .toggle-slider::after {

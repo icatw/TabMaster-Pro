@@ -460,7 +460,7 @@ onMounted(loadLists)
 <style scoped>
 .saved-lists {
   border-bottom: 1px solid var(--border-primary);
-  background: var(--bg-secondary);
+  background: color-mix(in oklab, var(--bg-secondary) 62%, var(--bg-primary));
 }
 
 .section-heading {
@@ -468,7 +468,7 @@ onMounted(loadLists)
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 8px 14px;
 }
 
 .section-toggle {
@@ -478,10 +478,11 @@ onMounted(loadLists)
   gap: 8px;
   padding: 4px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
+  transition: var(--transition-colors);
 }
 
 .section-toggle:focus-visible,
@@ -491,6 +492,10 @@ onMounted(loadLists)
 .restore-item-button:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
+}
+
+.section-toggle:hover {
+  background: var(--bg-hover);
 }
 
 .section-chevron,
@@ -526,7 +531,7 @@ onMounted(loadLists)
 }
 
 .section-body {
-  padding: 0 12px 10px;
+  padding: 0 14px 12px;
 }
 
 .save-controls {
@@ -541,14 +546,14 @@ onMounted(loadLists)
   box-sizing: border-box;
   padding: 8px 10px;
   border: 1px solid var(--border-primary);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   font: inherit;
 }
 
 .action-button,
 .restore-item-button {
   border: 1px solid var(--border-primary);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   padding: 7px 10px;
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -598,9 +603,9 @@ onMounted(loadLists)
 }
 
 .saved-list {
-  border: 1px solid var(--border-primary);
-  border-radius: 8px;
-  background: var(--bg-primary);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
   overflow: hidden;
 }
 
@@ -729,6 +734,7 @@ onMounted(loadLists)
 
 .item-pinned {
   font-size: 10px;
+  filter: grayscale(1);
 }
 
 .restore-item-button {

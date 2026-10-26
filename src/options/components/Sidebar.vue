@@ -1,25 +1,28 @@
 <template>
   <aside class="sidebar">
     <div class="sidebar-header">
-      <img class="logo" src="/src/assets/icons/icon-16.png" alt="Logo" />
+      <img class="logo" src="/src/assets/icons/icon-16.png" alt="" />
       <h1 class="app-title">{{ $t('app.title') }}</h1>
     </div>
 
     <nav class="sidebar-nav">
-      <a
+      <button
         v-for="item in menuItems"
         :key="item.id"
+        type="button"
         :class="['nav-item', { active: modelValue === item.id }]"
+        :aria-pressed="modelValue === item.id"
+        :aria-current="modelValue === item.id ? 'page' : undefined"
         @click="$emit('update:modelValue', item.id)"
       >
         <component :is="iconsBySection[item.id]" class="nav-icon" />
         <span>{{ $t(item.labelKey) }}</span>
-      </a>
+      </button>
     </nav>
 
     <div class="sidebar-footer">
       <div class="github-link">
-        <a href="https://github.com/icatw" target="_blank" class="github-btn">
+        <a href="https://github.com/icatw" target="_blank" rel="noreferrer" class="github-btn">
           <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
           </svg>
@@ -104,17 +107,17 @@ onMounted(() => {
 
 <style scoped>
 .sidebar {
-  width: 240px;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-primary);
+  width: 216px;
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border-secondary);
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
 .sidebar-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--border-primary);
+  padding: 20px 18px;
+  border-bottom: 1px solid var(--border-secondary);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -124,32 +127,38 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   object-fit: contain;
+  filter: grayscale(1) contrast(1.04);
 }
 
 .app-title {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-primary);
   margin: 0;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 16px 12px;
+  padding: 20px 12px;
   overflow-y: auto;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 11px;
+  padding: 10px 12px 10px 14px;
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: var(--transition-colors), transform 160ms ease;
   margin-bottom: 4px;
   text-decoration: none;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
 }
 
 .nav-item:hover {
@@ -157,10 +166,17 @@ onMounted(() => {
   color: var(--primary-color);
 }
 
+.nav-item:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}
+
 .nav-item.active {
-  background: var(--primary-color);
-  color: var(--bg-primary);
-  font-weight: 500;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-weight: 600;
+  border: 1px solid var(--border-secondary);
+  box-shadow: inset 3px 0 0 var(--primary-color);
 }
 
 .nav-icon {
@@ -169,8 +185,8 @@ onMounted(() => {
 }
 
 .sidebar-footer {
-  padding: 20px;
-  border-top: 1px solid var(--border-primary);
+  padding: 18px 20px;
+  border-top: 1px solid var(--border-secondary);
 }
 
 .github-link {
@@ -181,19 +197,25 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  background: #24292e;
-  color: #ffffff;
-  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 7px;
   text-decoration: none;
   font-size: 13px;
   transition: all 0.2s;
 }
 
 .github-btn:hover {
-  background: #1a1e22;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: var(--bg-hover);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.github-btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .github-icon {
@@ -217,11 +239,11 @@ onMounted(() => {
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: #d0d0d0;
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
+  background: var(--text-secondary);
 }
 </style>

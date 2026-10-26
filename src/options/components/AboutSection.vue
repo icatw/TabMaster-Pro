@@ -331,7 +331,7 @@ onMounted(() => {
 }
 
 .link-card.github:hover {
-  border-color: #24292e;
+  border-color: var(--primary-color);
 }
 
 .link-card.feedback:hover {
@@ -345,7 +345,7 @@ onMounted(() => {
 }
 
 .github .link-icon {
-  color: #24292e;
+  color: var(--primary-color);
 }
 
 .feedback .link-icon {
