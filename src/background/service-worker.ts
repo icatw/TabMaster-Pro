@@ -12,6 +12,7 @@ import {
   MESSAGE_TYPES
 } from '@/shared/constants'
 import { SavedTabsService } from '@/shared/services/SavedTabsService'
+import { AutoCollectionService } from '@/shared/services/AutoCollectionService'
 import { GroupService } from '@/shared/utils/groups'
 import { StorageService } from '@/shared/utils/storage'
 import { TabService } from '@/shared/utils/tabs'
@@ -23,6 +24,10 @@ interface SaveAndClosePayload {
 
 interface SaveWindowPayload {
   name?: string
+}
+
+interface ConfirmAutoCollectionPayload {
+  tabIds: number[]
 }
 
 interface RestoreListPayload {
@@ -63,6 +68,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   try {
     if (reason === 'install') {
       await StorageService.setConfig(DEFAULT_CONFIG)
+      await ensureAutoCollectionAlarm()
       return
     }
 
@@ -82,10 +88,29 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
       }
       await StorageService.setConfig(mergedConfig)
     }
+    await ensureAutoCollectionAlarm()
   } catch (error) {
     console.error('Failed to initialize extension:', error)
   }
 })
+
+chrome.runtime.onStartup.addListener(() => {
+  void ensureAutoCollectionAlarm()
+})
+
+chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name !== 'auto-collection-scan') return
+  void AutoCollectionService.scanAndStage().catch(error => {
+    console.error('Failed to prepare automatic collection preview:', error)
+  })
+})
+
+async function ensureAutoCollectionAlarm(): Promise<void> {
+  await chrome.alarms.create('auto-collection-scan', {
+    when: Date.now() + 60_000,
+    periodInMinutes: 24 * 60
+  })
+}
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   void (async () => {
@@ -156,6 +181,13 @@ async function handleMessage(message: {
     return response(await SavedTabsService.getData())
   case MESSAGE_TYPES.IMPORT_SAVED_TABS:
     return response(await SavedTabsService.importData(payload))
+  case MESSAGE_TYPES.GET_AUTO_COLLECTION_PREVIEW:
+    return response(await AutoCollectionService.getPreview())
+  case MESSAGE_TYPES.CONFIRM_AUTO_COLLECTION:
+    return response(await AutoCollectionService.confirm((payload as ConfirmAutoCollectionPayload).tabIds))
+  case MESSAGE_TYPES.DISMISS_AUTO_COLLECTION:
+    await AutoCollectionService.dismissPreview()
+    return response(true)
   case MESSAGE_TYPES.RESTORE_LIST:
     return handleRestoreList(payload as RestoreListPayload)
   case MESSAGE_TYPES.RESTORE_SAVED_ITEM:
@@ -203,10 +235,25 @@ async function handleUpdateConfig(
   payload: Partial<ExtensionConfig>
 ): Promise<APIResponse> {
   try {
+    const previousConfig = await StorageService.getConfig()
     const success = await StorageService.updateConfig(payload)
     if (!success) throw new Error(ERROR_CODES.CONFIG_UPDATE_FAILED)
 
     const config = await StorageService.getConfig()
+    const autoCollectionRulesChanged =
+      previousConfig.autoCollectEnabled !== config.autoCollectEnabled ||
+      previousConfig.autoCollectAfterDays !== config.autoCollectAfterDays ||
+      previousConfig.autoCollectExcludedDomains !== config.autoCollectExcludedDomains
+
+    if (autoCollectionRulesChanged) {
+      try {
+        await AutoCollectionService.dismissPreview()
+        if (config.autoCollectEnabled) await AutoCollectionService.scanAndStage()
+      } catch (error) {
+        // Keep the settings update successful even if tabs could not be scanned.
+        console.error('Failed to refresh automatic collection preview:', error)
+      }
+    }
     chrome.runtime.sendMessage({
       type: MESSAGE_TYPES.CONFIG_UPDATED,
       data: config

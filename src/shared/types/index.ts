@@ -36,6 +36,9 @@ export interface ExtensionConfig {
   autoGroupEnabled: boolean
   autoSortEnabled: boolean  // 自动排序开关
   autoSortDelay?: number    // 自动排序延迟（毫秒）
+  autoCollectEnabled: boolean
+  autoCollectAfterDays: number
+  autoCollectExcludedDomains: string
   groupColorPreference: 'auto' | 'manual'
   customColors: Record<string, chrome.tabGroups.ColorEnum>
   sortOptions: SortOptions
@@ -141,6 +144,21 @@ export interface SavedTabList {
   items: SavedTabItem[]
   kind?: 'links' | 'session'
   windows?: SavedWindowSnapshot[]
+}
+
+export interface AutoCollectionCandidate {
+  tabId: number
+  windowId: number
+  index: number
+  title: string
+  url: string
+  favIconUrl?: string
+  lastAccessed: number
+}
+
+export interface AutoCollectionPreview {
+  createdAt: number
+  candidates: AutoCollectionCandidate[]
 }
 
 export type SavedTabRestoreTarget = 'current' | 'new'

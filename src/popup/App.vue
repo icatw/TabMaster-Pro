@@ -27,6 +27,11 @@
       @selection-cleared="clearSelection"
     />
 
+    <AutoCollectionReview
+      @notify="handleSavedListsNotify"
+      @changed="refreshAfterSavedTabsChange"
+    />
+
     <!-- 主内容区 -->
     <MainContent
       :search-query="searchQuery"
@@ -117,6 +122,7 @@ import { useToast } from '@/composables/useToast'
 import AppHeader from './components/layout/AppHeader.vue'
 import SearchSection from './components/layout/SearchSection.vue'
 import SavedListsSection from './components/layout/SavedListsSection.vue'
+import AutoCollectionReview from './components/layout/AutoCollectionReview.vue'
 import MainContent from './components/layout/MainContent.vue'
 import Toolbar from './components/layout/Toolbar.vue'
 import TabHoverDetails from './components/TabHoverDetails.vue'

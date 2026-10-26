@@ -29,6 +29,7 @@ export default defineManifest(async (env) => ({
     'tabs',        // 标签页基础操作
     'tabGroups',   // 标签页分组 API (Chrome 89+)
     'storage',     // 配置存储
+    'alarms',      // 周期性检查自动收纳建议
     'bookmarks'    // 书签搜索和访问
   ],
 
