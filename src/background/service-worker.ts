@@ -22,10 +22,12 @@ import { TabService } from '@/shared/utils/tabs'
 interface SaveAndClosePayload {
   tabIds?: number[]
   name?: string
+  workspaceId?: string
 }
 
 interface SaveWindowPayload {
   name?: string
+  workspaceId?: string
 }
 
 interface ConfirmAutoCollectionPayload {
@@ -56,6 +58,15 @@ interface UpdateListPayload {
 interface CleanupSavedListsPayload {
   ids: string[]
   olderThan: number
+}
+
+interface WorkspacePayload {
+  name?: string
+}
+
+interface MoveSavedListPayload {
+  listId: string
+  workspaceId: string
 }
 
 function response<T>(data: T, success = true, error?: string): APIResponse<T> {
@@ -196,6 +207,15 @@ async function handleMessage(message: {
     return handleSaveAndCloseWindow(payload as SaveWindowPayload)
   case MESSAGE_TYPES.GET_SAVED_LISTS:
     return response(await SavedTabsService.getLists())
+  case MESSAGE_TYPES.GET_SAVED_WORKSPACES:
+    return response((await SavedTabsService.getData()).workspaces)
+  case MESSAGE_TYPES.CREATE_SAVED_WORKSPACE:
+    return response(await SavedTabsService.createWorkspace((payload as WorkspacePayload).name ?? ''))
+  case MESSAGE_TYPES.MOVE_SAVED_LIST:
+    return response(await SavedTabsService.moveListToWorkspace(
+      (payload as MoveSavedListPayload).listId,
+      (payload as MoveSavedListPayload).workspaceId
+    ))
   case MESSAGE_TYPES.GET_SAVED_SNAPSHOTS:
     return response(await SavedTabsService.getSnapshots())
   case MESSAGE_TYPES.RESTORE_SAVED_SNAPSHOT:
@@ -324,7 +344,7 @@ async function handleGetStats(): Promise<APIResponse> {
 
 async function handleSaveWindow(payload: SaveWindowPayload = {}): Promise<APIResponse> {
   try {
-    return response(await SavedTabsService.saveWindow(payload.name))
+    return response(await SavedTabsService.saveWindow(payload.name, payload.workspaceId))
   } catch (error) {
     return response(undefined, false, `保存窗口失败: ${toErrorMessage(error)}`)
   }
@@ -332,7 +352,7 @@ async function handleSaveWindow(payload: SaveWindowPayload = {}): Promise<APIRes
 
 async function handleSaveSession(payload: SaveWindowPayload = {}): Promise<APIResponse> {
   try {
-    return response(await SavedTabsService.saveSession(payload.name))
+    return response(await SavedTabsService.saveSession(payload.name, payload.workspaceId))
   } catch (error) {
     return response(undefined, false, `保存会话失败: ${toErrorMessage(error)}`)
   }
@@ -348,7 +368,7 @@ async function handleSaveAndCloseTabs(
       tabIds = tabs.flatMap(tab => tab.id === undefined ? [] : [tab.id])
     }
 
-    const result = await SavedTabsService.saveAndCloseTabs(tabIds, payload.name)
+    const result = await SavedTabsService.saveAndCloseTabs(tabIds, payload.name, payload.workspaceId)
     return response(result, result.success, result.errors?.[0])
   } catch (error) {
     return response(undefined, false, `保存并关闭失败: ${toErrorMessage(error)}`)
@@ -357,7 +377,7 @@ async function handleSaveAndCloseTabs(
 
 async function handleSaveAndCloseWindow(payload: SaveWindowPayload = {}): Promise<APIResponse> {
   try {
-    const result = await SavedTabsService.saveAndCloseWindow(payload.name)
+    const result = await SavedTabsService.saveAndCloseWindow(payload.name, payload.workspaceId)
     return response(result, result.success, result.errors?.[0])
   } catch (error) {
     return response(undefined, false, `保存并关闭窗口失败: ${toErrorMessage(error)}`)

@@ -3,13 +3,22 @@ import type {
   SavedTabGroupSnapshot,
   SavedTabList,
   SavedTabsData,
-  SavedWindowSnapshot
+  SavedWindowSnapshot,
+  SavedWorkspace
 } from '../types'
-import { SAVED_TABS_SCHEMA_VERSION } from '../constants'
+import { SAVED_TABS_SCHEMA_VERSION, SAVED_TABS_LEGACY_SCHEMA_VERSION } from '../constants'
+
+export const DEFAULT_WORKSPACE_ID = 'workspace-inbox'
 
 export const EMPTY_SAVED_TABS: SavedTabsData = {
   version: SAVED_TABS_SCHEMA_VERSION,
-  lists: []
+  lists: [],
+  workspaces: [{
+    id: DEFAULT_WORKSPACE_ID,
+    name: 'Inbox',
+    createdAt: 0,
+    updatedAt: 0
+  }]
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -98,7 +107,35 @@ export function normalizeSavedTabsData(
   now = Date.now()
 ): SavedTabsData {
   if (!isRecord(value) || !Array.isArray(value.lists)) {
-    return { ...EMPTY_SAVED_TABS, lists: [] }
+    return { ...EMPTY_SAVED_TABS, lists: [], workspaces: [...EMPTY_SAVED_TABS.workspaces] }
+  }
+
+  const seenWorkspaceIds = new Set<string>()
+  const workspaces: SavedWorkspace[] = []
+  if (Array.isArray(value.workspaces)) {
+    for (const [workspaceIndex, rawWorkspace] of value.workspaces.entries()) {
+      if (!isRecord(rawWorkspace)) continue
+      const id = typeof rawWorkspace.id === 'string' ? rawWorkspace.id.trim() : ''
+      const name = typeof rawWorkspace.name === 'string' ? rawWorkspace.name.trim().slice(0, 80) : ''
+      if (!id || !name || seenWorkspaceIds.has(id)) continue
+      seenWorkspaceIds.add(id)
+      const createdAt = toTimestamp(rawWorkspace.createdAt, now + workspaceIndex)
+      workspaces.push({
+        id,
+        name,
+        createdAt,
+        updatedAt: toTimestamp(rawWorkspace.updatedAt, createdAt)
+      })
+    }
+  }
+  if (!seenWorkspaceIds.has(DEFAULT_WORKSPACE_ID)) {
+    workspaces.unshift({
+      id: DEFAULT_WORKSPACE_ID,
+      name: 'Inbox',
+      createdAt: 0,
+      updatedAt: 0
+    })
+    seenWorkspaceIds.add(DEFAULT_WORKSPACE_ID)
   }
 
   const seenListIds = new Set<string>()
@@ -159,18 +196,24 @@ export function normalizeSavedTabsData(
       createdAt,
       updatedAt: toTimestamp(rawList.updatedAt, createdAt),
       items,
+      workspaceId: typeof rawList.workspaceId === 'string' && seenWorkspaceIds.has(rawList.workspaceId)
+        ? rawList.workspaceId
+        : DEFAULT_WORKSPACE_ID,
       ...(kind === 'session' && windows.length > 0 ? { kind, windows } : {})
     })
   }
 
   return {
     version: SAVED_TABS_SCHEMA_VERSION,
-    lists: lists.sort((a, b) => b.updatedAt - a.updatedAt)
+    lists: lists.sort((a, b) => b.updatedAt - a.updatedAt),
+    workspaces: workspaces.sort((a, b) => a.createdAt - b.createdAt)
   }
 }
 
 export function validateSavedTabsImport(value: unknown): SavedTabsData {
-  if (!isRecord(value) || value.version !== SAVED_TABS_SCHEMA_VERSION || !Array.isArray(value.lists)) {
+  if (!isRecord(value) ||
+    (value.version !== SAVED_TABS_SCHEMA_VERSION && value.version !== SAVED_TABS_LEGACY_SCHEMA_VERSION) ||
+    !Array.isArray(value.lists)) {
     throw new Error('Unsupported or invalid saved-tabs backup file')
   }
   if (value.lists.length > 500) throw new Error('Backup contains too many lists')
@@ -207,7 +250,12 @@ export function createSavedTabList(
   name: string,
   now = Date.now(),
   id: string = globalThis.crypto?.randomUUID?.() ?? `saved-${now}-${Math.random().toString(36).slice(2)}`,
-  options: { kind?: 'links' | 'session', windows?: SavedWindowSnapshot[], preserveDuplicates?: boolean } = {}
+  options: {
+    kind?: 'links' | 'session'
+    windows?: SavedWindowSnapshot[]
+    preserveDuplicates?: boolean
+    workspaceId?: string
+  } = {}
 ): SavedTabList | null {
   const normalizedItems = options.preserveDuplicates
     ? items.map(item => ({ ...item, url: normalizeUrl(item.url) })).filter(item => item.url)
@@ -220,6 +268,7 @@ export function createSavedTabList(
     createdAt: now,
     updatedAt: now,
     items: normalizedItems,
+    workspaceId: options.workspaceId ?? DEFAULT_WORKSPACE_ID,
     ...(options.kind === 'session' ? { kind: 'session' as const, windows: options.windows ?? [] } : {})
   }
 }
@@ -230,7 +279,8 @@ export function addSavedTabList(
 ): SavedTabsData {
   return {
     version: SAVED_TABS_SCHEMA_VERSION,
-    lists: [list, ...data.lists.filter(existing => existing.id !== list.id)]
+    lists: [list, ...data.lists.filter(existing => existing.id !== list.id)],
+    workspaces: data.workspaces
   }
 }
 

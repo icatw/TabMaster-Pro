@@ -8,6 +8,7 @@ function makeList(id: string, createdAt: number, count: number): SavedTabList {
     name: id,
     createdAt,
     updatedAt: createdAt,
+    workspaceId: 'workspace-inbox',
     items: Array.from({ length: count }, (_, index) => ({
       title: `Tab ${index}`,
       url: `https://example.com/${id}/${index}`,

@@ -4,7 +4,7 @@
 
 TabMaster Pro is a Chrome extension built with Manifest V3, Vue 3, TypeScript, and Vite. It combines live tab search, sorting, grouping, and multi-select actions with persistent local tab collections that survive browser restarts.
 
-![TabMaster Pro popup](./screenshots/store-saved-tabs-1280x800.png)
+![TabMaster Pro local workspaces](./screenshots/store-workspaces-1280x800.png)
 
 ## How It Compares with OneTab
 
@@ -29,8 +29,11 @@ TabMaster Pro also keeps its live-window tools for search, sorting, grouping, an
 - Save restorable URLs before single-tab close, batch close, keyboard `Delete`, and group close.
 - Search Saved Lists from the main tab and bookmark search field; recover the latest local snapshot after an accidental change.
 - Use the tab context menu to save the current tab, highlighted tabs, or the current window.
+- Organize Saved Lists into local workspaces. New lists use the selected workspace, and existing lists can be moved from their list action area; search still spans every workspace.
 
 Saved Lists stay in the current browser's `chrome.storage.local` by default. Only when you request a summary with a custom endpoint selected, the extension sends the list name, tab titles, and site hostnames to that endpoint; it does not send full URLs. API keys stay in local extension storage.
+
+The screenshot shows the workspace selector, workspace creation action, and per-list workspace movement available in the current build. Store assets live in [`screenshots/`](./screenshots/); see the [delete confirmation](./screenshots/store-confirmation-1280x800.png), [dark theme](./screenshots/store-dark-mode-1280x800.png), and [settings](./screenshots/store-settings-1280x800.png) flows for more coverage.
 
 Custom models must support the OpenAI Chat Completions API. HTTPS endpoints can use hosted services; plain HTTP is limited to localhost for local model servers. Chrome's on-device model requires a browser and device that support the Prompt API, with the model ready to use.
 
@@ -141,7 +144,7 @@ Extension pages call the service worker through `chrome.runtime.sendMessage`; sh
 ## Known Limitations
 
 - Saved Lists stay in the current browser and do not sync across devices.
-- AI grouping, accounts, team collaboration, and configuration import/export are not included.
+- AI grouping, accounts, team collaboration, and extension configuration import/export are not included; local Saved Lists backup import/export is available.
 - Chrome prevents extensions from reopening protected pages such as `chrome://` pages and the Chrome Web Store.
 - Automatic grouping uses domain rules only; it does not analyze page content.
 

@@ -26,6 +26,26 @@
     </div>
 
     <div v-if="isSectionVisible" class="section-body">
+      <div class="workspace-bar" aria-labelledby="workspace-title">
+        <div class="workspace-heading">
+          <span id="workspace-title" class="workspace-kicker">{{ $t('savedTabs.workspaceLabel') }}</span>
+          <span class="workspace-count">{{ $t('savedTabs.workspaceCount', { count: workspaces.length }) }}</span>
+        </div>
+        <div class="workspace-controls">
+          <label class="workspace-select-field">
+            <span class="sr-only">{{ $t('savedTabs.workspaceLabel') }}</span>
+            <select v-model="selectedWorkspaceId" name="saved-workspace">
+              <option v-for="workspace in workspaces" :key="workspace.id" :value="workspace.id">
+                {{ workspace.name }}
+              </option>
+            </select>
+          </label>
+          <button type="button" class="action-button" @click="openWorkspaceDialog">
+            {{ $t('savedTabs.newWorkspace') }}
+          </button>
+        </div>
+      </div>
+
       <form class="save-controls" @submit.prevent="saveWindow">
         <label class="name-field">
           <span class="sr-only">{{ $t('savedTabs.nameLabel') }}</span>
@@ -217,6 +237,19 @@
             </div>
 
             <div class="list-actions">
+              <label class="list-workspace-field">
+                <span class="sr-only">{{ $t('savedTabs.moveToWorkspace', { name: result.list.name }) }}</span>
+                <select
+                  :value="result.list.workspaceId"
+                  :aria-label="$t('savedTabs.moveToWorkspace', { name: result.list.name })"
+                  :disabled="movingListId === result.list.id"
+                  @change="handleMoveListChange(result.list, $event)"
+                >
+                  <option v-for="workspace in workspaces" :key="workspace.id" :value="workspace.id">
+                    {{ workspace.name }}
+                  </option>
+                </select>
+              </label>
               <button
                 type="button"
                 class="icon-button ai-button"
@@ -315,6 +348,35 @@
         </article>
       </div>
     </div>
+
+    <dialog
+      ref="workspaceDialog"
+      class="saved-list-dialog"
+      aria-labelledby="workspace-dialog-title"
+    >
+      <form method="dialog" @submit.prevent="confirmCreateWorkspace">
+        <h2 id="workspace-dialog-title">{{ $t('savedTabs.newWorkspaceTitle') }}</h2>
+        <label class="dialog-field">
+          <span>{{ $t('savedTabs.workspaceNameLabel') }}</span>
+          <input
+            v-model="workspaceName"
+            type="text"
+            maxlength="80"
+            required
+            autofocus
+            :placeholder="$t('savedTabs.workspaceNamePlaceholder')"
+          />
+        </label>
+        <div class="dialog-actions">
+          <button type="button" class="action-button" @click="workspaceDialog?.close()">
+            {{ $t('common.cancel') }}
+          </button>
+          <button type="submit" class="action-button primary" :disabled="!workspaceName.trim() || isCreatingWorkspace">
+            {{ isCreatingWorkspace ? $t('common.loading') : $t('common.create') }}
+          </button>
+        </div>
+      </form>
+    </dialog>
 
     <dialog
       ref="renameDialog"
@@ -571,10 +633,11 @@ import type {
   SavedTabRestoreOptions,
   SavedTabRestoreTarget,
   SavedTabsData,
-  SavedTabsSnapshot
+  SavedTabsSnapshot,
+  SavedWorkspace
 } from '@/shared/types'
 import { MESSAGE_TYPES } from '@/shared/constants'
-import { filterSavedTabLists, validateSavedTabsImport } from '@/shared/utils/savedTabs'
+import { DEFAULT_WORKSPACE_ID, filterSavedTabLists, validateSavedTabsImport } from '@/shared/utils/savedTabs'
 import { getExpiredSavedLists, getSavedListStats } from '@/shared/utils/savedListStats'
 import {
   findDuplicateTabGroups,
@@ -598,6 +661,9 @@ const emit = defineEmits<{
 const isExpanded = ref(false)
 const listName = ref('')
 const lists = ref<SavedTabList[]>([])
+const workspaces = ref<SavedWorkspace[]>([])
+const selectedWorkspaceId = ref(DEFAULT_WORKSPACE_ID)
+const workspaceName = ref('')
 const searchQuery = ref('')
 const activeSearchQuery = computed(() => props.globalSearchQuery?.trim() || searchQuery.value.trim())
 const isSectionVisible = computed(() => isExpanded.value || Boolean(props.globalSearchQuery?.trim()))
@@ -621,6 +687,7 @@ const duplicatesDialog = ref<HTMLDialogElement | null>(null)
 const importDialog = ref<HTMLDialogElement | null>(null)
 const recoveryDialog = ref<HTMLDialogElement | null>(null)
 const saveAndCloseWindowDialog = ref<HTMLDialogElement | null>(null)
+const workspaceDialog = ref<HTMLDialogElement | null>(null)
 const cleanupDialog = ref<HTMLDialogElement | null>(null)
 const importFileInput = ref<HTMLInputElement | null>(null)
 const importPreview = ref<SavedTabsData | null>(null)
@@ -642,10 +709,15 @@ const selectedCleanupIds = ref<string[]>([])
 const isCleaningUp = ref(false)
 const isRestoringSelection = ref(false)
 const isRestoringSnapshot = ref(false)
+const isCreatingWorkspace = ref(false)
+const movingListId = ref<string | null>(null)
 const summarizingListId = ref<string | null>(null)
 const summaries = ref<Record<string, { text: string, updatedAt: number }>>({})
 
-const filteredLists = computed(() => filterSavedTabLists(lists.value, activeSearchQuery.value))
+const visibleWorkspaceLists = computed(() => activeSearchQuery.value
+  ? lists.value
+  : lists.value.filter(list => list.workspaceId === selectedWorkspaceId.value))
+const filteredLists = computed(() => filterSavedTabLists(visibleWorkspaceLists.value, activeSearchQuery.value))
 const stats = computed(() => getSavedListStats(lists.value))
 const cleanupCutoff = computed(() => Date.now() - cleanupAgeDays.value * 24 * 60 * 60 * 1000)
 const expiredLists = computed(() => getExpiredSavedLists(lists.value, cleanupCutoff.value))
@@ -699,14 +771,20 @@ async function send<T>(type: string, payload?: unknown): Promise<APIResponse<T>>
 async function loadLists() {
   isLoading.value = true
   try {
-    const [response, snapshotsResponse] = await Promise.all([
+    const [response, workspacesResponse, snapshotsResponse] = await Promise.all([
       send<SavedTabList[]>(MESSAGE_TYPES.GET_SAVED_LISTS),
+      send<SavedWorkspace[]>(MESSAGE_TYPES.GET_SAVED_WORKSPACES),
       send<SavedTabsSnapshot[]>(MESSAGE_TYPES.GET_SAVED_SNAPSHOTS)
     ])
-    if (!response.success || !response.data || !snapshotsResponse.success || !snapshotsResponse.data) {
+    if (!response.success || !response.data || !workspacesResponse.success || !workspacesResponse.data ||
+      !snapshotsResponse.success || !snapshotsResponse.data) {
       throw new Error(response.error || i18n.global.t('savedTabs.loadFailed'))
     }
     lists.value = response.data
+    workspaces.value = workspacesResponse.data
+    if (!workspaces.value.some(workspace => workspace.id === selectedWorkspaceId.value)) {
+      selectedWorkspaceId.value = workspaces.value[0]?.id ?? DEFAULT_WORKSPACE_ID
+    }
     snapshots.value = snapshotsResponse.data
   } catch (error) {
     emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.loadFailed'), 'error')
@@ -810,7 +888,8 @@ async function saveWindow() {
   isSavingWindow.value = true
   try {
     const response = await send<SavedTabList>(MESSAGE_TYPES.SAVE_WINDOW, {
-      name: listName.value.trim() || undefined
+      name: listName.value.trim() || undefined,
+      workspaceId: selectedWorkspaceId.value
     })
     if (!response.success || !response.data) {
       throw new Error(response.error || i18n.global.t('savedTabs.saveFailed'))
@@ -831,7 +910,8 @@ async function saveSession() {
   isSavingSession.value = true
   try {
     const response = await send<SavedTabList>(MESSAGE_TYPES.SAVE_SESSION, {
-      name: listName.value.trim() || undefined
+      name: listName.value.trim() || undefined,
+      workspaceId: selectedWorkspaceId.value
     })
     if (!response.data) throw new Error(response.error || i18n.global.t('savedTabs.saveFailed'))
     listName.value = ''
@@ -850,7 +930,8 @@ async function saveAndCloseSelected() {
   try {
     const response = await send<BatchOperationResult>(MESSAGE_TYPES.SAVE_AND_CLOSE_TABS, {
       tabIds: [...props.selectedTabIds],
-      name: listName.value.trim() || undefined
+      name: listName.value.trim() || undefined,
+      workspaceId: selectedWorkspaceId.value
     })
     const result = response.data
     if (!result) {
@@ -880,7 +961,8 @@ async function confirmSaveAndCloseWindow() {
   isSavingAndClosingWindow.value = true
   try {
     const response = await send<BatchOperationResult>(MESSAGE_TYPES.SAVE_AND_CLOSE_WINDOW, {
-      name: listName.value.trim() || undefined
+      name: listName.value.trim() || undefined,
+      workspaceId: selectedWorkspaceId.value
     })
     const result = response.data
     if (!result) throw new Error(response.error || i18n.global.t('savedTabs.saveFailed'))
@@ -896,6 +978,55 @@ async function confirmSaveAndCloseWindow() {
   } finally {
     isSavingAndClosingWindow.value = false
   }
+}
+
+function openWorkspaceDialog() {
+  workspaceName.value = ''
+  nextTick(() => workspaceDialog.value?.showModal())
+}
+
+async function confirmCreateWorkspace() {
+  if (isCreatingWorkspace.value || !workspaceName.value.trim()) return
+  isCreatingWorkspace.value = true
+  try {
+    const response = await send<SavedWorkspace>(MESSAGE_TYPES.CREATE_SAVED_WORKSPACE, {
+      name: workspaceName.value.trim()
+    })
+    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.workspaceCreateFailed'))
+    workspaceName.value = ''
+    workspaceDialog.value?.close()
+    selectedWorkspaceId.value = response.data.id
+    await loadLists()
+    emit('notify', i18n.global.t('savedTabs.workspaceCreated', { name: response.data.name }), 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.workspaceCreateFailed'), 'error')
+  } finally {
+    isCreatingWorkspace.value = false
+  }
+}
+
+async function moveList(list: SavedTabList, workspaceId: string) {
+  if (!workspaceId || workspaceId === list.workspaceId || movingListId.value) return
+  movingListId.value = list.id
+  try {
+    const response = await send<SavedTabList>(MESSAGE_TYPES.MOVE_SAVED_LIST, {
+      listId: list.id,
+      workspaceId
+    })
+    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.workspaceMoveFailed'))
+    await loadLists()
+    emit('notify', i18n.global.t('savedTabs.workspaceMoved'), 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.workspaceMoveFailed'), 'error')
+    await loadLists()
+  } finally {
+    movingListId.value = null
+  }
+}
+
+function handleMoveListChange(list: SavedTabList, event: Event) {
+  const target = event.target
+  if (target instanceof HTMLSelectElement) void moveList(list, target.value)
 }
 
 async function reviewDuplicates() {
@@ -1226,6 +1357,8 @@ onMounted(loadLists)
 }
 
 .section-toggle:focus-visible,
+.workspace-controls select:focus-visible,
+.workspace-controls .action-button:focus-visible,
 .cleanup-controls select:focus-visible,
 .cleanup-controls .action-button:focus-visible,
 .cleanup-list-options input:focus-visible,
@@ -1279,6 +1412,59 @@ onMounted(loadLists)
 
 .section-body {
   padding: 0 14px 12px;
+}
+
+.workspace-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--bg-elevated) 78%, var(--bg-secondary));
+}
+
+.workspace-heading {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.workspace-kicker {
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.workspace-count {
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
+.workspace-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workspace-controls select,
+.list-workspace-field select {
+  max-width: 128px;
+  min-width: 0;
+  padding: 6px 7px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 10px;
+}
+
+.workspace-controls .action-button {
+  white-space: nowrap;
 }
 
 .saved-list-insights {
@@ -1567,6 +1753,11 @@ onMounted(loadLists)
   display: flex;
   align-items: center;
   gap: 2px;
+}
+
+.list-workspace-field {
+  display: inline-flex;
+  align-items: center;
 }
 
 .ai-button {
