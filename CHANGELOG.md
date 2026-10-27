@@ -6,10 +6,6 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [0.2.1] - 2026-10-26
 
-### Added
-
-- Pull-request CI for type checking, linting, tests, and production builds.
-
 ### Fixed
 
 - Keep the open-tab list visible and scrollable in the fixed-height popup by collapsing saved-list management by default and constraining the popup layout.
