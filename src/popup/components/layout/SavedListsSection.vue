@@ -1044,6 +1044,7 @@ onMounted(loadLists)
 
 <style scoped>
 .saved-lists {
+  flex: 0 0 auto;
   border-bottom: 1px solid var(--border-primary);
   background: color-mix(in oklab, var(--bg-secondary) 62%, var(--bg-primary));
 }

@@ -263,6 +263,7 @@ const collapseGroups = () => {
 <style scoped>
 .app-main {
   flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--bg-primary);

@@ -121,6 +121,7 @@ onMounted(loadPreview)
 
 <style scoped>
 .auto-collection {
+  flex: 0 0 auto;
   margin: 0 16px 12px;
   padding: 14px;
   border: 1px solid var(--border-primary);
