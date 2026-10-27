@@ -17,6 +17,7 @@ import {
   normalizeSavedTabsData,
   removeSavedTabList,
   renameSavedTabList,
+  normalizeSavedTags,
   validateSavedTabsImport
 } from '../utils/savedTabs'
 import { DEFAULT_WORKSPACE_ID } from '../utils/savedTabs'
@@ -700,6 +701,61 @@ export class SavedTabsService {
       const list = updated.lists.find(candidate => candidate.id === id)
       if (!list) throw new Error('Saved list not found')
       return list
+    })
+  }
+
+  static async updateListMetadata(
+    id: string,
+    metadata: { note?: string, tags?: unknown },
+    store: SavedTabsStore = localStore
+  ): Promise<SavedTabList> {
+    return withStorageMutation(async () => {
+      const current = await this.getData(store)
+      const list = current.lists.find(candidate => candidate.id === id)
+      if (!list) throw new Error('Saved list not found')
+      const note = typeof metadata.note === 'string' ? metadata.note.trim().slice(0, 1000) : ''
+      const tags = normalizeSavedTags(metadata.tags)
+      const updatedList: SavedTabList = {
+        ...list,
+        updatedAt: Date.now(),
+        ...(note ? { note } : {}),
+        ...(tags.length > 0 ? { tags } : {})
+      }
+      if (!note) delete updatedList.note
+      if (tags.length === 0) delete updatedList.tags
+      const updated = await this.persistMutation(current, {
+        ...current,
+        lists: current.lists.map(candidate => candidate.id === id ? updatedList : candidate)
+      }, store)
+      return updated.lists.find(candidate => candidate.id === id) as SavedTabList
+    })
+  }
+
+  static async toggleSavedItemFavorite(
+    id: string,
+    itemIndex: number,
+    favorite?: boolean,
+    store: SavedTabsStore = localStore
+  ): Promise<SavedTabList> {
+    return withStorageMutation(async () => {
+      const current = await this.getData(store)
+      const list = current.lists.find(candidate => candidate.id === id)
+      if (!list || !list.items[itemIndex]) throw new Error('Saved item not found')
+      const item = list.items[itemIndex]
+      const nextFavorite = favorite ?? !item.favorite
+      const updatedItem = { ...item }
+      if (nextFavorite) updatedItem.favorite = true
+      else delete updatedItem.favorite
+      const updatedList: SavedTabList = {
+        ...list,
+        updatedAt: Date.now(),
+        items: list.items.map((candidate, index) => index === itemIndex ? updatedItem : candidate)
+      }
+      const updated = await this.persistMutation(current, {
+        ...current,
+        lists: current.lists.map(candidate => candidate.id === id ? updatedList : candidate)
+      }, store)
+      return updated.lists.find(candidate => candidate.id === id) as SavedTabList
     })
   }
 

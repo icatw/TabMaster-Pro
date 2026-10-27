@@ -234,6 +234,10 @@
                 <span aria-hidden="true">·</span>
                 {{ formatDate(result.list.updatedAt) }}
               </p>
+              <p v-if="result.list.note || result.list.tags?.length" class="list-details">
+                <span v-if="result.list.note" class="list-note">{{ result.list.note }}</span>
+                <span v-for="tag in result.list.tags" :key="`${result.list.id}-${tag}`" class="list-tag">{{ tag }}</span>
+              </p>
             </div>
 
             <div class="list-actions">
@@ -259,6 +263,18 @@
                 @click="summarizeList(result.list)"
               >
                 {{ summarizingListId === result.list.id ? '…' : 'AI' }}
+              </button>
+              <button
+                type="button"
+                class="icon-button"
+                :aria-label="$t('savedTabs.editDetailsNamed', { name: result.list.name })"
+                :title="$t('savedTabs.editDetailsNamed', { name: result.list.name })"
+                @click="openMetadataDialog(result.list)"
+              >
+                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <path d="M3.5 2.5a1 1 0 0 1 1-1h7a1 1 0 0 1 .8.4l1.9 2.5a1 1 0 0 1 0 1.2l-1.9 2.5a1 1 0 0 1-.8.4h-7a1 1 0 0 1-1-1v-1H2a.75.75 0 0 1 0-1.5h1.5v-1H2a.75.75 0 0 1 0-1.5h1.5v-1Z" />
+                  <path d="M6 4.25h4v1.5H6v-1.5Z" fill="var(--bg-elevated)" />
+                </svg>
               </button>
               <button
                 type="button"
@@ -343,11 +359,73 @@
               >
                 {{ $t('savedTabs.restoreItem') }}
               </button>
+              <button
+                type="button"
+                class="item-favorite-button"
+                :class="{ active: entry.item.favorite }"
+                :aria-pressed="entry.item.favorite === true"
+                :aria-label="$t(entry.item.favorite ? 'savedTabs.unfavoriteItemNamed' : 'savedTabs.favoriteItemNamed', { title: entry.item.title })"
+                :title="$t(entry.item.favorite ? 'savedTabs.unfavoriteItemNamed' : 'savedTabs.favoriteItemNamed', { title: entry.item.title })"
+                @click="toggleItemFavorite(result.list, entry.index)"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+                </svg>
+              </button>
             </li>
           </ul>
         </article>
       </div>
     </div>
+
+    <dialog
+      ref="metadataDialog"
+      class="saved-list-dialog"
+      aria-labelledby="metadata-dialog-title"
+      aria-describedby="metadata-dialog-description"
+      @close="editingMetadataList = null"
+    >
+      <form method="dialog" @submit.prevent="confirmMetadata">
+        <h2 id="metadata-dialog-title">{{ $t('savedTabs.editDetailsTitle') }}</h2>
+        <p id="metadata-dialog-description" class="dialog-description">
+          {{ $t('savedTabs.editDetailsDescription', { name: editingMetadataList?.name ?? '' }) }}
+        </p>
+        <label class="dialog-field">
+          <span>{{ $t('savedTabs.noteLabel') }}</span>
+          <textarea
+            v-model="metadataNote"
+            name="saved-list-note"
+            maxlength="1000"
+            rows="3"
+            autofocus
+            aria-describedby="saved-list-note-hint"
+            :placeholder="$t('savedTabs.notePlaceholder')"
+          />
+          <small id="saved-list-note-hint" class="dialog-hint">{{ $t('savedTabs.noteHint') }}</small>
+        </label>
+        <label class="dialog-field">
+          <span>{{ $t('savedTabs.tagsLabel') }}</span>
+          <input
+            v-model="metadataTagsInput"
+            name="saved-list-tags"
+            maxlength="400"
+            autocapitalize="off"
+            spellcheck="false"
+            aria-describedby="saved-list-tags-hint"
+            :placeholder="$t('savedTabs.tagsPlaceholder')"
+          />
+          <small id="saved-list-tags-hint" class="dialog-hint">{{ $t('savedTabs.tagsHint') }}</small>
+        </label>
+        <div class="dialog-actions">
+          <button type="button" class="action-button" @click="metadataDialog?.close()">
+            {{ $t('common.cancel') }}
+          </button>
+          <button type="submit" class="action-button primary" :disabled="isUpdatingMetadata">
+            {{ isUpdatingMetadata ? $t('common.loading') : $t('common.save') }}
+          </button>
+        </div>
+      </form>
+    </dialog>
 
     <dialog
       ref="workspaceDialog"
@@ -688,6 +766,7 @@ const importDialog = ref<HTMLDialogElement | null>(null)
 const recoveryDialog = ref<HTMLDialogElement | null>(null)
 const saveAndCloseWindowDialog = ref<HTMLDialogElement | null>(null)
 const workspaceDialog = ref<HTMLDialogElement | null>(null)
+const metadataDialog = ref<HTMLDialogElement | null>(null)
 const cleanupDialog = ref<HTMLDialogElement | null>(null)
 const importFileInput = ref<HTMLInputElement | null>(null)
 const importPreview = ref<SavedTabsData | null>(null)
@@ -713,6 +792,10 @@ const isCreatingWorkspace = ref(false)
 const movingListId = ref<string | null>(null)
 const summarizingListId = ref<string | null>(null)
 const summaries = ref<Record<string, { text: string, updatedAt: number }>>({})
+const editingMetadataList = ref<SavedTabList | null>(null)
+const metadataNote = ref('')
+const metadataTagsInput = ref('')
+const isUpdatingMetadata = ref(false)
 
 const visibleWorkspaceLists = computed(() => activeSearchQuery.value
   ? lists.value
@@ -852,6 +935,48 @@ function toggleItemSelection(listId: string, itemIndex: number) {
   if (next.has(key)) next.delete(key)
   else next.set(key, { listId, itemIndex })
   selectedItems.value = next
+}
+
+function openMetadataDialog(list: SavedTabList) {
+  editingMetadataList.value = list
+  metadataNote.value = list.note ?? ''
+  metadataTagsInput.value = list.tags?.join(', ') ?? ''
+  nextTick(() => metadataDialog.value?.showModal())
+}
+
+async function confirmMetadata() {
+  const list = editingMetadataList.value
+  if (!list || isUpdatingMetadata.value) return
+  isUpdatingMetadata.value = true
+  try {
+    const response = await send<SavedTabList>(MESSAGE_TYPES.UPDATE_SAVED_LIST_METADATA, {
+      id: list.id,
+      note: metadataNote.value,
+      tags: metadataTagsInput.value.split(/[,，]/)
+    })
+    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.detailsUpdateFailed'))
+    metadataDialog.value?.close()
+    await loadLists()
+    emit('notify', i18n.global.t('savedTabs.detailsUpdated'), 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.detailsUpdateFailed'), 'error')
+  } finally {
+    isUpdatingMetadata.value = false
+  }
+}
+
+async function toggleItemFavorite(list: SavedTabList, itemIndex: number) {
+  try {
+    const response = await send<SavedTabList>(MESSAGE_TYPES.TOGGLE_SAVED_ITEM_FAVORITE, {
+      id: list.id,
+      itemIndex,
+      favorite: !list.items[itemIndex]?.favorite
+    })
+    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.favoriteUpdateFailed'))
+    lists.value = lists.value.map(candidate => candidate.id === list.id ? response.data as SavedTabList : candidate)
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.favoriteUpdateFailed'), 'error')
+  }
 }
 
 function selectVisibleItems() {
@@ -1615,13 +1740,19 @@ onMounted(loadLists)
 }
 
 .name-field input,
-.dialog-field input {
+.dialog-field input,
+.dialog-field textarea {
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-sm);
   font: inherit;
+}
+
+.dialog-field textarea {
+  min-height: 72px;
+  resize: vertical;
 }
 
 .action-button,
@@ -1749,6 +1880,31 @@ onMounted(loadLists)
   padding: 0 3px;
 }
 
+.list-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.list-note {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-tag {
+  padding: 2px 5px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
 .list-actions {
   display: flex;
   align-items: center;
@@ -1845,6 +2001,47 @@ onMounted(loadLists)
   flex: 0 0 auto;
   padding: 4px 7px;
   font-size: 10px;
+}
+
+.item-favorite-button {
+  display: inline-flex;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.item-favorite-button:hover,
+.item-favorite-button:focus-visible {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.item-favorite-button:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.item-favorite-button.active {
+  color: var(--text-primary);
+}
+
+.item-favorite-button svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.item-favorite-button.active svg {
+  fill: currentColor;
 }
 
 .saved-list-dialog {
@@ -2145,6 +2342,21 @@ dialog:modal {
   gap: 6px;
   color: var(--text-secondary);
   font-size: 12px;
+}
+
+.dialog-description,
+.dialog-hint {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.dialog-description {
+  margin: 0 0 14px;
+}
+
+.dialog-hint {
+  margin-top: -2px;
 }
 
 .dialog-actions {

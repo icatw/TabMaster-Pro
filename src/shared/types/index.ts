@@ -120,6 +120,7 @@ export interface SavedTabItem {
   url: string
   favIconUrl?: string
   pinned: boolean
+  favorite?: boolean
   createdAt: number
   session?: {
     windowIndex: number
@@ -152,6 +153,8 @@ export interface SavedTabList {
   updatedAt: number
   items: SavedTabItem[]
   workspaceId: string
+  note?: string
+  tags?: string[]
   kind?: 'links' | 'session'
   windows?: SavedWindowSnapshot[]
 }
