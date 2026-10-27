@@ -4,13 +4,13 @@
       <button
         class="section-toggle"
         type="button"
-        :aria-expanded="isExpanded"
-        :aria-label="$t(isExpanded ? 'savedTabs.collapseSection' : 'savedTabs.expandSection')"
+        :aria-expanded="isSectionVisible"
+        :aria-label="$t(isSectionVisible ? 'savedTabs.collapseSection' : 'savedTabs.expandSection')"
         @click="isExpanded = !isExpanded"
       >
         <svg
           class="section-chevron"
-          :class="{ collapsed: !isExpanded }"
+          :class="{ collapsed: !isSectionVisible }"
           viewBox="0 0 16 16"
           fill="currentColor"
           aria-hidden="true"
@@ -25,7 +25,7 @@
       <span class="privacy-note">{{ $t('savedTabs.localOnly') }}</span>
     </div>
 
-    <div v-if="isExpanded" class="section-body">
+    <div v-if="isSectionVisible" class="section-body">
       <form class="save-controls" @submit.prevent="saveWindow">
         <label class="name-field">
           <span class="sr-only">{{ $t('savedTabs.nameLabel') }}</span>
@@ -38,6 +38,14 @@
         </label>
         <button type="submit" class="action-button primary" :disabled="isSavingWindow">
           {{ isSavingWindow ? $t('common.loading') : $t('savedTabs.saveWindow') }}
+        </button>
+        <button
+          type="button"
+          class="action-button danger-outline"
+          :disabled="isSavingAndClosingWindow"
+          @click="openSaveAndCloseWindowDialog"
+        >
+          {{ isSavingAndClosingWindow ? $t('common.loading') : $t('savedTabs.saveAndCloseWindow') }}
         </button>
         <button
           type="button"
@@ -72,7 +80,8 @@
       <div class="list-status" aria-live="polite">
         <span v-if="isLoading">{{ $t('common.loading') }}</span>
         <span v-else-if="lists.length === 0">{{ $t('savedTabs.empty') }}</span>
-        <span v-else-if="searchQuery.trim() && filteredLists.length === 0">{{ $t('savedTabs.noSearchResults') }}</span>
+        <span v-else-if="activeSearchQuery && filteredLists.length === 0">{{ $t('savedTabs.noSearchResults') }}</span>
+        <span v-else-if="activeSearchQuery">{{ $t('savedTabs.searchResults', { count: filteredLists.length }) }}</span>
       </div>
 
       <div class="saved-list-insights" :aria-label="$t('savedTabs.statsTitle')">
@@ -165,6 +174,15 @@
           :aria-label="$t('savedTabs.importBackup')"
           @change="readImportFile"
         />
+        <button
+          v-if="snapshots.length > 0"
+          type="button"
+          class="action-button"
+          :disabled="isRestoringSnapshot"
+          @click="openRecoveryDialog"
+        >
+          {{ $t('savedTabs.reviewRecovery', { date: formatDate(snapshots[0].createdAt) }) }}
+        </button>
       </div>
 
       <div v-if="filteredLists.length > 0" class="lists">
@@ -480,6 +498,66 @@
         </div>
       </form>
     </dialog>
+
+    <dialog
+      ref="recoveryDialog"
+      class="saved-list-dialog"
+      aria-labelledby="recovery-dialog-title"
+      aria-describedby="recovery-dialog-description"
+    >
+      <form method="dialog" @submit.prevent="confirmRecovery">
+        <h2 id="recovery-dialog-title">{{ $t('savedTabs.recoveryTitle') }}</h2>
+        <p id="recovery-dialog-description">
+          {{ $t('savedTabs.recoveryDescription') }}
+        </p>
+        <fieldset class="snapshot-options">
+          <legend class="sr-only">{{ $t('savedTabs.recoveryChooseSnapshot') }}</legend>
+          <label v-for="snapshot in snapshots" :key="snapshot.id" class="snapshot-option">
+            <input v-model="selectedSnapshotId" type="radio" name="recovery-snapshot" :value="snapshot.id" />
+            <span class="snapshot-copy">
+              <strong>{{ formatDate(snapshot.createdAt) }}</strong>
+              <small>
+                {{ snapshotReasonLabel(snapshot.reason) }} ·
+                {{ $t('savedTabs.snapshotMeta', {
+                  lists: snapshot.data.lists.length,
+                  tabs: snapshotItemCount(snapshot)
+                }) }}
+              </small>
+            </span>
+          </label>
+        </fieldset>
+        <div class="dialog-actions">
+          <button type="button" class="action-button" :disabled="isRestoringSnapshot" @click="recoveryDialog?.close()">
+            {{ $t('common.cancel') }}
+          </button>
+          <button type="submit" class="action-button primary" :disabled="!selectedSnapshotId || isRestoringSnapshot">
+            {{ isRestoringSnapshot ? $t('common.loading') : $t('savedTabs.restoreSnapshot') }}
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog
+      ref="saveAndCloseWindowDialog"
+      class="saved-list-dialog"
+      aria-labelledby="save-and-close-window-dialog-title"
+      aria-describedby="save-and-close-window-dialog-description"
+    >
+      <form method="dialog" @submit.prevent="confirmSaveAndCloseWindow">
+        <h2 id="save-and-close-window-dialog-title">{{ $t('savedTabs.saveAndCloseWindowTitle') }}</h2>
+        <p id="save-and-close-window-dialog-description">
+          {{ $t('savedTabs.saveAndCloseWindowDescription') }}
+        </p>
+        <div class="dialog-actions">
+          <button type="button" class="action-button" autofocus @click="saveAndCloseWindowDialog?.close()">
+            {{ $t('common.cancel') }}
+          </button>
+          <button type="submit" class="action-button danger-filled" :disabled="isSavingAndClosingWindow">
+            {{ isSavingAndClosingWindow ? $t('common.loading') : $t('savedTabs.confirmSaveAndCloseWindow') }}
+          </button>
+        </div>
+      </form>
+    </dialog>
   </section>
 </template>
 
@@ -492,7 +570,8 @@ import type {
   SavedTabReference,
   SavedTabRestoreOptions,
   SavedTabRestoreTarget,
-  SavedTabsData
+  SavedTabsData,
+  SavedTabsSnapshot
 } from '@/shared/types'
 import { MESSAGE_TYPES } from '@/shared/constants'
 import { filterSavedTabLists, validateSavedTabsImport } from '@/shared/utils/savedTabs'
@@ -506,6 +585,7 @@ import { getCurrentLocale, i18n } from '@/i18n'
 
 interface Props {
   selectedTabIds: Set<number>
+  globalSearchQuery?: string
 }
 
 const props = defineProps<Props>()
@@ -519,6 +599,10 @@ const isExpanded = ref(false)
 const listName = ref('')
 const lists = ref<SavedTabList[]>([])
 const searchQuery = ref('')
+const activeSearchQuery = computed(() => props.globalSearchQuery?.trim() || searchQuery.value.trim())
+const isSectionVisible = computed(() => isExpanded.value || Boolean(props.globalSearchQuery?.trim()))
+const snapshots = ref<SavedTabsSnapshot[]>([])
+const selectedSnapshotId = ref('')
 const expandedListIds = ref(new Set<string>())
 const collapsedSearchListIds = ref(new Set<string>())
 const selectedItems = ref(new Map<string, SavedTabReference>())
@@ -528,12 +612,15 @@ const isLoading = ref(false)
 const isSavingWindow = ref(false)
 const isSavingSession = ref(false)
 const isSavingAndClosing = ref(false)
+const isSavingAndClosingWindow = ref(false)
 const busyListId = ref<string | null>(null)
 const busyItemKey = ref<string | null>(null)
 const renameDialog = ref<HTMLDialogElement | null>(null)
 const deleteDialog = ref<HTMLDialogElement | null>(null)
 const duplicatesDialog = ref<HTMLDialogElement | null>(null)
 const importDialog = ref<HTMLDialogElement | null>(null)
+const recoveryDialog = ref<HTMLDialogElement | null>(null)
+const saveAndCloseWindowDialog = ref<HTMLDialogElement | null>(null)
 const cleanupDialog = ref<HTMLDialogElement | null>(null)
 const importFileInput = ref<HTMLInputElement | null>(null)
 const importPreview = ref<SavedTabsData | null>(null)
@@ -554,10 +641,11 @@ const cleanupAgeDays = ref(90)
 const selectedCleanupIds = ref<string[]>([])
 const isCleaningUp = ref(false)
 const isRestoringSelection = ref(false)
+const isRestoringSnapshot = ref(false)
 const summarizingListId = ref<string | null>(null)
 const summaries = ref<Record<string, { text: string, updatedAt: number }>>({})
 
-const filteredLists = computed(() => filterSavedTabLists(lists.value, searchQuery.value))
+const filteredLists = computed(() => filterSavedTabLists(lists.value, activeSearchQuery.value))
 const stats = computed(() => getSavedListStats(lists.value))
 const cleanupCutoff = computed(() => Date.now() - cleanupAgeDays.value * 24 * 60 * 60 * 1000)
 const expiredLists = computed(() => getExpiredSavedLists(lists.value, cleanupCutoff.value))
@@ -588,9 +676,13 @@ const restoreOptions = computed<SavedTabRestoreOptions>(() => ({
   skipAlreadyOpen: skipAlreadyOpen.value
 }))
 
-watch(searchQuery, () => {
+watch([searchQuery, () => props.globalSearchQuery], () => {
   selectedItems.value.clear()
   collapsedSearchListIds.value = new Set()
+})
+
+watch(() => props.globalSearchQuery, query => {
+  if (query?.trim()) isExpanded.value = true
 })
 
 const dateFormatter = computed(() => new Intl.DateTimeFormat(getCurrentLocale(), {
@@ -607,11 +699,15 @@ async function send<T>(type: string, payload?: unknown): Promise<APIResponse<T>>
 async function loadLists() {
   isLoading.value = true
   try {
-    const response = await send<SavedTabList[]>(MESSAGE_TYPES.GET_SAVED_LISTS)
-    if (!response.success || !response.data) {
+    const [response, snapshotsResponse] = await Promise.all([
+      send<SavedTabList[]>(MESSAGE_TYPES.GET_SAVED_LISTS),
+      send<SavedTabsSnapshot[]>(MESSAGE_TYPES.GET_SAVED_SNAPSHOTS)
+    ])
+    if (!response.success || !response.data || !snapshotsResponse.success || !snapshotsResponse.data) {
       throw new Error(response.error || i18n.global.t('savedTabs.loadFailed'))
     }
     lists.value = response.data
+    snapshots.value = snapshotsResponse.data
   } catch (error) {
     emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.loadFailed'), 'error')
   } finally {
@@ -642,7 +738,7 @@ async function summarizeList(list: SavedTabList) {
 }
 
 function toggleList(id: string) {
-  if (searchQuery.value.trim()) {
+  if (activeSearchQuery.value) {
     const next = new Set(collapsedSearchListIds.value)
     if (next.has(id)) next.delete(id)
     else next.add(id)
@@ -659,7 +755,7 @@ function toggleList(id: string) {
 }
 
 function isListExpanded(id: string) {
-  return searchQuery.value.trim()
+  return activeSearchQuery.value
     ? !collapsedSearchListIds.value.has(id)
     : expandedListIds.value.has(id)
 }
@@ -772,6 +868,33 @@ async function saveAndCloseSelected() {
     emit('notify', error instanceof Error ? error.message : i18n.global.t('errors.batchCloseFailed'), 'error')
   } finally {
     isSavingAndClosing.value = false
+  }
+}
+
+function openSaveAndCloseWindowDialog() {
+  nextTick(() => saveAndCloseWindowDialog.value?.showModal())
+}
+
+async function confirmSaveAndCloseWindow() {
+  if (isSavingAndClosingWindow.value) return
+  isSavingAndClosingWindow.value = true
+  try {
+    const response = await send<BatchOperationResult>(MESSAGE_TYPES.SAVE_AND_CLOSE_WINDOW, {
+      name: listName.value.trim() || undefined
+    })
+    const result = response.data
+    if (!result) throw new Error(response.error || i18n.global.t('savedTabs.saveFailed'))
+    saveAndCloseWindowDialog.value?.close()
+    await loadLists()
+    if (result.successfulOperations > 0) {
+      listName.value = ''
+      emit('tabs-updated')
+    }
+    emit('notify', operationMessage(result, 'close'), result.failedOperations > 0 ? 'error' : 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'), 'error')
+  } finally {
+    isSavingAndClosingWindow.value = false
   }
 }
 
@@ -889,6 +1012,37 @@ async function confirmImport() {
   } finally {
     isImporting.value = false
   }
+}
+
+function openRecoveryDialog() {
+  if (snapshots.value.length === 0) return
+  selectedSnapshotId.value = snapshots.value[0].id
+  nextTick(() => recoveryDialog.value?.showModal())
+}
+
+async function confirmRecovery() {
+  const snapshot = snapshots.value.find(candidate => candidate.id === selectedSnapshotId.value)
+  if (!snapshot || isRestoringSnapshot.value) return
+  isRestoringSnapshot.value = true
+  try {
+    const response = await send<SavedTabsData>(MESSAGE_TYPES.RESTORE_SAVED_SNAPSHOT, { id: snapshot.id })
+    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.recoveryFailed'))
+    recoveryDialog.value?.close()
+    await loadLists()
+    emit('notify', i18n.global.t('savedTabs.recovered'), 'success')
+  } catch (error) {
+    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.recoveryFailed'), 'error')
+  } finally {
+    isRestoringSnapshot.value = false
+  }
+}
+
+function snapshotItemCount(snapshot: SavedTabsSnapshot): number {
+  return snapshot.data.lists.reduce((total, list) => total + list.items.length, 0)
+}
+
+function snapshotReasonLabel(reason: SavedTabsSnapshot['reason']): string {
+  return i18n.global.t(`savedTabs.snapshotReason.${reason}`)
 }
 
 async function restoreList(list: SavedTabList) {
@@ -1201,9 +1355,14 @@ onMounted(loadLists)
 
 .backup-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 7px;
   margin: 8px 0 12px;
+}
+
+.backup-actions .action-button {
+  flex: 1 1 140px;
 }
 
 .saved-search input,
@@ -1499,6 +1658,8 @@ onMounted(loadLists)
 
 .saved-list-dialog {
   width: min(420px, calc(100vw - 32px));
+  max-block-size: min(640px, calc(100dvh - 32px));
+  overflow: auto;
   padding: 20px;
   border: 1px solid var(--border-primary);
   border-radius: 12px;
@@ -1508,12 +1669,71 @@ onMounted(loadLists)
 }
 
 .saved-list-dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
   background: rgba(0, 0, 0, 0.45);
+}
+
+dialog:modal {
+  overscroll-behavior: contain;
 }
 
 .cleanup-dialog {
   max-height: min(520px, calc(100vh - 32px));
   overflow: auto;
+}
+
+.snapshot-options {
+  display: grid;
+  gap: 6px;
+  max-height: 260px;
+  overflow: auto;
+  margin: 12px 0 16px;
+  padding: 0;
+  border: 0;
+}
+
+.snapshot-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.snapshot-option:has(input:checked) {
+  border-color: var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.snapshot-option input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  accent-color: var(--primary-color);
+}
+
+.snapshot-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.snapshot-copy strong,
+.snapshot-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snapshot-copy strong {
+  font-size: 11px;
+}
+
+.snapshot-copy small {
+  color: var(--text-tertiary);
+  font-size: 10px;
 }
 
 .cleanup-list-options {
@@ -1591,6 +1811,32 @@ onMounted(loadLists)
   margin: 0 0 16px;
   color: var(--text-secondary);
   font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .saved-list-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .restore-target-field {
+    justify-content: space-between;
+  }
+
+  .restore-target-field select {
+    flex: 1 1 auto;
+  }
+
+  .save-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .backup-actions {
+    justify-content: stretch;
+  }
+
+  .backup-actions .action-button {
+    flex-basis: 120px;
+  }
 }
 
 .import-error {

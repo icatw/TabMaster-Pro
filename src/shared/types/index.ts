@@ -191,6 +191,18 @@ export interface SavedTabsData {
 }
 
 /**
+ * A local point-in-time copy of saved lists. Snapshots are intentionally kept
+ * separate from the user-visible lists so undo/recovery never changes the
+ * normal restore workflow.
+ */
+export interface SavedTabsSnapshot {
+  id: string
+  createdAt: number
+  reason: 'mutation' | 'startup' | 'manual'
+  data: SavedTabsData
+}
+
+/**
  * 分组扩展信息
  */
 export interface GroupInfo extends chrome.tabGroups.TabGroup {

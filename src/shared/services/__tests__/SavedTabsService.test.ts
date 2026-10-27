@@ -93,3 +93,128 @@ describe('saved tabs retention cleanup', () => {
     expect(new Set((stored as SavedTabsData).lists.map(list => list.id))).toEqual(new Set(['old-unselected', 'new-selected']))
   })
 })
+
+describe('saved tabs snapshots', () => {
+  it('keeps the pre-mutation state for recovery', async () => {
+    const initial: SavedTabsData = {
+      version: SAVED_TABS_SCHEMA_VERSION,
+      lists: [{
+        id: 'before-import',
+        name: 'Before import',
+        createdAt: 1,
+        updatedAt: 1,
+        items: [{ title: 'Existing', url: 'https://existing.example', pinned: false, createdAt: 1 }]
+      }]
+    }
+    const values: Record<string, unknown> = {
+      [STORAGE_KEYS.SAVED_TABS]: initial,
+      [STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]: []
+    }
+    const store = {
+      get: async (key: string) => ({ [key]: values[key] }),
+      set: async (items: Record<string, unknown>) => { Object.assign(values, items) }
+    }
+
+    await SavedTabsService.importData({
+      version: SAVED_TABS_SCHEMA_VERSION,
+      lists: [{
+        id: 'imported',
+        name: 'Imported',
+        createdAt: 2,
+        updatedAt: 2,
+        items: [{ title: 'Imported', url: 'https://imported.example', pinned: false, createdAt: 2 }]
+      }]
+    }, store)
+
+    const snapshots = await SavedTabsService.getSnapshots(store)
+    expect(snapshots).toHaveLength(1)
+    expect(snapshots[0].reason).toBe('mutation')
+    expect(snapshots[0].data).toEqual(initial)
+    expect((values[STORAGE_KEYS.SAVED_TABS] as SavedTabsData).lists).toHaveLength(2)
+  })
+
+  it('caps recovery history to the latest eight snapshots', async () => {
+    const values: Record<string, unknown> = {
+      [STORAGE_KEYS.SAVED_TABS]: { version: SAVED_TABS_SCHEMA_VERSION, lists: [] },
+      [STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]: []
+    }
+    const store = {
+      get: async (key: string) => ({ [key]: values[key] }),
+      set: async (items: Record<string, unknown>) => { Object.assign(values, items) }
+    }
+
+    for (let index = 0; index < 10; index += 1) {
+      await SavedTabsService.importData({
+        version: SAVED_TABS_SCHEMA_VERSION,
+        lists: [{
+          id: `list-${index}`,
+          name: `List ${index}`,
+          createdAt: index + 1,
+          updatedAt: index + 1,
+          items: [{ title: `Tab ${index}`, url: `https://example.com/${index}`, pinned: false, createdAt: index + 1 }]
+        }]
+      }, store)
+    }
+
+    const snapshots = await SavedTabsService.getSnapshots(store)
+    expect(snapshots).toHaveLength(8)
+  })
+
+  it('bounds recovery history by serialized size for large lists', async () => {
+    const values: Record<string, unknown> = {
+      [STORAGE_KEYS.SAVED_TABS]: { version: SAVED_TABS_SCHEMA_VERSION, lists: [] },
+      [STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]: []
+    }
+    const store = {
+      get: async (key: string) => ({ [key]: values[key] }),
+      set: async (items: Record<string, unknown>) => { Object.assign(values, items) }
+    }
+    const largeTitle = 'x'.repeat(900_000)
+
+    for (let index = 0; index < 3; index += 1) {
+      await SavedTabsService.importData({
+        version: SAVED_TABS_SCHEMA_VERSION,
+        lists: [{
+          id: `large-${index}`,
+          name: `Large ${index}`,
+          createdAt: index + 1,
+          updatedAt: index + 1,
+          items: [{ title: largeTitle, url: `https://large.example/${index}`, pinned: false, createdAt: index + 1 }]
+        }]
+      }, store)
+    }
+
+    const snapshots = values[STORAGE_KEYS.SAVED_TABS_SNAPSHOTS] as unknown[]
+    expect(JSON.stringify(snapshots).length).toBeLessThanOrEqual(2 * 1024 * 1024)
+  })
+
+  it('ignores malformed recovery records and normalizes valid payloads', async () => {
+    const store = {
+      get: async () => ({
+        [STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]: [
+          null,
+          { id: 'missing-data', createdAt: Date.now(), reason: 'mutation' },
+          { id: 'bad-date', createdAt: 'now', reason: 'manual', data: {} },
+          {
+            id: 'valid',
+            createdAt: 123,
+            reason: 'manual',
+            data: { version: 1, lists: [{
+              id: 'recovered',
+              name: 'Recovered',
+              items: [{ title: 'Example', url: 'https://example.com', pinned: false, createdAt: 1 }]
+            }] }
+          }
+        ]
+      }),
+      set: async () => undefined
+    }
+
+    const snapshots = await SavedTabsService.getSnapshots(store)
+
+    expect(snapshots).toHaveLength(1)
+    expect(snapshots[0].id).toBe('valid')
+    expect(snapshots[0].data.version).toBe(SAVED_TABS_SCHEMA_VERSION)
+    expect(snapshots[0].data.lists[0].name).toBe('Recovered')
+  })
+})

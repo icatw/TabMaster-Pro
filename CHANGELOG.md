@@ -4,6 +4,13 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- Save and close the focused browser window as a recoverable Saved List.
+- Search Saved Lists from the main tab and bookmark search field.
+- Local mutation and startup snapshots with a recovery action for accidental changes.
+- Chrome tab context-menu actions for saving the current tab, highlighted tabs, or the current window.
+
 ## [0.2.1] - 2026-10-26
 
 ### Fixed

@@ -6,7 +6,8 @@ import type {
   SavedTabReference,
   SavedTabRestoreOptions,
   SavedTabGroupSnapshot,
-  SavedWindowSnapshot
+  SavedWindowSnapshot,
+  SavedTabsSnapshot
 } from '../types'
 import { SAVED_TABS_SCHEMA_VERSION, STORAGE_KEYS } from '../constants'
 import {
@@ -27,6 +28,19 @@ interface SavedTabsStore {
 const localStore: SavedTabsStore = {
   get: key => chrome.storage.local.get(key),
   set: items => chrome.storage.local.set(items)
+}
+
+const MAX_SNAPSHOTS = 8
+// Keep recovery history useful without approaching chrome.storage.local's
+// quota when a user has accumulated many large lists.
+const MAX_SNAPSHOT_BYTES = 2 * 1024 * 1024
+
+function trimSnapshots(snapshots: SavedTabsSnapshot[]): SavedTabsSnapshot[] {
+  const retained = [...snapshots]
+  while (retained.length > 1 && JSON.stringify(retained).length > MAX_SNAPSHOT_BYTES) {
+    retained.pop()
+  }
+  return retained.slice(0, MAX_SNAPSHOTS)
 }
 
 function toSavedItem(tab: chrome.tabs.Tab, now = Date.now()): SavedTabItem | null {
@@ -88,6 +102,75 @@ export class SavedTabsService {
     return normalized
   }
 
+  static async getSnapshots(store: SavedTabsStore = localStore): Promise<SavedTabsSnapshot[]> {
+    const result = await store.get(STORAGE_KEYS.SAVED_TABS_SNAPSHOTS)
+    const snapshots = result[STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]
+    if (!Array.isArray(snapshots)) return []
+    return snapshots.flatMap(snapshot => {
+      if (!snapshot || typeof snapshot !== 'object') return []
+      const candidate = snapshot as Partial<SavedTabsSnapshot>
+      const createdAt = candidate.createdAt
+      if (typeof candidate.id !== 'string' || typeof createdAt !== 'number' || !Number.isFinite(createdAt) ||
+        (candidate.reason !== 'mutation' && candidate.reason !== 'startup' && candidate.reason !== 'manual') ||
+        !candidate.data || typeof candidate.data !== 'object') return []
+      return [{
+        id: candidate.id,
+        createdAt,
+        reason: candidate.reason,
+        data: normalizeSavedTabsData(candidate.data)
+      }]
+    }).sort((a, b) => b.createdAt - a.createdAt).slice(0, MAX_SNAPSHOTS)
+  }
+
+  private static async persistMutation(
+    before: SavedTabsData,
+    after: SavedTabsData,
+    store: SavedTabsStore = localStore,
+    reason: SavedTabsSnapshot['reason'] = 'mutation'
+  ): Promise<SavedTabsData> {
+    const normalizedBefore = normalizeSavedTabsData(before)
+    const normalizedAfter = normalizeSavedTabsData(after)
+    const snapshot: SavedTabsSnapshot = {
+      id: globalThis.crypto?.randomUUID?.() ?? `snapshot-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      createdAt: Date.now(),
+      reason,
+      data: normalizedBefore
+    }
+    const snapshots = trimSnapshots([snapshot, ...(await this.getSnapshots(store))])
+    await store.set({
+      [STORAGE_KEYS.SAVED_TABS]: normalizedAfter,
+      [STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]: snapshots
+    })
+    return normalizedAfter
+  }
+
+  static async createSnapshot(
+    reason: SavedTabsSnapshot['reason'] = 'manual',
+    store: SavedTabsStore = localStore
+  ): Promise<SavedTabsSnapshot> {
+    return withStorageMutation(async () => {
+      const current = await this.getData(store)
+      const snapshot: SavedTabsSnapshot = {
+        id: globalThis.crypto?.randomUUID?.() ?? `snapshot-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        createdAt: Date.now(),
+        reason,
+        data: current
+      }
+      const snapshots = trimSnapshots([snapshot, ...(await this.getSnapshots(store))])
+      await store.set({ [STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]: snapshots })
+      return snapshot
+    })
+  }
+
+  static async restoreSnapshot(id: string): Promise<SavedTabsData> {
+    return withStorageMutation(async () => {
+      const snapshots = await this.getSnapshots()
+      const snapshot = snapshots.find(candidate => candidate.id === id)
+      if (!snapshot) throw new Error('Saved tabs snapshot not found')
+      return this.persistMutation(await this.getData(), snapshot.data, localStore, 'manual')
+    })
+  }
+
   static async getLists(): Promise<SavedTabList[]> {
     return (await this.getData()).lists
   }
@@ -108,7 +191,7 @@ export class SavedTabsService {
         existingIds.add(id)
         return { ...list, id }
       })
-      await this.setData({
+      await this.persistMutation(current, {
         version: SAVED_TABS_SCHEMA_VERSION,
         lists: [...lists, ...current.lists]
       }, store)
@@ -132,7 +215,7 @@ export class SavedTabsService {
       if (!list) return null
 
       const current = await this.getData(store)
-      await this.setData(addSavedTabList(current, list), store)
+      await this.persistMutation(current, addSavedTabList(current, list), store)
       return list
     })
   }
@@ -216,7 +299,7 @@ export class SavedTabsService {
       if (!list) throw new Error('No restorable tabs in the open windows')
 
       const current = await this.getData()
-      await this.setData(addSavedTabList(current, list))
+      await this.persistMutation(current, addSavedTabList(current, list))
       return list
     })
   }
@@ -299,6 +382,12 @@ export class SavedTabsService {
       errors: errors.length > 0 ? errors : undefined,
       message: closed > 0 ? `Saved ${list.items.length} tabs before closing ${closed}` : undefined
     }
+  }
+
+  static async saveAndCloseWindow(name?: string): Promise<BatchOperationResult> {
+    const focusedWindow = await chrome.windows.getLastFocused({ populate: true })
+    const tabIds = (focusedWindow.tabs ?? []).flatMap(tab => tab.id === undefined ? [] : [tab.id])
+    return this.saveAndCloseTabs(tabIds, name?.trim() || `Closed window (${tabIds.length} tabs)`)
   }
 
   private static async restoreItems(
@@ -577,8 +666,9 @@ export class SavedTabsService {
 
   static async renameList(id: string, name: string): Promise<SavedTabList> {
     return withStorageMutation(async () => {
-      const updated = renameSavedTabList(await this.getData(), id, name)
-      await this.setData(updated)
+      const current = await this.getData()
+      const updated = renameSavedTabList(current, id, name)
+      await this.persistMutation(current, updated)
       const list = updated.lists.find(candidate => candidate.id === id)
       if (!list) throw new Error('Saved list not found')
       return list
@@ -587,8 +677,9 @@ export class SavedTabsService {
 
   static async deleteList(id: string): Promise<SavedTabsData> {
     return withStorageMutation(async () => {
-      const updated = removeSavedTabList(await this.getData(), id)
-      return this.setData({
+      const current = await this.getData()
+      const updated = removeSavedTabList(current, id)
+      return this.persistMutation(current, {
         version: SAVED_TABS_SCHEMA_VERSION,
         lists: updated.lists
       })
@@ -607,7 +698,7 @@ export class SavedTabsService {
         .filter(list => selectedIds.has(list.id))
       const expiredIds = new Set(expired.map(list => list.id))
       const itemCount = expired.reduce((total, list) => total + list.items.length, 0)
-      await this.setData({
+      await this.persistMutation(current, {
         version: SAVED_TABS_SCHEMA_VERSION,
         lists: current.lists.filter(list => !expiredIds.has(list.id))
       }, store)

@@ -8,7 +8,7 @@ TabMaster Pro is a Chrome extension built with Manifest V3, Vue 3, TypeScript, a
 
 ## How It Compares with OneTab
 
-OneTab's central workflow is to collect many tabs with little effort and restore them later. TabMaster Pro now supports that workflow end to end: save the current window, or save and close selected tabs. Saved data remains in `chrome.storage.local` and can be restored after a browser restart.
+OneTab's central workflow is to collect many tabs with little effort and restore them later. TabMaster Pro now supports that workflow end to end: save the current window, save and close the current window, or save and close selected tabs. Saved data remains in `chrome.storage.local` and can be restored after a browser restart.
 
 TabMaster Pro also keeps its live-window tools for search, sorting, grouping, and multi-select operations. Saved Lists are local to the current browser; cloud sync, cross-device sync, and public sharing are not included.
 
@@ -17,6 +17,7 @@ TabMaster Pro also keeps its live-window tools for search, sorting, grouping, an
 ### Saved Lists
 
 - Save the current window as a named list without closing its tabs.
+- Save and close the current window after writing a recoverable list.
 - Select tabs, then save and close them in one action.
 - Restore a whole list or one saved link.
 - Rename or permanently delete lists; deletion uses a native confirmation dialog.
@@ -26,6 +27,8 @@ TabMaster Pro also keeps its live-window tools for search, sorting, grouping, an
 - Optionally generate a topic summary for a list. Chrome's on-device model is the default; custom OpenAI-compatible endpoints are supported, and summaries are cached locally.
 - Avoid closing tabs when saving fails; report actual partial success counts for restore and close operations.
 - Save restorable URLs before single-tab close, batch close, keyboard `Delete`, and group close.
+- Search Saved Lists from the main tab and bookmark search field; recover the latest local snapshot after an accidental change.
+- Use the tab context menu to save the current tab, highlighted tabs, or the current window.
 
 Saved Lists stay in the current browser's `chrome.storage.local` by default. Only when you request a summary with a custom endpoint selected, the extension sends the list name, tab titles, and site hostnames to that endpoint; it does not send full URLs. API keys stay in local extension storage.
 
@@ -55,7 +58,7 @@ Custom models must support the OpenAI Chat Completions API. HTTPS endpoints can 
 |---|---|
 | Node.js | 18 or later; Node 20 LTS recommended |
 | npm | 8 or later |
-| Chrome / Chromium | 100 or later |
+| Chrome / Chromium | 150 or later |
 
 ### Local Development
 
@@ -115,6 +118,7 @@ Chrome or the operating system may reserve some combinations, so use the binding
 | `tabGroups` | Create, read, and remove tab groups. |
 | `storage` | Save settings and Saved Lists locally in the browser. |
 | `bookmarks` | Search bookmarks that already exist in the browser. |
+| `contextMenus` | Add tab context-menu actions for saving the current tab, highlighted tabs, and the current window. |
 | `<all_urls>` | Allow Chrome's `captureVisibleTab` to capture the visible tab for thumbnails; the extension does not read or modify page content. |
 
 ## Project Structure

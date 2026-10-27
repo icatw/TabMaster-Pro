@@ -73,6 +73,7 @@ function toErrorMessage(error: unknown): string {
 
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   try {
+    await registerContextMenus()
     if (reason === 'install') {
       await StorageService.setConfig(DEFAULT_CONFIG)
       await ensureAutoCollectionAlarm()
@@ -102,10 +103,19 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 })
 
 chrome.runtime.onStartup.addListener(() => {
-  void ensureAutoCollectionAlarm()
+  void Promise.all([
+    ensureAutoCollectionAlarm(),
+    SavedTabsService.createSnapshot('startup')
+  ]).catch(error => {
+    console.error('Failed to prepare startup recovery state:', error)
+  })
 })
 
 chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name === 'context-feedback-clear') {
+    void chrome.action.setBadgeText({ text: '' }).catch(() => undefined)
+    return
+  }
   if (alarm.name !== 'auto-collection-scan') return
   void AutoCollectionService.scanAndStage().catch(error => {
     console.error('Failed to prepare automatic collection preview:', error)
@@ -182,8 +192,14 @@ async function handleMessage(message: {
     return handleSaveSession(payload as SaveWindowPayload)
   case MESSAGE_TYPES.SAVE_AND_CLOSE_TABS:
     return handleSaveAndCloseTabs(payload as SaveAndClosePayload)
+  case MESSAGE_TYPES.SAVE_AND_CLOSE_WINDOW:
+    return handleSaveAndCloseWindow(payload as SaveWindowPayload)
   case MESSAGE_TYPES.GET_SAVED_LISTS:
     return response(await SavedTabsService.getLists())
+  case MESSAGE_TYPES.GET_SAVED_SNAPSHOTS:
+    return response(await SavedTabsService.getSnapshots())
+  case MESSAGE_TYPES.RESTORE_SAVED_SNAPSHOT:
+    return response(await SavedTabsService.restoreSnapshot((payload as { id: string }).id))
   case MESSAGE_TYPES.EXPORT_SAVED_TABS:
     return response(await SavedTabsService.getData())
   case MESSAGE_TYPES.IMPORT_SAVED_TABS:
@@ -339,6 +355,15 @@ async function handleSaveAndCloseTabs(
   }
 }
 
+async function handleSaveAndCloseWindow(payload: SaveWindowPayload = {}): Promise<APIResponse> {
+  try {
+    const result = await SavedTabsService.saveAndCloseWindow(payload.name)
+    return response(result, result.success, result.errors?.[0])
+  } catch (error) {
+    return response(undefined, false, `保存并关闭窗口失败: ${toErrorMessage(error)}`)
+  }
+}
+
 async function handleRestoreList(payload: RestoreListPayload): Promise<APIResponse> {
   try {
     const result = await SavedTabsService.restoreList(payload.id, payload.options)
@@ -426,6 +451,60 @@ chrome.tabs.onRemoved.addListener(async () => {
   } catch (error) {
     console.error('Failed to auto-sort after tab removal:', error)
   }
+})
+
+async function registerContextMenus(): Promise<void> {
+  // @types/chrome predates the Chrome 150 tab-strip context, but the runtime
+  // accepts it and the manifest declares the matching minimum version.
+  const tabContext = 'tab' as unknown as chrome.contextMenus.ContextType
+  await chrome.contextMenus.removeAll()
+  chrome.contextMenus.create({
+    id: 'save-current-tab',
+    title: 'Save current tab to TabMaster Pro',
+    contexts: [tabContext]
+  })
+  chrome.contextMenus.create({
+    id: 'save-selected-tabs',
+    title: 'Save selected tabs to TabMaster Pro',
+    contexts: [tabContext]
+  })
+  chrome.contextMenus.create({
+    id: 'save-current-window',
+    title: 'Save current window to TabMaster Pro',
+    contexts: [tabContext]
+  })
+}
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  void (async () => {
+    if (!tab?.id || tab.windowId === undefined) return
+    try {
+      let tabs: chrome.tabs.Tab[]
+      let name: string
+      if (info.menuItemId === 'save-current-window') {
+        tabs = await chrome.tabs.query({ windowId: tab.windowId })
+        name = `Saved window (${tabs.length} tabs)`
+      } else if (info.menuItemId === 'save-selected-tabs') {
+        tabs = await chrome.tabs.query({ windowId: tab.windowId, highlighted: true })
+        name = `Selected tabs (${tabs.length})`
+      } else if (info.menuItemId === 'save-current-tab') {
+        tabs = [tab]
+        name = tab.title?.trim() || 'Saved tab'
+      } else {
+        return
+      }
+      const saved = await SavedTabsService.saveTabs(tabs, name, undefined, { preserveDuplicates: true })
+      if (!saved) throw new Error('No restorable tabs were found')
+      await chrome.action.setBadgeText({ text: '✓' })
+      await chrome.action.setBadgeBackgroundColor({ color: '#1f2937' })
+      await chrome.alarms.create('context-feedback-clear', { when: Date.now() + 1800 })
+    } catch (error) {
+      console.error('Failed to save tabs from context menu:', error)
+      await chrome.action.setBadgeText({ text: '!' })
+      await chrome.action.setBadgeBackgroundColor({ color: '#b42318' })
+      await chrome.alarms.create('context-feedback-clear', { when: Date.now() + 2600 })
+    }
+  })()
 })
 
 self.addEventListener('error', event => {
