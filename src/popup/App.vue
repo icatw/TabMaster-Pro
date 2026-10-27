@@ -382,7 +382,8 @@ watch([filteredTabs, bookmarkResults, displayedBookmarkGroups, collapsedBookmark
 <style scoped>
 .app {
   width: 620px;
-  min-height: 400px;
+  height: 100%;
+  min-height: 0;
   max-height: 600px;
   background: var(--bg-primary);
   color: var(--text-primary);
