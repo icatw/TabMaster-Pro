@@ -35,13 +35,17 @@ export default defineManifest(async (env) => ({
     'tabGroups',   // 标签页分组 API (Chrome 89+)
     'storage',     // 配置存储
     'alarms',      // 周期性检查自动收纳建议
-    'bookmarks'    // 书签搜索和访问
+    'bookmarks',   // 书签搜索和访问
+    'contextMenus' // 右键保存标签页
   ],
 
   // 主机权限 - 缩略图功能需要访问所有URL
   host_permissions: [
     '<all_urls>' // 需要此权限才能使用chrome.tabs.captureVisibleTab()获取缩略图
   ],
+
+  // The tab context menu is available from Chrome 150.
+  minimum_chrome_version: '150',
 
   // 扩展操作 (工具栏图标)
   action: {

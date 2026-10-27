@@ -22,6 +22,7 @@
 
     <SavedListsSection
       :selected-tab-ids="selectedTabIds"
+      :global-search-query="searchQuery"
       @notify="handleSavedListsNotify"
       @tabs-updated="refreshAfterSavedTabsChange"
       @selection-cleared="clearSelection"
