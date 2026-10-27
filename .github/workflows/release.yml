@@ -80,7 +80,7 @@ jobs:
           ### 🔧 技术信息 / Technical Info
           - **构建时间** / Build Time: ${{ github.run_id }}
           - **提交哈希** / Commit: ${{ github.sha }}
-          - **Node.js版本** / Node.js Version: 20.18.1
+          - **Node.js版本** / Node.js Version: 20.19.0
           - **构建工具** / Build Tool: Vite + npm
         draft: false
         prerelease: false
