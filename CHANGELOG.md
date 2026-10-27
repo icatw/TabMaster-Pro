@@ -4,6 +4,16 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-26
+
+### Added
+
+- Pull-request CI for type checking, linting, tests, and production builds.
+
+### Fixed
+
+- Keep the open-tab list visible and scrollable in the fixed-height popup by collapsing saved-list management by default and constraining the popup layout.
+
 ## [0.2.0] - 2026-10-26
 
 ### Added
@@ -14,7 +24,6 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 - Restore a complete Saved List or an individual item, rename lists, and delete lists with confirmation.
 - Versioned Saved List storage, legacy-data normalization, and URL deduplication.
 - Unit tests for Saved List data handling and tab close/restore behavior.
-- Pull-request CI for type checking, linting, tests, and production builds.
 - Chrome Web Store listing and permission documentation.
 - Optional saved-list summaries using Chrome's on-device Prompt API or a user-configured OpenAI-compatible endpoint. Custom summaries are sent only after an explicit user request and include list names, tab titles, and hostnames, not full URLs.
 

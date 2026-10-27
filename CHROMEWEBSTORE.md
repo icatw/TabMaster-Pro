@@ -139,6 +139,7 @@ TODO — 上架前托管公开隐私政策并填入 URL。政策需要说明标�
 |---|---|---|---|
 | 0.1.0 | Unreleased | Initial development version | Draft |
 | 0.2.0 | 2026-10-26 | Added exact-URL duplicate review with save-before-close behavior, local JSON backup import/export, and optional saved-list AI summaries using Chrome's on-device model or a user-configured OpenAI-compatible provider. Custom summaries send list names, tab titles, and hostnames to the selected provider after the user requests them. Refresh store screenshots before submission. | Release candidate |
+| 0.2.1 | 2026-10-26 | Fixed popup layout so open tabs remain visible and scrollable; saved-list management is collapsed by default. Refresh store screenshots before submission. | Release candidate |
 
 ## Review Notes
 
