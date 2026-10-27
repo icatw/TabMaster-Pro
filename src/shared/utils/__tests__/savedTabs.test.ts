@@ -57,7 +57,7 @@ describe('saved tab data', () => {
       ]
     }, 99)
 
-    expect(migrated.version).toBe(2)
+    expect(migrated.version).toBe(3)
     expect(migrated.lists.map(list => list.name)).toEqual([
       'Duplicate id',
       'Newer',
@@ -66,6 +66,8 @@ describe('saved tab data', () => {
     expect(migrated.lists[0].id).not.toBe('newer')
     expect(migrated.lists[2].items).toHaveLength(1)
     expect(migrated.lists[2].items[0].url).toBe('https://example.com/a')
+    expect(migrated.workspaces).toEqual([expect.objectContaining({ id: 'workspace-inbox', name: 'Inbox' })])
+    expect(migrated.lists.every(list => list.workspaceId === 'workspace-inbox')).toBe(true)
   })
 
   it('creates a deduplicated list and ignores blank URLs', () => {
@@ -140,6 +142,7 @@ describe('saved tab data', () => {
     const second = createSavedTabList([item('https://example.org')], 'Second', 2, 'second')!
     const data: SavedTabsData = {
       version: 1,
+      workspaces: [],
       lists: [first, second]
     }
 

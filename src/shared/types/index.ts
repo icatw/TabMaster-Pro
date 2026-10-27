@@ -151,8 +151,17 @@ export interface SavedTabList {
   createdAt: number
   updatedAt: number
   items: SavedTabItem[]
+  workspaceId: string
   kind?: 'links' | 'session'
   windows?: SavedWindowSnapshot[]
+}
+
+/** A local project context for saved lists. */
+export interface SavedWorkspace {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
 }
 
 export interface AutoCollectionCandidate {
@@ -188,6 +197,7 @@ export interface SavedTabReference {
 export interface SavedTabsData {
   version: number
   lists: SavedTabList[]
+  workspaces: SavedWorkspace[]
 }
 
 /**

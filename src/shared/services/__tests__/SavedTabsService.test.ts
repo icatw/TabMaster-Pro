@@ -7,11 +7,13 @@ describe('saved tabs import', () => {
   it('merges imported lists without replacing existing data or colliding IDs', async () => {
     const initial: SavedTabsData = {
       version: SAVED_TABS_SCHEMA_VERSION,
+      workspaces: [],
       lists: [{
         id: 'same-id',
         name: 'Existing',
         createdAt: 1,
         updatedAt: 1,
+        workspaceId: 'workspace-inbox',
         items: [{ title: 'Existing', url: 'https://existing.example', pinned: false, createdAt: 1 }]
       }]
     }
@@ -62,21 +64,47 @@ describe('saved tabs import', () => {
     const ids = (stored as SavedTabsData).lists.map(item => item.id)
     expect(new Set(ids).size).toBe(2)
   })
+
+  it('merges imported workspaces and remaps imported lists to them', async () => {
+    let stored: unknown = { version: SAVED_TABS_SCHEMA_VERSION, lists: [] }
+    const store = {
+      get: async () => ({ [STORAGE_KEYS.SAVED_TABS]: stored }),
+      set: async (items: Record<string, unknown>) => { stored = items[STORAGE_KEYS.SAVED_TABS] }
+    }
+
+    await SavedTabsService.importData({
+      version: SAVED_TABS_SCHEMA_VERSION,
+      workspaces: [{ id: 'project', name: 'Project', createdAt: 1, updatedAt: 1 }],
+      lists: [{
+        id: 'project-list',
+        name: 'Project links',
+        workspaceId: 'project',
+        createdAt: 1,
+        updatedAt: 1,
+        items: [{ title: 'Example', url: 'https://example.com', pinned: false, createdAt: 1 }]
+      }]
+    }, store)
+
+    const finalData = stored as SavedTabsData
+    expect(finalData.workspaces.map(workspace => workspace.name)).toEqual(['Inbox', 'Project'])
+    expect(finalData.lists[0].workspaceId).toBe('project')
+  })
 })
 
 describe('saved tabs retention cleanup', () => {
   it('deletes only selected lists that still fall before the cutoff', async () => {
     const data: SavedTabsData = {
       version: SAVED_TABS_SCHEMA_VERSION,
+      workspaces: [],
       lists: [
-        { id: 'old-selected', name: 'Old selected', createdAt: 10, updatedAt: 10, items: [
+        { id: 'old-selected', name: 'Old selected', createdAt: 10, updatedAt: 10, workspaceId: 'workspace-inbox', items: [
           { title: 'One', url: 'https://one.example', pinned: false, createdAt: 10 },
           { title: 'Two', url: 'https://two.example', pinned: false, createdAt: 10 }
         ] },
-        { id: 'old-unselected', name: 'Old unselected', createdAt: 20, updatedAt: 20, items: [
+        { id: 'old-unselected', name: 'Old unselected', createdAt: 20, updatedAt: 20, workspaceId: 'workspace-inbox', items: [
           { title: 'Three', url: 'https://three.example', pinned: false, createdAt: 20 }
         ] },
-        { id: 'new-selected', name: 'New selected', createdAt: 101, updatedAt: 101, items: [
+        { id: 'new-selected', name: 'New selected', createdAt: 101, updatedAt: 101, workspaceId: 'workspace-inbox', items: [
           { title: 'Four', url: 'https://four.example', pinned: false, createdAt: 101 }
         ] }
       ]
@@ -98,11 +126,13 @@ describe('saved tabs snapshots', () => {
   it('keeps the pre-mutation state for recovery', async () => {
     const initial: SavedTabsData = {
       version: SAVED_TABS_SCHEMA_VERSION,
+      workspaces: [],
       lists: [{
         id: 'before-import',
         name: 'Before import',
         createdAt: 1,
         updatedAt: 1,
+        workspaceId: 'workspace-inbox',
         items: [{ title: 'Existing', url: 'https://existing.example', pinned: false, createdAt: 1 }]
       }]
     }
@@ -129,7 +159,11 @@ describe('saved tabs snapshots', () => {
     const snapshots = await SavedTabsService.getSnapshots(store)
     expect(snapshots).toHaveLength(1)
     expect(snapshots[0].reason).toBe('mutation')
-    expect(snapshots[0].data).toEqual(initial)
+    expect(snapshots[0].data).toMatchObject({
+      version: SAVED_TABS_SCHEMA_VERSION,
+      lists: initial.lists,
+      workspaces: [{ id: 'workspace-inbox', name: 'Inbox' }]
+    })
     expect((values[STORAGE_KEYS.SAVED_TABS] as SavedTabsData).lists).toHaveLength(2)
   })
 
@@ -216,5 +250,37 @@ describe('saved tabs snapshots', () => {
     expect(snapshots[0].id).toBe('valid')
     expect(snapshots[0].data.version).toBe(SAVED_TABS_SCHEMA_VERSION)
     expect(snapshots[0].data.lists[0].name).toBe('Recovered')
+  })
+})
+
+describe('saved tab workspaces', () => {
+  it('creates a workspace and moves a list while keeping recovery history', async () => {
+    const values: Record<string, unknown> = {
+      [STORAGE_KEYS.SAVED_TABS]: {
+        version: SAVED_TABS_SCHEMA_VERSION,
+        workspaces: [{ id: 'workspace-inbox', name: 'Inbox', createdAt: 0, updatedAt: 0 }],
+        lists: [{
+          id: 'research',
+          name: 'Research',
+          workspaceId: 'workspace-inbox',
+          createdAt: 1,
+          updatedAt: 1,
+          items: [{ title: 'Example', url: 'https://example.com', pinned: false, createdAt: 1 }]
+        }]
+      },
+      [STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]: []
+    }
+    const store = {
+      get: async (key: string) => ({ [key]: values[key] }),
+      set: async (items: Record<string, unknown>) => { Object.assign(values, items) }
+    }
+
+    const workspace = await SavedTabsService.createWorkspace('Project', store)
+    const moved = await SavedTabsService.moveListToWorkspace('research', workspace.id, store)
+
+    expect(workspace.name).toBe('Project')
+    expect(moved.workspaceId).toBe(workspace.id)
+    expect((values[STORAGE_KEYS.SAVED_TABS] as { workspaces: unknown[] }).workspaces).toHaveLength(2)
+    expect(values[STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]).toBeTruthy()
   })
 })

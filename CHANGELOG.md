@@ -6,6 +6,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ### Added
 
+- Local workspaces for Saved Lists, including creating a workspace, saving new lists into the selected workspace, and moving lists between workspaces.
 - Save and close the focused browser window as a recoverable Saved List.
 - Search Saved Lists from the main tab and bookmark search field.
 - Local mutation and startup snapshots with a recovery action for accidental changes.

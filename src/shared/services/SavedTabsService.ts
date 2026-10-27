@@ -7,7 +7,8 @@ import type {
   SavedTabRestoreOptions,
   SavedTabGroupSnapshot,
   SavedWindowSnapshot,
-  SavedTabsSnapshot
+  SavedTabsSnapshot,
+  SavedWorkspace
 } from '../types'
 import { SAVED_TABS_SCHEMA_VERSION, STORAGE_KEYS } from '../constants'
 import {
@@ -18,6 +19,7 @@ import {
   renameSavedTabList,
   validateSavedTabsImport
 } from '../utils/savedTabs'
+import { DEFAULT_WORKSPACE_ID } from '../utils/savedTabs'
 import { getExpiredSavedLists } from '../utils/savedListStats'
 
 interface SavedTabsStore {
@@ -183,17 +185,41 @@ export class SavedTabsService {
       const imported = validateSavedTabsImport(value)
       const current = await this.getData(store)
       const existingIds = new Set(current.lists.map(list => list.id))
+      const workspaceIds = new Set(current.workspaces.map(workspace => workspace.id))
+      const workspaceIdMap = new Map<string, string>()
+      const importedWorkspaces: SavedWorkspace[] = []
+
+      for (const workspace of imported.workspaces) {
+        if (workspaceIds.has(workspace.id)) {
+          workspaceIdMap.set(workspace.id, workspace.id)
+          continue
+        }
+
+        let id = workspace.id
+        if (workspaceIds.has(id)) {
+          id = globalThis.crypto?.randomUUID?.() ?? `workspace-import-${Date.now()}-${Math.random().toString(36).slice(2)}`
+        }
+        workspaceIds.add(id)
+        workspaceIdMap.set(workspace.id, id)
+        importedWorkspaces.push({ ...workspace, id })
+      }
+
       const lists = imported.lists.map(list => {
         let id = list.id
         if (existingIds.has(id)) {
           id = globalThis.crypto?.randomUUID?.() ?? `import-${Date.now()}-${Math.random().toString(36).slice(2)}`
         }
         existingIds.add(id)
-        return { ...list, id }
+        return {
+          ...list,
+          id,
+          workspaceId: workspaceIdMap.get(list.workspaceId) ?? DEFAULT_WORKSPACE_ID
+        }
       })
       await this.persistMutation(current, {
         version: SAVED_TABS_SCHEMA_VERSION,
-        lists: [...lists, ...current.lists]
+        lists: [...lists, ...current.lists],
+        workspaces: [...current.workspaces, ...importedWorkspaces]
       }, store)
       return {
         listCount: lists.length,
@@ -206,11 +232,12 @@ export class SavedTabsService {
     tabs: chrome.tabs.Tab[],
     name: string,
     store: SavedTabsStore = localStore,
-    options: { preserveDuplicates?: boolean } = {}
+    options: { preserveDuplicates?: boolean, workspaceId?: string } = {}
   ): Promise<SavedTabList | null> {
     return withStorageMutation(async () => {
       const list = createSavedTabList(toSavedItems(tabs), name, Date.now(), undefined, {
-        preserveDuplicates: options.preserveDuplicates
+        preserveDuplicates: options.preserveDuplicates,
+        workspaceId: options.workspaceId
       })
       if (!list) return null
 
@@ -220,19 +247,19 @@ export class SavedTabsService {
     })
   }
 
-  static async saveWindow(name?: string): Promise<SavedTabList> {
+  static async saveWindow(name?: string, workspaceId = DEFAULT_WORKSPACE_ID): Promise<SavedTabList> {
     const tabs = await chrome.tabs.query({ currentWindow: true })
     const list = await this.saveTabs(
       tabs,
       name?.trim() || `Saved window (${tabs.length} tabs)`,
       localStore,
-      { preserveDuplicates: true }
+      { preserveDuplicates: true, workspaceId }
     )
     if (!list) throw new Error('No restorable tabs in this window')
     return list
   }
 
-  static async saveSession(name?: string): Promise<SavedTabList> {
+  static async saveSession(name?: string, workspaceId = DEFAULT_WORKSPACE_ID): Promise<SavedTabList> {
     return withStorageMutation(async () => {
       const browserWindows = await chrome.windows.getAll({
         populate: true,
@@ -294,7 +321,7 @@ export class SavedTabsService {
         name?.trim() || `Saved session (${windows.length} windows, ${items.length} tabs)`,
         now,
         undefined,
-        { kind: 'session', windows, preserveDuplicates: true }
+        { kind: 'session', windows, preserveDuplicates: true, workspaceId }
       )
       if (!list) throw new Error('No restorable tabs in the open windows')
 
@@ -306,7 +333,8 @@ export class SavedTabsService {
 
   static async saveAndCloseTabs(
     tabIds: number[],
-    name?: string
+    name?: string,
+    workspaceId = DEFAULT_WORKSPACE_ID
   ): Promise<BatchOperationResult> {
     const uniqueIds = [...new Set(tabIds.filter(id => Number.isInteger(id) && id > 0))]
     if (uniqueIds.length === 0) {
@@ -352,7 +380,7 @@ export class SavedTabsService {
       restorableTabs,
       name?.trim() || `Closed tabs (${restorableTabs.length})`,
       localStore,
-      { preserveDuplicates: true }
+      { preserveDuplicates: true, workspaceId }
     )
     if (!list) {
       return {
@@ -384,10 +412,10 @@ export class SavedTabsService {
     }
   }
 
-  static async saveAndCloseWindow(name?: string): Promise<BatchOperationResult> {
+  static async saveAndCloseWindow(name?: string, workspaceId = DEFAULT_WORKSPACE_ID): Promise<BatchOperationResult> {
     const focusedWindow = await chrome.windows.getLastFocused({ populate: true })
     const tabIds = (focusedWindow.tabs ?? []).flatMap(tab => tab.id === undefined ? [] : [tab.id])
-    return this.saveAndCloseTabs(tabIds, name?.trim() || `Closed window (${tabIds.length} tabs)`)
+    return this.saveAndCloseTabs(tabIds, name?.trim() || `Closed window (${tabIds.length} tabs)`, workspaceId)
   }
 
   private static async restoreItems(
@@ -681,7 +709,8 @@ export class SavedTabsService {
       const updated = removeSavedTabList(current, id)
       return this.persistMutation(current, {
         version: SAVED_TABS_SCHEMA_VERSION,
-        lists: updated.lists
+        lists: updated.lists,
+        workspaces: updated.workspaces
       })
     })
   }
@@ -700,9 +729,56 @@ export class SavedTabsService {
       const itemCount = expired.reduce((total, list) => total + list.items.length, 0)
       await this.persistMutation(current, {
         version: SAVED_TABS_SCHEMA_VERSION,
-        lists: current.lists.filter(list => !expiredIds.has(list.id))
+        lists: current.lists.filter(list => !expiredIds.has(list.id)),
+        workspaces: current.workspaces
       }, store)
       return { listCount: expired.length, itemCount }
+    })
+  }
+
+  static async createWorkspace(name: string, store: SavedTabsStore = localStore): Promise<SavedWorkspace> {
+    return withStorageMutation(async () => {
+      const normalizedName = name.trim().slice(0, 80)
+      if (!normalizedName) throw new Error('Workspace name cannot be empty')
+      const current = await this.getData(store)
+      const now = Date.now()
+      const workspace: SavedWorkspace = {
+        id: globalThis.crypto?.randomUUID?.() ?? `workspace-${now}-${Math.random().toString(36).slice(2)}`,
+        name: normalizedName,
+        createdAt: now,
+        updatedAt: now
+      }
+      await this.persistMutation(current, {
+        version: SAVED_TABS_SCHEMA_VERSION,
+        lists: current.lists,
+        workspaces: [workspace, ...current.workspaces]
+      }, store)
+      return workspace
+    })
+  }
+
+  static async moveListToWorkspace(
+    listId: string,
+    workspaceId: string,
+    store: SavedTabsStore = localStore
+  ): Promise<SavedTabList> {
+    return withStorageMutation(async () => {
+      const current = await this.getData(store)
+      if (!current.workspaces.some(workspace => workspace.id === workspaceId)) {
+        throw new Error('Workspace not found')
+      }
+      const list = current.lists.find(candidate => candidate.id === listId)
+      if (!list) throw new Error('Saved list not found')
+      const now = Date.now()
+      const updatedList = { ...list, workspaceId, updatedAt: now }
+      await this.persistMutation(current, {
+        version: SAVED_TABS_SCHEMA_VERSION,
+        lists: current.lists.map(candidate => candidate.id === listId ? updatedList : candidate),
+        workspaces: current.workspaces.map(workspace => workspace.id === workspaceId
+          ? { ...workspace, updatedAt: now }
+          : workspace)
+      }, store)
+      return updatedList
     })
   }
 }

@@ -4,7 +4,7 @@
 
 TabMaster Pro 是一个基于 Manifest V3、Vue 3、TypeScript 和 Vite 的 Chrome 标签页管理扩展。它提供实时标签页搜索、排序、分组、多选操作，以及可跨浏览器会话恢复的本地标签集合。
 
-![TabMaster Pro 主界面](./screenshots/store-saved-tabs-1280x800.png)
+![TabMaster Pro 本地工作区](./screenshots/store-workspaces-1280x800.png)
 
 ## 与 OneTab 的定位
 
@@ -28,9 +28,12 @@ TabMaster Pro 同时保留了面向当前窗口的搜索、排序、分组和多
 - 保存失败时不会执行关闭；部分恢复或关闭会报告实际成功与失败数量。
 - 主搜索框也会搜索 Saved Lists；每次列表变更都会保留本地快照，可从最近快照恢复。
 - 在标签页右键菜单中直接保存当前标签、选中标签或整个窗口。
+- 用本地工作区按项目整理 Saved Lists；新建列表会进入当前工作区，也可以从列表操作区移动到其他工作区。搜索仍会跨工作区匹配。
 - 单标签关闭、批量关闭、键盘 `Delete` 和分组关闭都会先保存可恢复的 URL。
 
 Saved Lists 数据默认仅存储在本机浏览器的 `chrome.storage.local` 中。只有用户主动请求摘要并选择自定义接口时，扩展才会向该接口发送列表名称、标签标题和网站域名，不发送完整网址；API 密钥保存在本机扩展存储中。
+
+当前截图展示了工作区选择、新建工作区和列表迁移入口；商店素材位于 [`screenshots/`](./screenshots/) 目录，也可以查看[删除确认](./screenshots/store-confirmation-1280x800.png)、[深色主题](./screenshots/store-dark-mode-1280x800.png)和[设置页](./screenshots/store-settings-1280x800.png)流程。
 
 自定义模型需兼容 OpenAI Chat Completions API。HTTPS 接口可使用云服务；HTTP 仅允许 localhost 地址，适用于本机模型服务。Chrome 本机模型需要浏览器和设备支持 Prompt API，且模型状态为可用。
 
@@ -141,7 +144,7 @@ src/
 ## 已知限制
 
 - Saved Lists 仅保存在当前浏览器，不支持云同步或跨设备恢复。
-- 没有 AI 分组、账户、团队协作或配置导入导出功能。
+- 没有 AI 分组、账户、团队协作或扩展配置导入导出功能；Saved Lists 的本地备份导入导出可用。
 - `chrome://` 页面、Chrome Web Store 等受保护页面无法由扩展重新打开。
 - 自动分组只使用域名规则，不分析页面内容。
 
