@@ -15,122 +15,126 @@
           fill="currentColor"
           aria-hidden="true"
         >
-          <path d="M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
+          <path
+            d="M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z"
+          />
         </svg>
         <span id="saved-lists-title" class="section-title">{{ $t('savedTabs.title') }}</span>
         <span class="list-count" :aria-label="$t('savedTabs.listCount', { count: lists.length })">
           {{ lists.length }}
         </span>
       </button>
-      <span class="privacy-note">{{ $t('savedTabs.localOnly') }}</span>
+      <button
+        type="button"
+        class="action-button primary quick-save-button"
+        :disabled="isSavingWindow"
+        @click="saveWindow"
+      >
+        {{ isSavingWindow ? $t('common.loading') : $t('savedTabs.saveWindowQuick') }}
+      </button>
     </div>
 
     <div v-if="isSectionVisible" class="section-body">
-      <div class="workspace-bar" aria-labelledby="workspace-title">
-        <div class="workspace-heading">
-          <span id="workspace-title" class="workspace-kicker">{{ $t('savedTabs.workspaceLabel') }}</span>
-          <span class="workspace-count">{{ $t('savedTabs.workspaceCount', { count: workspaces.length }) }}</span>
-        </div>
-        <div class="workspace-controls">
-          <label class="workspace-select-field">
-            <span class="sr-only">{{ $t('savedTabs.workspaceLabel') }}</span>
-            <select v-model="selectedWorkspaceId" name="saved-workspace">
-              <option v-for="workspace in workspaces" :key="workspace.id" :value="workspace.id">
-                {{ workspace.name }}
-              </option>
-            </select>
-          </label>
-          <button type="button" class="action-button" @click="openWorkspaceDialog">
-            {{ $t('savedTabs.newWorkspace') }}
-          </button>
-        </div>
-      </div>
+      <details class="save-setup">
+        <summary>{{ $t('savedTabs.customizeSave') }}</summary>
+        <div class="save-setup-content">
+          <div class="workspace-bar" aria-labelledby="workspace-title">
+            <div class="workspace-heading">
+              <span id="workspace-title" class="workspace-kicker">{{
+                $t('savedTabs.workspaceLabel')
+              }}</span>
+              <span class="workspace-count">{{
+                $t('savedTabs.workspaceCount', { count: workspaces.length })
+              }}</span>
+            </div>
+            <div class="workspace-controls">
+              <label class="workspace-select-field">
+                <span class="sr-only">{{ $t('savedTabs.workspaceLabel') }}</span>
+                <select v-model="selectedWorkspaceId" name="saved-workspace">
+                  <option v-for="workspace in workspaces" :key="workspace.id" :value="workspace.id">
+                    {{ workspace.name }}
+                  </option>
+                </select>
+              </label>
+              <button type="button" class="action-button" @click="openWorkspaceDialog">
+                {{ $t('savedTabs.newWorkspace') }}
+              </button>
+            </div>
+          </div>
 
-      <form class="save-controls" @submit.prevent="saveWindow">
-        <label class="name-field">
-          <span class="sr-only">{{ $t('savedTabs.nameLabel') }}</span>
-          <input
-            v-model="listName"
-            type="text"
-            maxlength="120"
-            :placeholder="$t('savedTabs.namePlaceholder')"
-          />
-        </label>
-        <button type="submit" class="action-button primary" :disabled="isSavingWindow">
-          {{ isSavingWindow ? $t('common.loading') : $t('savedTabs.saveWindow') }}
-        </button>
-        <button
-          type="button"
-          class="action-button danger-outline"
-          :disabled="isSavingAndClosingWindow"
-          @click="openSaveAndCloseWindowDialog"
-        >
-          {{ isSavingAndClosingWindow ? $t('common.loading') : $t('savedTabs.saveAndCloseWindow') }}
-        </button>
-        <button
-          type="button"
-          class="action-button"
-          :disabled="isSavingSession"
-          @click="saveSession"
-        >
-          {{ isSavingSession ? $t('common.loading') : $t('savedTabs.saveSession') }}
-        </button>
-        <button
-          type="button"
-          class="action-button danger-outline"
-          :disabled="props.selectedTabIds.size === 0 || isSavingAndClosing"
-          @click="saveAndCloseSelected"
-        >
-          {{
-            isSavingAndClosing
-              ? $t('common.loading')
-              : $t('savedTabs.saveAndCloseSelected', { count: props.selectedTabIds.size })
-          }}
-        </button>
-        <button
-          type="button"
-          class="action-button"
-          :disabled="isScanningDuplicates || isClosingDuplicates"
-          @click="reviewDuplicates"
-        >
-          {{ isScanningDuplicates ? $t('common.loading') : $t('savedTabs.reviewDuplicates') }}
-        </button>
-      </form>
+          <form class="save-controls" @submit.prevent="saveWindow">
+            <label class="name-field">
+              <span class="sr-only">{{ $t('savedTabs.nameLabel') }}</span>
+              <input
+                v-model="listName"
+                type="text"
+                maxlength="120"
+                :placeholder="$t('savedTabs.namePlaceholder')"
+              />
+            </label>
+            <button type="submit" class="action-button primary" :disabled="isSavingWindow">
+              {{ isSavingWindow ? $t('common.loading') : $t('savedTabs.saveWindow') }}
+            </button>
+            <details class="secondary-save-options">
+              <summary>{{ $t('savedTabs.moreSaveOptions') }}</summary>
+              <div class="secondary-save-actions">
+                <button
+                  type="button"
+                  class="action-button danger-outline"
+                  :disabled="isSavingAndClosingWindow"
+                  @click="openSaveAndCloseWindowDialog"
+                >
+                  {{
+                    isSavingAndClosingWindow
+                      ? $t('common.loading')
+                      : $t('savedTabs.saveAndCloseWindow')
+                  }}
+                </button>
+                <button
+                  type="button"
+                  class="action-button"
+                  :disabled="isSavingSession"
+                  @click="saveSession"
+                >
+                  {{ isSavingSession ? $t('common.loading') : $t('savedTabs.saveSession') }}
+                </button>
+                <button
+                  type="button"
+                  class="action-button danger-outline"
+                  :disabled="props.selectedTabIds.size === 0 || isSavingAndClosing"
+                  @click="saveAndCloseSelected"
+                >
+                  {{
+                    isSavingAndClosing
+                      ? $t('common.loading')
+                      : $t('savedTabs.saveAndCloseSelected', { count: props.selectedTabIds.size })
+                  }}
+                </button>
+                <button
+                  type="button"
+                  class="action-button"
+                  :disabled="isScanningDuplicates || isClosingDuplicates"
+                  @click="reviewDuplicates"
+                >
+                  {{
+                    isScanningDuplicates ? $t('common.loading') : $t('savedTabs.reviewDuplicates')
+                  }}
+                </button>
+              </div>
+            </details>
+          </form>
+        </div>
+      </details>
 
       <div class="list-status" aria-live="polite">
         <span v-if="isLoading">{{ $t('common.loading') }}</span>
         <span v-else-if="lists.length === 0">{{ $t('savedTabs.empty') }}</span>
-        <span v-else-if="activeSearchQuery && filteredLists.length === 0">{{ $t('savedTabs.noSearchResults') }}</span>
-        <span v-else-if="activeSearchQuery">{{ $t('savedTabs.searchResults', { count: filteredLists.length }) }}</span>
-      </div>
-
-      <div class="saved-list-insights" :aria-label="$t('savedTabs.statsTitle')">
-        <div class="saved-stat">
-          <span>{{ $t('savedTabs.statsLists') }}</span>
-          <strong>{{ stats.listCount }}</strong>
-        </div>
-        <div class="saved-stat">
-          <span>{{ $t('savedTabs.statsItems') }}</span>
-          <strong>{{ stats.itemCount }}</strong>
-        </div>
-        <div class="saved-stat oldest-stat">
-          <span>{{ $t('savedTabs.statsOldest') }}</span>
-          <strong>{{ stats.oldestCreatedAt === null ? $t('savedTabs.statsNone') : formatDate(stats.oldestCreatedAt) }}</strong>
-        </div>
-        <div class="cleanup-controls">
-          <label class="cleanup-age-field">
-            <span>{{ $t('savedTabs.cleanupOlderThan') }}</span>
-            <select v-model.number="cleanupAgeDays" name="cleanup-age">
-              <option :value="30">{{ $t('savedTabs.days', { count: 30 }) }}</option>
-              <option :value="90">{{ $t('savedTabs.days', { count: 90 }) }}</option>
-              <option :value="180">{{ $t('savedTabs.days', { count: 180 }) }}</option>
-              <option :value="365">{{ $t('savedTabs.days', { count: 365 }) }}</option>
-            </select>
-          </label>
-          <button type="button" class="action-button" :disabled="expiredLists.length === 0" @click="openCleanupDialog">
-            {{ cleanupReviewText }}
-          </button>
-        </div>
+        <span v-else-if="activeSearchQuery && filteredLists.length === 0">{{
+          $t('savedTabs.noSearchResults')
+        }}</span>
+        <span v-else-if="activeSearchQuery">{{
+          $t('savedTabs.searchResults', { count: filteredLists.length })
+        }}</span>
       </div>
 
       <div v-if="lists.length > 0" class="saved-list-tools">
@@ -178,32 +182,73 @@
         </div>
       </div>
 
-      <div class="backup-actions">
-        <button type="button" class="action-button" :disabled="isExporting" @click="exportBackup">
-          {{ isExporting ? $t('common.loading') : $t('savedTabs.exportBackup') }}
-        </button>
-        <button type="button" class="action-button" @click="importFileInput?.click()">
-          {{ $t('savedTabs.importBackup') }}
-        </button>
-        <input
-          ref="importFileInput"
-          class="sr-only"
-          type="file"
-          name="saved-tabs-backup"
-          accept="application/json,.json"
-          :aria-label="$t('savedTabs.importBackup')"
-          @change="readImportFile"
-        />
-        <button
-          v-if="snapshots.length > 0"
-          type="button"
-          class="action-button"
-          :disabled="isRestoringSnapshot"
-          @click="openRecoveryDialog"
-        >
-          {{ $t('savedTabs.reviewRecovery', { date: formatDate(snapshots[0].createdAt) }) }}
-        </button>
-      </div>
+      <details class="list-maintenance">
+        <summary>{{ $t('savedTabs.listMaintenance') }}</summary>
+        <div class="saved-list-insights" :aria-label="$t('savedTabs.statsTitle')">
+          <div class="saved-stat">
+            <span>{{ $t('savedTabs.statsLists') }}</span>
+            <strong>{{ stats.listCount }}</strong>
+          </div>
+          <div class="saved-stat">
+            <span>{{ $t('savedTabs.statsItems') }}</span>
+            <strong>{{ stats.itemCount }}</strong>
+          </div>
+          <div class="saved-stat oldest-stat">
+            <span>{{ $t('savedTabs.statsOldest') }}</span>
+            <strong>{{
+              stats.oldestCreatedAt === null
+                ? $t('savedTabs.statsNone')
+                : formatDate(stats.oldestCreatedAt)
+            }}</strong>
+          </div>
+          <div class="cleanup-controls">
+            <label class="cleanup-age-field">
+              <span>{{ $t('savedTabs.cleanupOlderThan') }}</span>
+              <select v-model.number="cleanupAgeDays" name="cleanup-age">
+                <option :value="30">{{ $t('savedTabs.days', { count: 30 }) }}</option>
+                <option :value="90">{{ $t('savedTabs.days', { count: 90 }) }}</option>
+                <option :value="180">{{ $t('savedTabs.days', { count: 180 }) }}</option>
+                <option :value="365">{{ $t('savedTabs.days', { count: 365 }) }}</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              class="action-button"
+              :disabled="expiredLists.length === 0"
+              @click="openCleanupDialog"
+            >
+              {{ cleanupReviewText }}
+            </button>
+          </div>
+        </div>
+
+        <div class="backup-actions">
+          <button type="button" class="action-button" :disabled="isExporting" @click="exportBackup">
+            {{ isExporting ? $t('common.loading') : $t('savedTabs.exportBackup') }}
+          </button>
+          <button type="button" class="action-button" @click="importFileInput?.click()">
+            {{ $t('savedTabs.importBackup') }}
+          </button>
+          <input
+            ref="importFileInput"
+            class="sr-only"
+            type="file"
+            name="saved-tabs-backup"
+            accept="application/json,.json"
+            :aria-label="$t('savedTabs.importBackup')"
+            @change="readImportFile"
+          />
+          <button
+            v-if="snapshots.length > 0"
+            type="button"
+            class="action-button"
+            :disabled="isRestoringSnapshot"
+            @click="openRecoveryDialog"
+          >
+            {{ $t('savedTabs.reviewRecovery', { date: formatDate(snapshots[0].createdAt) }) }}
+          </button>
+        </div>
+      </details>
 
       <div v-if="filteredLists.length > 0" class="lists">
         <article v-for="result in filteredLists" :key="result.list.id" class="saved-list">
@@ -223,7 +268,9 @@
                 fill="currentColor"
                 aria-hidden="true"
               >
-                <path d="M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
+                <path
+                  d="M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z"
+                />
               </svg>
             </button>
 
@@ -236,13 +283,20 @@
               </p>
               <p v-if="result.list.note || result.list.tags?.length" class="list-details">
                 <span v-if="result.list.note" class="list-note">{{ result.list.note }}</span>
-                <span v-for="tag in result.list.tags" :key="`${result.list.id}-${tag}`" class="list-tag">{{ tag }}</span>
+                <span
+                  v-for="tag in result.list.tags"
+                  :key="`${result.list.id}-${tag}`"
+                  class="list-tag"
+                  >{{ tag }}</span
+                >
               </p>
             </div>
 
             <div class="list-actions">
               <label class="list-workspace-field">
-                <span class="sr-only">{{ $t('savedTabs.moveToWorkspace', { name: result.list.name }) }}</span>
+                <span class="sr-only">{{
+                  $t('savedTabs.moveToWorkspace', { name: result.list.name })
+                }}</span>
                 <select
                   :value="result.list.workspaceId"
                   :aria-label="$t('savedTabs.moveToWorkspace', { name: result.list.name })"
@@ -272,7 +326,9 @@
                 @click="openMetadataDialog(result.list)"
               >
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                  <path d="M3.5 2.5a1 1 0 0 1 1-1h7a1 1 0 0 1 .8.4l1.9 2.5a1 1 0 0 1 0 1.2l-1.9 2.5a1 1 0 0 1-.8.4h-7a1 1 0 0 1-1-1v-1H2a.75.75 0 0 1 0-1.5h1.5v-1H2a.75.75 0 0 1 0-1.5h1.5v-1Z" />
+                  <path
+                    d="M3.5 2.5a1 1 0 0 1 1-1h7a1 1 0 0 1 .8.4l1.9 2.5a1 1 0 0 1 0 1.2l-1.9 2.5a1 1 0 0 1-.8.4h-7a1 1 0 0 1-1-1v-1H2a.75.75 0 0 1 0-1.5h1.5v-1H2a.75.75 0 0 1 0-1.5h1.5v-1Z"
+                  />
                   <path d="M6 4.25h4v1.5H6v-1.5Z" fill="var(--bg-elevated)" />
                 </svg>
               </button>
@@ -286,7 +342,9 @@
               >
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                   <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
-                  <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966a.25.25 0 0 1 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+                  <path
+                    d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966a.25.25 0 0 1 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"
+                  />
                 </svg>
               </button>
               <button
@@ -297,7 +355,9 @@
                 @click="openRenameDialog(result.list)"
               >
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                  <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z" />
+                  <path
+                    d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"
+                  />
                 </svg>
               </button>
               <button
@@ -308,8 +368,12 @@
                 @click="openDeleteDialog(result.list)"
               >
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                  <path d="M5.5 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zM8 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zM11 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5z" />
-                  <path d="M2.5 3h11a.5.5 0 0 1 0 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a.5.5 0 0 1 0-1zM4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4H4zM5.5.5A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .5.5V2h-5V.5z" />
+                  <path
+                    d="M5.5 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zM8 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zM11 5.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5z"
+                  />
+                  <path
+                    d="M2.5 3h11a.5.5 0 0 1 0 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a.5.5 0 0 1 0-1zM4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4H4zM5.5.5A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .5.5V2h-5V.5z"
+                  />
                 </svg>
               </button>
             </div>
@@ -328,7 +392,11 @@
             :id="`saved-items-${result.list.id}`"
             class="saved-items"
           >
-            <li v-for="entry in result.items" :key="`${result.list.id}-${entry.index}`" class="saved-item">
+            <li
+              v-for="entry in result.items"
+              :key="`${result.list.id}-${entry.index}`"
+              class="saved-item"
+            >
               <label class="item-select">
                 <input
                   type="checkbox"
@@ -349,12 +417,19 @@
                 <span class="item-title" :title="entry.item.title">{{ entry.item.title }}</span>
                 <span class="item-url" :title="entry.item.url">{{ entry.item.url }}</span>
               </div>
-              <span v-if="entry.item.pinned" class="item-pinned" :title="$t('tabs.pinned')">📌</span>
+              <span v-if="entry.item.pinned" class="item-pinned" :title="$t('tabs.pinned')"
+                >📌</span
+              >
               <button
                 type="button"
                 class="restore-item-button"
                 :disabled="busyItemKey === `${result.list.id}-${entry.index}`"
-                :aria-label="$t('savedTabs.restoreItemNamed', { title: entry.item.title, name: result.list.name })"
+                :aria-label="
+                  $t('savedTabs.restoreItemNamed', {
+                    title: entry.item.title,
+                    name: result.list.name
+                  })
+                "
                 @click="restoreItem(result.list, entry.index)"
               >
                 {{ $t('savedTabs.restoreItem') }}
@@ -364,12 +439,28 @@
                 class="item-favorite-button"
                 :class="{ active: entry.item.favorite }"
                 :aria-pressed="entry.item.favorite === true"
-                :aria-label="$t(entry.item.favorite ? 'savedTabs.unfavoriteItemNamed' : 'savedTabs.favoriteItemNamed', { title: entry.item.title })"
-                :title="$t(entry.item.favorite ? 'savedTabs.unfavoriteItemNamed' : 'savedTabs.favoriteItemNamed', { title: entry.item.title })"
+                :aria-label="
+                  $t(
+                    entry.item.favorite
+                      ? 'savedTabs.unfavoriteItemNamed'
+                      : 'savedTabs.favoriteItemNamed',
+                    { title: entry.item.title }
+                  )
+                "
+                :title="
+                  $t(
+                    entry.item.favorite
+                      ? 'savedTabs.unfavoriteItemNamed'
+                      : 'savedTabs.favoriteItemNamed',
+                    { title: entry.item.title }
+                  )
+                "
                 @click="toggleItemFavorite(result.list, entry.index)"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+                  <path
+                    d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"
+                  />
                 </svg>
               </button>
             </li>
@@ -401,7 +492,9 @@
             aria-describedby="saved-list-note-hint"
             :placeholder="$t('savedTabs.notePlaceholder')"
           />
-          <small id="saved-list-note-hint" class="dialog-hint">{{ $t('savedTabs.noteHint') }}</small>
+          <small id="saved-list-note-hint" class="dialog-hint">{{
+            $t('savedTabs.noteHint')
+          }}</small>
         </label>
         <label class="dialog-field">
           <span>{{ $t('savedTabs.tagsLabel') }}</span>
@@ -414,7 +507,9 @@
             aria-describedby="saved-list-tags-hint"
             :placeholder="$t('savedTabs.tagsPlaceholder')"
           />
-          <small id="saved-list-tags-hint" class="dialog-hint">{{ $t('savedTabs.tagsHint') }}</small>
+          <small id="saved-list-tags-hint" class="dialog-hint">{{
+            $t('savedTabs.tagsHint')
+          }}</small>
         </label>
         <div class="dialog-actions">
           <button type="button" class="action-button" @click="metadataDialog?.close()">
@@ -449,7 +544,11 @@
           <button type="button" class="action-button" @click="workspaceDialog?.close()">
             {{ $t('common.cancel') }}
           </button>
-          <button type="submit" class="action-button primary" :disabled="!workspaceName.trim() || isCreatingWorkspace">
+          <button
+            type="submit"
+            class="action-button primary"
+            :disabled="!workspaceName.trim() || isCreatingWorkspace"
+          >
             {{ isCreatingWorkspace ? $t('common.loading') : $t('common.create') }}
           </button>
         </div>
@@ -466,13 +565,7 @@
         <h2 id="rename-dialog-title">{{ $t('savedTabs.renameTitle') }}</h2>
         <label class="dialog-field">
           <span>{{ $t('savedTabs.nameLabel') }}</span>
-          <input
-            v-model="renameValue"
-            type="text"
-            maxlength="120"
-            required
-            autofocus
-          />
+          <input v-model="renameValue" type="text" maxlength="120" required autofocus />
         </label>
         <div class="dialog-actions">
           <button type="button" class="action-button" @click="renameDialog?.close()">
@@ -505,11 +598,7 @@
           <button type="button" class="action-button" @click="deleteDialog?.close()">
             {{ $t('common.cancel') }}
           </button>
-          <button
-            type="submit"
-            class="action-button danger-filled"
-            :disabled="isDeleting"
-          >
+          <button type="submit" class="action-button danger-filled" :disabled="isDeleting">
             {{ isDeleting ? $t('common.loading') : $t('common.delete') }}
           </button>
         </div>
@@ -540,20 +629,43 @@
         <ul class="cleanup-list-options">
           <li v-for="list in expiredLists" :key="list.id">
             <label>
-              <input v-model="selectedCleanupIds" type="checkbox" :value="list.id" :disabled="isCleaningUp" />
+              <input
+                v-model="selectedCleanupIds"
+                type="checkbox"
+                :value="list.id"
+                :disabled="isCleaningUp"
+              />
               <span class="cleanup-list-copy">
                 <strong>{{ list.name }}</strong>
-                <small>{{ $t('savedTabs.cleanupListMeta', { count: list.items.length, date: formatDate(list.createdAt) }) }}</small>
+                <small>{{
+                  $t('savedTabs.cleanupListMeta', {
+                    count: list.items.length,
+                    date: formatDate(list.createdAt)
+                  })
+                }}</small>
               </span>
             </label>
           </li>
         </ul>
         <div class="dialog-actions">
-          <button type="button" class="action-button" :disabled="isCleaningUp" @click="cleanupDialog?.close()">
+          <button
+            type="button"
+            class="action-button"
+            :disabled="isCleaningUp"
+            @click="cleanupDialog?.close()"
+          >
             {{ $t('common.cancel') }}
           </button>
-          <button type="submit" class="action-button danger-filled" :disabled="selectedCleanupIds.length === 0 || isCleaningUp">
-            {{ isCleaningUp ? $t('common.loading') : $t('savedTabs.confirmCleanup', { count: selectedCleanupIds.length }) }}
+          <button
+            type="submit"
+            class="action-button danger-filled"
+            :disabled="selectedCleanupIds.length === 0 || isCleaningUp"
+          >
+            {{
+              isCleaningUp
+                ? $t('common.loading')
+                : $t('savedTabs.confirmCleanup', { count: selectedCleanupIds.length })
+            }}
           </button>
         </div>
       </form>
@@ -571,7 +683,11 @@
           {{ $t('savedTabs.duplicatesDescription', { count: duplicateCloseIds.length }) }}
         </p>
         <div class="duplicate-groups">
-          <fieldset v-for="(group, groupIndex) in duplicateGroups" :key="group.url" class="duplicate-group">
+          <fieldset
+            v-for="(group, groupIndex) in duplicateGroups"
+            :key="group.url"
+            class="duplicate-group"
+          >
             <legend>{{ $t('savedTabs.duplicateGroup', { count: group.tabs.length }) }}</legend>
             <label v-for="tab in group.tabs" :key="tab.id" class="duplicate-choice">
               <input
@@ -592,7 +708,12 @@
           </fieldset>
         </div>
         <div class="dialog-actions">
-          <button type="button" class="action-button" :disabled="isClosingDuplicates" @click="duplicatesDialog?.close()">
+          <button
+            type="button"
+            class="action-button"
+            :disabled="isClosingDuplicates"
+            @click="duplicatesDialog?.close()"
+          >
             {{ $t('common.cancel') }}
           </button>
           <button
@@ -600,7 +721,11 @@
             class="action-button danger-filled"
             :disabled="duplicateCloseIds.length === 0 || isClosingDuplicates"
           >
-            {{ isClosingDuplicates ? $t('common.loading') : $t('savedTabs.saveAndCloseDuplicates', { count: duplicateCloseIds.length }) }}
+            {{
+              isClosingDuplicates
+                ? $t('common.loading')
+                : $t('savedTabs.saveAndCloseDuplicates', { count: duplicateCloseIds.length })
+            }}
           </button>
         </div>
       </form>
@@ -615,11 +740,13 @@
       <form method="dialog" @submit.prevent="confirmImport">
         <h2 id="import-dialog-title">{{ $t('savedTabs.importPreviewTitle') }}</h2>
         <p id="import-dialog-description">
-          {{ $t('savedTabs.importPreviewDescription', {
-            lists: importPreview?.lists.length ?? 0,
-            tabs: importItemCount,
-            file: importFileName
-          }) }}
+          {{
+            $t('savedTabs.importPreviewDescription', {
+              lists: importPreview?.lists.length ?? 0,
+              tabs: importItemCount,
+              file: importFileName
+            })
+          }}
         </p>
         <ul v-if="importPreview?.lists.length" class="backup-preview-lists">
           <li v-for="list in importPreview.lists" :key="list.id">
@@ -629,10 +756,19 @@
         </ul>
         <p v-if="importError" class="import-error" role="alert">{{ importError }}</p>
         <div class="dialog-actions">
-          <button type="button" class="action-button" :disabled="isImporting" @click="importDialog?.close()">
+          <button
+            type="button"
+            class="action-button"
+            :disabled="isImporting"
+            @click="importDialog?.close()"
+          >
             {{ $t('common.cancel') }}
           </button>
-          <button type="submit" class="action-button primary" :disabled="!importPreview || isImporting">
+          <button
+            type="submit"
+            class="action-button primary"
+            :disabled="!importPreview || isImporting"
+          >
             {{ isImporting ? $t('common.loading') : $t('savedTabs.confirmImport') }}
           </button>
         </div>
@@ -653,24 +789,40 @@
         <fieldset class="snapshot-options">
           <legend class="sr-only">{{ $t('savedTabs.recoveryChooseSnapshot') }}</legend>
           <label v-for="snapshot in snapshots" :key="snapshot.id" class="snapshot-option">
-            <input v-model="selectedSnapshotId" type="radio" name="recovery-snapshot" :value="snapshot.id" />
+            <input
+              v-model="selectedSnapshotId"
+              type="radio"
+              name="recovery-snapshot"
+              :value="snapshot.id"
+            />
             <span class="snapshot-copy">
               <strong>{{ formatDate(snapshot.createdAt) }}</strong>
               <small>
                 {{ snapshotReasonLabel(snapshot.reason) }} ·
-                {{ $t('savedTabs.snapshotMeta', {
-                  lists: snapshot.data.lists.length,
-                  tabs: snapshotItemCount(snapshot)
-                }) }}
+                {{
+                  $t('savedTabs.snapshotMeta', {
+                    lists: snapshot.data.lists.length,
+                    tabs: snapshotItemCount(snapshot)
+                  })
+                }}
               </small>
             </span>
           </label>
         </fieldset>
         <div class="dialog-actions">
-          <button type="button" class="action-button" :disabled="isRestoringSnapshot" @click="recoveryDialog?.close()">
+          <button
+            type="button"
+            class="action-button"
+            :disabled="isRestoringSnapshot"
+            @click="recoveryDialog?.close()"
+          >
             {{ $t('common.cancel') }}
           </button>
-          <button type="submit" class="action-button primary" :disabled="!selectedSnapshotId || isRestoringSnapshot">
+          <button
+            type="submit"
+            class="action-button primary"
+            :disabled="!selectedSnapshotId || isRestoringSnapshot"
+          >
             {{ isRestoringSnapshot ? $t('common.loading') : $t('savedTabs.restoreSnapshot') }}
           </button>
         </div>
@@ -684,16 +836,31 @@
       aria-describedby="save-and-close-window-dialog-description"
     >
       <form method="dialog" @submit.prevent="confirmSaveAndCloseWindow">
-        <h2 id="save-and-close-window-dialog-title">{{ $t('savedTabs.saveAndCloseWindowTitle') }}</h2>
+        <h2 id="save-and-close-window-dialog-title">
+          {{ $t('savedTabs.saveAndCloseWindowTitle') }}
+        </h2>
         <p id="save-and-close-window-dialog-description">
           {{ $t('savedTabs.saveAndCloseWindowDescription') }}
         </p>
         <div class="dialog-actions">
-          <button type="button" class="action-button" autofocus @click="saveAndCloseWindowDialog?.close()">
+          <button
+            type="button"
+            class="action-button"
+            autofocus
+            @click="saveAndCloseWindowDialog?.close()"
+          >
             {{ $t('common.cancel') }}
           </button>
-          <button type="submit" class="action-button danger-filled" :disabled="isSavingAndClosingWindow">
-            {{ isSavingAndClosingWindow ? $t('common.loading') : $t('savedTabs.confirmSaveAndCloseWindow') }}
+          <button
+            type="submit"
+            class="action-button danger-filled"
+            :disabled="isSavingAndClosingWindow"
+          >
+            {{
+              isSavingAndClosingWindow
+                ? $t('common.loading')
+                : $t('savedTabs.confirmSaveAndCloseWindow')
+            }}
           </button>
         </div>
       </form>
@@ -715,7 +882,11 @@ import type {
   SavedWorkspace
 } from '@/shared/types'
 import { MESSAGE_TYPES } from '@/shared/constants'
-import { DEFAULT_WORKSPACE_ID, filterSavedTabLists, validateSavedTabsImport } from '@/shared/utils/savedTabs'
+import {
+  DEFAULT_WORKSPACE_ID,
+  filterSavedTabLists,
+  validateSavedTabsImport
+} from '@/shared/utils/savedTabs'
 import { getExpiredSavedLists, getSavedListStats } from '@/shared/utils/savedListStats'
 import {
   findDuplicateTabGroups,
@@ -743,8 +914,12 @@ const workspaces = ref<SavedWorkspace[]>([])
 const selectedWorkspaceId = ref(DEFAULT_WORKSPACE_ID)
 const workspaceName = ref('')
 const searchQuery = ref('')
-const activeSearchQuery = computed(() => props.globalSearchQuery?.trim() || searchQuery.value.trim())
-const isSectionVisible = computed(() => isExpanded.value || Boolean(props.globalSearchQuery?.trim()))
+const activeSearchQuery = computed(
+  () => props.globalSearchQuery?.trim() || searchQuery.value.trim()
+)
+const isSectionVisible = computed(
+  () => isExpanded.value || Boolean(props.globalSearchQuery?.trim())
+)
 const snapshots = ref<SavedTabsSnapshot[]>([])
 const selectedSnapshotId = ref('')
 const expandedListIds = ref(new Set<string>())
@@ -791,40 +966,59 @@ const isRestoringSnapshot = ref(false)
 const isCreatingWorkspace = ref(false)
 const movingListId = ref<string | null>(null)
 const summarizingListId = ref<string | null>(null)
-const summaries = ref<Record<string, { text: string, updatedAt: number }>>({})
+const summaries = ref<Record<string, { text: string; updatedAt: number }>>({})
 const editingMetadataList = ref<SavedTabList | null>(null)
 const metadataNote = ref('')
 const metadataTagsInput = ref('')
 const isUpdatingMetadata = ref(false)
 
-const visibleWorkspaceLists = computed(() => activeSearchQuery.value
-  ? lists.value
-  : lists.value.filter(list => list.workspaceId === selectedWorkspaceId.value))
-const filteredLists = computed(() => filterSavedTabLists(visibleWorkspaceLists.value, activeSearchQuery.value))
+const visibleWorkspaceLists = computed(() =>
+  activeSearchQuery.value
+    ? lists.value
+    : lists.value.filter(list => list.workspaceId === selectedWorkspaceId.value)
+)
+const filteredLists = computed(() =>
+  filterSavedTabLists(visibleWorkspaceLists.value, activeSearchQuery.value)
+)
 const stats = computed(() => getSavedListStats(lists.value))
 const cleanupCutoff = computed(() => Date.now() - cleanupAgeDays.value * 24 * 60 * 60 * 1000)
 const expiredLists = computed(() => getExpiredSavedLists(lists.value, cleanupCutoff.value))
-const expiredItemCount = computed(() => expiredLists.value.reduce((total, list) => total + list.items.length, 0))
-const cleanupReviewText = computed(() => i18n.global.t(
-  expiredLists.value.length === 1 ? 'savedTabs.reviewCleanupSingular' : 'savedTabs.reviewCleanup',
-  { count: expiredLists.value.length }
-))
-const cleanupDescriptionText = computed(() => i18n.global.t(
-  expiredLists.value.length === 1 ? 'savedTabs.cleanupDescriptionSingular' : 'savedTabs.cleanupDescription',
-  { count: expiredLists.value.length, tabs: expiredItemCount.value, days: cleanupAgeDays.value }
-))
-const allCleanupSelected = computed(() => expiredLists.value.length > 0 &&
-  expiredLists.value.every(list => selectedCleanupIds.value.includes(list.id)))
-const duplicateCloseIds = computed(() => duplicateGroups.value.flatMap((group, groupIndex) =>
-  group.tabs.filter(tab => tab.id !== duplicateKeepIds.value[groupIndex]).map(tab => tab.id)
-))
-const importItemCount = computed(() => importPreview.value?.lists.reduce(
-  (total, list) => total + list.items.length, 0
-) ?? 0)
+const expiredItemCount = computed(() =>
+  expiredLists.value.reduce((total, list) => total + list.items.length, 0)
+)
+const cleanupReviewText = computed(() =>
+  i18n.global.t(
+    expiredLists.value.length === 1 ? 'savedTabs.reviewCleanupSingular' : 'savedTabs.reviewCleanup',
+    { count: expiredLists.value.length }
+  )
+)
+const cleanupDescriptionText = computed(() =>
+  i18n.global.t(
+    expiredLists.value.length === 1
+      ? 'savedTabs.cleanupDescriptionSingular'
+      : 'savedTabs.cleanupDescription',
+    { count: expiredLists.value.length, tabs: expiredItemCount.value, days: cleanupAgeDays.value }
+  )
+)
+const allCleanupSelected = computed(
+  () =>
+    expiredLists.value.length > 0 &&
+    expiredLists.value.every(list => selectedCleanupIds.value.includes(list.id))
+)
+const duplicateCloseIds = computed(() =>
+  duplicateGroups.value.flatMap((group, groupIndex) =>
+    group.tabs.filter(tab => tab.id !== duplicateKeepIds.value[groupIndex]).map(tab => tab.id)
+  )
+)
+const importItemCount = computed(
+  () => importPreview.value?.lists.reduce((total, list) => total + list.items.length, 0) ?? 0
+)
 
-const visibleItemReferences = computed(() => filteredLists.value.flatMap(({ list, items }) =>
-  items.map(({ index }) => ({ listId: list.id, itemIndex: index }))
-))
+const visibleItemReferences = computed(() =>
+  filteredLists.value.flatMap(({ list, items }) =>
+    items.map(({ index }) => ({ listId: list.id, itemIndex: index }))
+  )
+)
 
 const restoreOptions = computed<SavedTabRestoreOptions>(() => ({
   target: restoreTarget.value,
@@ -836,14 +1030,20 @@ watch([searchQuery, () => props.globalSearchQuery], () => {
   collapsedSearchListIds.value = new Set()
 })
 
-watch(() => props.globalSearchQuery, query => {
-  if (query?.trim()) isExpanded.value = true
-})
+watch(
+  () => props.globalSearchQuery,
+  query => {
+    if (query?.trim()) isExpanded.value = true
+  }
+)
 
-const dateFormatter = computed(() => new Intl.DateTimeFormat(getCurrentLocale(), {
-  dateStyle: 'medium',
-  timeStyle: 'short'
-}))
+const dateFormatter = computed(
+  () =>
+    new Intl.DateTimeFormat(getCurrentLocale(), {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    })
+)
 
 const formatDate = (timestamp: number) => dateFormatter.value.format(new Date(timestamp))
 
@@ -859,8 +1059,14 @@ async function loadLists() {
       send<SavedWorkspace[]>(MESSAGE_TYPES.GET_SAVED_WORKSPACES),
       send<SavedTabsSnapshot[]>(MESSAGE_TYPES.GET_SAVED_SNAPSHOTS)
     ])
-    if (!response.success || !response.data || !workspacesResponse.success || !workspacesResponse.data ||
-      !snapshotsResponse.success || !snapshotsResponse.data) {
+    if (
+      !response.success ||
+      !response.data ||
+      !workspacesResponse.success ||
+      !workspacesResponse.data ||
+      !snapshotsResponse.success ||
+      !snapshotsResponse.data
+    ) {
       throw new Error(response.error || i18n.global.t('savedTabs.loadFailed'))
     }
     lists.value = response.data
@@ -870,7 +1076,11 @@ async function loadLists() {
     }
     snapshots.value = snapshotsResponse.data
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.loadFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.loadFailed'),
+      'error'
+    )
   } finally {
     isLoading.value = false
   }
@@ -892,7 +1102,11 @@ async function summarizeList(list: SavedTabList) {
       [list.id]: { text: response.data, updatedAt: list.updatedAt }
     }
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.summaryFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.summaryFailed'),
+      'error'
+    )
   } finally {
     summarizingListId.value = null
   }
@@ -954,12 +1168,17 @@ async function confirmMetadata() {
       note: metadataNote.value,
       tags: metadataTagsInput.value.split(/[,，]/)
     })
-    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.detailsUpdateFailed'))
+    if (!response.success || !response.data)
+      throw new Error(response.error || i18n.global.t('savedTabs.detailsUpdateFailed'))
     metadataDialog.value?.close()
     await loadLists()
     emit('notify', i18n.global.t('savedTabs.detailsUpdated'), 'success')
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.detailsUpdateFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.detailsUpdateFailed'),
+      'error'
+    )
   } finally {
     isUpdatingMetadata.value = false
   }
@@ -972,18 +1191,27 @@ async function toggleItemFavorite(list: SavedTabList, itemIndex: number) {
       itemIndex,
       favorite: !list.items[itemIndex]?.favorite
     })
-    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.favoriteUpdateFailed'))
-    lists.value = lists.value.map(candidate => candidate.id === list.id ? response.data as SavedTabList : candidate)
+    if (!response.success || !response.data)
+      throw new Error(response.error || i18n.global.t('savedTabs.favoriteUpdateFailed'))
+    lists.value = lists.value.map(candidate =>
+      candidate.id === list.id ? (response.data as SavedTabList) : candidate
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.favoriteUpdateFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.favoriteUpdateFailed'),
+      'error'
+    )
   }
 }
 
 function selectVisibleItems() {
-  selectedItems.value = new Map(visibleItemReferences.value.map(reference => [
-    itemSelectionKey(reference.listId, reference.itemIndex),
-    reference
-  ]))
+  selectedItems.value = new Map(
+    visibleItemReferences.value.map(reference => [
+      itemSelectionKey(reference.listId, reference.itemIndex),
+      reference
+    ])
+  )
 }
 
 function operationMessage(result: BatchOperationResult, action: 'restore' | 'close') {
@@ -1022,9 +1250,17 @@ async function saveWindow() {
     listName.value = ''
     expandedListIds.value = new Set([response.data.id])
     await loadLists()
-    emit('notify', i18n.global.t('savedTabs.saved', { count: response.data.items.length }), 'success')
+    emit(
+      'notify',
+      i18n.global.t('savedTabs.saved', { count: response.data.items.length }),
+      'success'
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'),
+      'error'
+    )
   } finally {
     isSavingWindow.value = false
   }
@@ -1043,7 +1279,11 @@ async function saveSession() {
     await loadLists()
     emit('notify', response.data.name, 'success')
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'),
+      'error'
+    )
   } finally {
     isSavingSession.value = false
   }
@@ -1069,9 +1309,17 @@ async function saveAndCloseSelected() {
       emit('selection-cleared')
       emit('tabs-updated')
     }
-    emit('notify', operationMessage(result, 'close'), result.failedOperations > 0 ? 'error' : 'success')
+    emit(
+      'notify',
+      operationMessage(result, 'close'),
+      result.failedOperations > 0 ? 'error' : 'success'
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('errors.batchCloseFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('errors.batchCloseFailed'),
+      'error'
+    )
   } finally {
     isSavingAndClosing.value = false
   }
@@ -1097,9 +1345,17 @@ async function confirmSaveAndCloseWindow() {
       listName.value = ''
       emit('tabs-updated')
     }
-    emit('notify', operationMessage(result, 'close'), result.failedOperations > 0 ? 'error' : 'success')
+    emit(
+      'notify',
+      operationMessage(result, 'close'),
+      result.failedOperations > 0 ? 'error' : 'success'
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'),
+      'error'
+    )
   } finally {
     isSavingAndClosingWindow.value = false
   }
@@ -1117,14 +1373,23 @@ async function confirmCreateWorkspace() {
     const response = await send<SavedWorkspace>(MESSAGE_TYPES.CREATE_SAVED_WORKSPACE, {
       name: workspaceName.value.trim()
     })
-    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.workspaceCreateFailed'))
+    if (!response.success || !response.data)
+      throw new Error(response.error || i18n.global.t('savedTabs.workspaceCreateFailed'))
     workspaceName.value = ''
     workspaceDialog.value?.close()
     selectedWorkspaceId.value = response.data.id
     await loadLists()
-    emit('notify', i18n.global.t('savedTabs.workspaceCreated', { name: response.data.name }), 'success')
+    emit(
+      'notify',
+      i18n.global.t('savedTabs.workspaceCreated', { name: response.data.name }),
+      'success'
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.workspaceCreateFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.workspaceCreateFailed'),
+      'error'
+    )
   } finally {
     isCreatingWorkspace.value = false
   }
@@ -1138,11 +1403,16 @@ async function moveList(list: SavedTabList, workspaceId: string) {
       listId: list.id,
       workspaceId
     })
-    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.workspaceMoveFailed'))
+    if (!response.success || !response.data)
+      throw new Error(response.error || i18n.global.t('savedTabs.workspaceMoveFailed'))
     await loadLists()
     emit('notify', i18n.global.t('savedTabs.workspaceMoved'), 'success')
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.workspaceMoveFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.workspaceMoveFailed'),
+      'error'
+    )
     await loadLists()
   } finally {
     movingListId.value = null
@@ -1167,7 +1437,11 @@ async function reviewDuplicates() {
     }
     duplicatesDialog.value?.showModal()
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.duplicateScanFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.duplicateScanFailed'),
+      'error'
+    )
   } finally {
     isScanningDuplicates.value = false
   }
@@ -1199,10 +1473,17 @@ async function closeDuplicateTabs() {
     emit('tabs-updated')
     listName.value = ''
     duplicatesDialog.value?.close()
-    emit('notify', i18n.global.t('savedTabs.duplicatesClosed', { count: result.successfulOperations }),
-      result.failedOperations > 0 ? 'error' : 'success')
+    emit(
+      'notify',
+      i18n.global.t('savedTabs.duplicatesClosed', { count: result.successfulOperations }),
+      result.failedOperations > 0 ? 'error' : 'success'
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.saveFailed'),
+      'error'
+    )
   } finally {
     isClosingDuplicates.value = false
   }
@@ -1225,7 +1506,11 @@ async function exportBackup() {
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
     emit('notify', i18n.global.t('savedTabs.backupExported'), 'success')
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.backupFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.backupFailed'),
+      'error'
+    )
   } finally {
     isExporting.value = false
   }
@@ -1245,7 +1530,11 @@ async function readImportFile(event: Event) {
     importPreview.value = validateSavedTabsImport(parsed)
     importDialog.value?.showModal()
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.backupInvalid'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.backupInvalid'),
+      'error'
+    )
   }
 }
 
@@ -1254,17 +1543,19 @@ async function confirmImport() {
   isImporting.value = true
   importError.value = ''
   try {
-    const response = await send<{ listCount: number, itemCount: number }>(
+    const response = await send<{ listCount: number; itemCount: number }>(
       MESSAGE_TYPES.IMPORT_SAVED_TABS,
       importPreview.value
     )
-    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.backupInvalid'))
+    if (!response.success || !response.data)
+      throw new Error(response.error || i18n.global.t('savedTabs.backupInvalid'))
     await loadLists()
     importDialog.value?.close()
     importPreview.value = null
     emit('notify', i18n.global.t('savedTabs.backupImported', response.data), 'success')
   } catch (error) {
-    importError.value = error instanceof Error ? error.message : i18n.global.t('savedTabs.backupFailed')
+    importError.value =
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.backupFailed')
   } finally {
     isImporting.value = false
   }
@@ -1281,13 +1572,20 @@ async function confirmRecovery() {
   if (!snapshot || isRestoringSnapshot.value) return
   isRestoringSnapshot.value = true
   try {
-    const response = await send<SavedTabsData>(MESSAGE_TYPES.RESTORE_SAVED_SNAPSHOT, { id: snapshot.id })
-    if (!response.success || !response.data) throw new Error(response.error || i18n.global.t('savedTabs.recoveryFailed'))
+    const response = await send<SavedTabsData>(MESSAGE_TYPES.RESTORE_SAVED_SNAPSHOT, {
+      id: snapshot.id
+    })
+    if (!response.success || !response.data)
+      throw new Error(response.error || i18n.global.t('savedTabs.recoveryFailed'))
     recoveryDialog.value?.close()
     await loadLists()
     emit('notify', i18n.global.t('savedTabs.recovered'), 'success')
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.recoveryFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.recoveryFailed'),
+      'error'
+    )
   } finally {
     isRestoringSnapshot.value = false
   }
@@ -1314,9 +1612,17 @@ async function restoreList(list: SavedTabList) {
       throw new Error(response.error || i18n.global.t('savedTabs.restoreFailed'))
     }
     if (result.successfulOperations > 0) emit('tabs-updated')
-    emit('notify', operationMessage(result, 'restore'), result.failedOperations > 0 ? 'error' : 'success')
+    emit(
+      'notify',
+      operationMessage(result, 'restore'),
+      result.failedOperations > 0 ? 'error' : 'success'
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.restoreFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.restoreFailed'),
+      'error'
+    )
   } finally {
     busyListId.value = null
   }
@@ -1337,9 +1643,17 @@ async function restoreItem(list: SavedTabList, itemIndex: number) {
       throw new Error(response.error || i18n.global.t('savedTabs.restoreFailed'))
     }
     if (result.successfulOperations > 0) emit('tabs-updated')
-    emit('notify', operationMessage(result, 'restore'), result.failedOperations > 0 ? 'error' : 'success')
+    emit(
+      'notify',
+      operationMessage(result, 'restore'),
+      result.failedOperations > 0 ? 'error' : 'success'
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.restoreFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.restoreFailed'),
+      'error'
+    )
   } finally {
     busyItemKey.value = null
   }
@@ -1357,9 +1671,17 @@ async function restoreSelectedItems() {
     if (!result) throw new Error(response.error || i18n.global.t('savedTabs.restoreFailed'))
     selectedItems.value.clear()
     if (result.successfulOperations > 0) emit('tabs-updated')
-    emit('notify', operationMessage(result, 'restore'), result.failedOperations > 0 ? 'error' : 'success')
+    emit(
+      'notify',
+      operationMessage(result, 'restore'),
+      result.failedOperations > 0 ? 'error' : 'success'
+    )
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.restoreFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.restoreFailed'),
+      'error'
+    )
   } finally {
     isRestoringSelection.value = false
   }
@@ -1379,12 +1701,17 @@ async function confirmRename() {
       id: editingList.value.id,
       name: renameValue.value
     })
-    if (!response.success) throw new Error(response.error || i18n.global.t('savedTabs.renameFailed'))
+    if (!response.success)
+      throw new Error(response.error || i18n.global.t('savedTabs.renameFailed'))
     renameDialog.value?.close()
     await loadLists()
     emit('notify', i18n.global.t('savedTabs.renamed'), 'success')
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.renameFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.renameFailed'),
+      'error'
+    )
   } finally {
     isRenaming.value = false
   }
@@ -1410,10 +1737,13 @@ async function confirmCleanup() {
   if (selectedCleanupIds.value.length === 0 || isCleaningUp.value) return
   isCleaningUp.value = true
   try {
-    const response = await send<{ listCount: number, itemCount: number }>(MESSAGE_TYPES.CLEANUP_SAVED_LISTS, {
-      ids: [...selectedCleanupIds.value],
-      olderThan: cleanupCutoff.value
-    })
+    const response = await send<{ listCount: number; itemCount: number }>(
+      MESSAGE_TYPES.CLEANUP_SAVED_LISTS,
+      {
+        ids: [...selectedCleanupIds.value],
+        olderThan: cleanupCutoff.value
+      }
+    )
     if (!response.success || !response.data) {
       throw new Error(response.error || i18n.global.t('savedTabs.cleanupFailed'))
     }
@@ -1421,7 +1751,11 @@ async function confirmCleanup() {
     await loadLists()
     emit('notify', i18n.global.t('savedTabs.cleaned', response.data), 'success')
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.cleanupFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.cleanupFailed'),
+      'error'
+    )
   } finally {
     isCleaningUp.value = false
   }
@@ -1434,12 +1768,17 @@ async function confirmDelete() {
     const response = await send(MESSAGE_TYPES.DELETE_LIST, {
       id: deletingList.value.id
     })
-    if (!response.success) throw new Error(response.error || i18n.global.t('savedTabs.deleteFailed'))
+    if (!response.success)
+      throw new Error(response.error || i18n.global.t('savedTabs.deleteFailed'))
     deleteDialog.value?.close()
     await loadLists()
     emit('notify', i18n.global.t('savedTabs.deleted'), 'success')
   } catch (error) {
-    emit('notify', error instanceof Error ? error.message : i18n.global.t('savedTabs.deleteFailed'), 'error')
+    emit(
+      'notify',
+      error instanceof Error ? error.message : i18n.global.t('savedTabs.deleteFailed'),
+      'error'
+    )
   } finally {
     isDeleting.value = false
   }
@@ -1463,6 +1802,7 @@ onMounted(loadLists)
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 8px 14px;
 }
@@ -1530,13 +1870,40 @@ onMounted(loadLists)
   line-height: 18px;
 }
 
+.quick-save-button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding-inline: 12px;
+}
+
 .privacy-note {
   color: var(--text-tertiary);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .section-body {
   padding: 0 14px 12px;
+}
+
+.save-setup > summary,
+.secondary-save-options > summary,
+.list-maintenance > summary {
+  width: fit-content;
+  padding: 5px 2px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.save-setup > summary:focus-visible,
+.secondary-save-options > summary:focus-visible,
+.list-maintenance > summary:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.save-setup-content {
+  padding-top: 4px;
 }
 
 .workspace-bar {
@@ -1785,6 +2152,17 @@ onMounted(loadLists)
   color: var(--bg-primary);
 }
 
+.action-button:hover:not(:disabled),
+.restore-item-button:hover:not(:disabled) {
+  border-color: var(--border-primary);
+  background: var(--bg-hover);
+}
+
+.action-button.primary:hover:not(:disabled) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+}
+
 .action-button:disabled,
 .restore-item-button:disabled,
 .icon-button:disabled {
@@ -1925,11 +2303,9 @@ onMounted(loadLists)
 .ai-summary {
   margin: 0 8px 8px 44px;
   padding: 8px 10px;
-  border-left: 2px solid var(--border-primary);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: var(--bg-secondary);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   white-space: pre-line;
 }

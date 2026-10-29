@@ -572,7 +572,11 @@ body #app .btn-primary {
 
 @media (max-width: 700px) {
   html body #app .app {
-    width: 100vw;
+    width: 100%;
+  }
+
+  body #app .app-header {
+    padding-inline: 12px;
   }
 }
 

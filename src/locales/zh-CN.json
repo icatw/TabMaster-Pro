@@ -34,6 +34,7 @@
     "autoSortDisabled": "自动排序已禁用",
     "toggleTheme": "切换主题",
     "toggleLanguage": "切换语言",
+    "moreOptions": "更多选项",
     "openSettings": "打开设置"
   },
   "search": {
@@ -169,6 +170,10 @@
     "nameLabel": "列表名称",
     "namePlaceholder": "可选：为这些标签页命名",
     "saveWindow": "保存当前窗口",
+    "saveWindowQuick": "保存窗口",
+    "customizeSave": "设置名称与工作区",
+    "moreSaveOptions": "更多保存方式",
+    "listMaintenance": "列表维护与备份",
     "saveAndCloseWindow": "保存并关闭当前窗口",
     "saveAndCloseWindowTitle": "保存并关闭当前窗口？",
     "saveAndCloseWindowDescription": "当前窗口中可恢复的标签页会先保存到新列表，然后关闭。无法保存的系统页面会保持打开。",

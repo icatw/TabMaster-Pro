@@ -34,6 +34,7 @@
     "autoSortDisabled": "Auto-sort disabled",
     "toggleTheme": "Toggle theme",
     "toggleLanguage": "Toggle language",
+    "moreOptions": "More options",
     "openSettings": "Open settings"
   },
   "search": {
@@ -169,6 +170,10 @@
     "nameLabel": "List name",
     "namePlaceholder": "Optional: name this collection",
     "saveWindow": "Save current window",
+    "saveWindowQuick": "Save window",
+    "customizeSave": "Name & choose workspace",
+    "moreSaveOptions": "More save options",
+    "listMaintenance": "List maintenance & backups",
     "saveAndCloseWindow": "Save and close current window",
     "saveAndCloseWindowTitle": "Save and close this window?",
     "saveAndCloseWindowDescription": "Restorable tabs in this window will be saved to a new list before the window closes. System pages that cannot be saved will stay open.",
