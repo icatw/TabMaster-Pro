@@ -7,6 +7,7 @@ import { i18n } from '@/i18n'
 import '@/assets/styles/main.css'
 import '@/styles/theme.css'
 import 'uno.css'
+import '@/styles/linear.css'
 
 // 创建 Vue 应用
 const app = createApp(App)
