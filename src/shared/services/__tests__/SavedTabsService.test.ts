@@ -277,9 +277,17 @@ describe('saved tab workspaces', () => {
 
     const workspace = await SavedTabsService.createWorkspace('Project', store)
     const moved = await SavedTabsService.moveListToWorkspace('research', workspace.id, store)
+    const annotated = await SavedTabsService.updateListMetadata('research', {
+      note: 'Follow up',
+      tags: ['Research', 'research', 'reading']
+    }, store)
+    const favorited = await SavedTabsService.toggleSavedItemFavorite('research', 0, undefined, store)
 
     expect(workspace.name).toBe('Project')
     expect(moved.workspaceId).toBe(workspace.id)
+    expect(annotated.note).toBe('Follow up')
+    expect(annotated.tags).toEqual(['Research', 'reading'])
+    expect(favorited.items[0].favorite).toBe(true)
     expect((values[STORAGE_KEYS.SAVED_TABS] as { workspaces: unknown[] }).workspaces).toHaveLength(2)
     expect(values[STORAGE_KEYS.SAVED_TABS_SNAPSHOTS]).toBeTruthy()
   })

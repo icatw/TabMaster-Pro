@@ -55,6 +55,18 @@ interface UpdateListPayload {
   name: string
 }
 
+interface UpdateSavedListMetadataPayload {
+  id: string
+  note?: string
+  tags?: unknown
+}
+
+interface ToggleSavedItemFavoritePayload {
+  id: string
+  itemIndex: number
+  favorite?: boolean
+}
+
 interface CleanupSavedListsPayload {
   ids: string[]
   olderThan: number
@@ -239,6 +251,10 @@ async function handleMessage(message: {
     return handleRestoreSelectedItems(payload as RestoreSelectedItemsPayload)
   case MESSAGE_TYPES.UPDATE_LIST:
     return handleUpdateList(payload as UpdateListPayload)
+  case MESSAGE_TYPES.UPDATE_SAVED_LIST_METADATA:
+    return handleUpdateSavedListMetadata(payload as UpdateSavedListMetadataPayload)
+  case MESSAGE_TYPES.TOGGLE_SAVED_ITEM_FAVORITE:
+    return handleToggleSavedItemFavorite(payload as ToggleSavedItemFavoritePayload)
   case MESSAGE_TYPES.DELETE_LIST:
     return handleDeleteList(payload as RestoreListPayload)
   case MESSAGE_TYPES.CLEANUP_SAVED_LISTS:
@@ -424,6 +440,25 @@ async function handleUpdateList(payload: UpdateListPayload): Promise<APIResponse
     return response(await SavedTabsService.renameList(payload.id, payload.name))
   } catch (error) {
     return response(undefined, false, `重命名失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function handleUpdateSavedListMetadata(payload: UpdateSavedListMetadataPayload): Promise<APIResponse> {
+  try {
+    return response(await SavedTabsService.updateListMetadata(payload.id, {
+      note: payload.note,
+      tags: payload.tags
+    }))
+  } catch (error) {
+    return response(undefined, false, `保存列表详情失败: ${toErrorMessage(error)}`)
+  }
+}
+
+async function handleToggleSavedItemFavorite(payload: ToggleSavedItemFavoritePayload): Promise<APIResponse> {
+  try {
+    return response(await SavedTabsService.toggleSavedItemFavorite(payload.id, payload.itemIndex, payload.favorite))
+  } catch (error) {
+    return response(undefined, false, `更新收藏状态失败: ${toErrorMessage(error)}`)
   }
 }
 

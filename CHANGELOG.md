@@ -11,6 +11,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 - Search Saved Lists from the main tab and bookmark search field.
 - Local mutation and startup snapshots with a recovery action for accidental changes.
 - Chrome tab context-menu actions for saving the current tab, highlighted tabs, or the current window.
+- Add list notes and tags for project context, include metadata in Saved Lists search, and favorite individual saved links.
 
 ## [0.2.1] - 2026-10-26
 

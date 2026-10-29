@@ -33,6 +33,19 @@ function normalizeUrl(url: string): string {
   return url.trim()
 }
 
+export function normalizeSavedTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  const seen = new Set<string>()
+  return value.flatMap(rawTag => {
+    if (typeof rawTag !== 'string') return []
+    const tag = rawTag.trim().slice(0, 32)
+    const key = tag.toLowerCase()
+    if (!tag || seen.has(key)) return []
+    seen.add(key)
+    return [tag]
+  }).slice(0, 12)
+}
+
 export function dedupeSavedItems(items: SavedTabItem[]): SavedTabItem[] {
   const seen = new Set<string>()
 
@@ -96,7 +109,9 @@ export function filterSavedTabLists(
       .map((item, index) => ({ item, index }))
       .filter(({ item }) => listMatches ||
         item.title.toLocaleLowerCase().includes(normalizedQuery) ||
-        item.url.toLocaleLowerCase().includes(normalizedQuery))
+        item.url.toLocaleLowerCase().includes(normalizedQuery) ||
+        list.note?.toLocaleLowerCase().includes(normalizedQuery) ||
+        list.tags?.some(tag => tag.toLocaleLowerCase().includes(normalizedQuery)) === true)
 
     return items.length > 0 ? [{ list, items }] : []
   })
@@ -178,6 +193,7 @@ export function normalizeSavedTabsData(
         url,
         favIconUrl: typeof rawItem.favIconUrl === 'string' ? rawItem.favIconUrl : undefined,
         pinned: rawItem.pinned === true,
+        ...(rawItem.favorite === true ? { favorite: true } : {}),
         createdAt: toTimestamp(rawItem.createdAt, now),
         ...(kind === 'session' && session ? { session } : {})
       })
@@ -199,6 +215,12 @@ export function normalizeSavedTabsData(
       workspaceId: typeof rawList.workspaceId === 'string' && seenWorkspaceIds.has(rawList.workspaceId)
         ? rawList.workspaceId
         : DEFAULT_WORKSPACE_ID,
+      ...(typeof rawList.note === 'string' && rawList.note.trim()
+        ? { note: rawList.note.trim().slice(0, 1000) }
+        : {}),
+      ...(normalizeSavedTags(rawList.tags).length > 0
+        ? { tags: normalizeSavedTags(rawList.tags) }
+        : {}),
       ...(kind === 'session' && windows.length > 0 ? { kind, windows } : {})
     })
   }
@@ -212,7 +234,8 @@ export function normalizeSavedTabsData(
 
 export function validateSavedTabsImport(value: unknown): SavedTabsData {
   if (!isRecord(value) ||
-    (value.version !== SAVED_TABS_SCHEMA_VERSION && value.version !== SAVED_TABS_LEGACY_SCHEMA_VERSION) ||
+    (value.version !== SAVED_TABS_SCHEMA_VERSION &&
+      value.version !== SAVED_TABS_LEGACY_SCHEMA_VERSION && value.version !== 2) ||
     !Array.isArray(value.lists)) {
     throw new Error('Unsupported or invalid saved-tabs backup file')
   }
@@ -255,6 +278,8 @@ export function createSavedTabList(
     windows?: SavedWindowSnapshot[]
     preserveDuplicates?: boolean
     workspaceId?: string
+    note?: string
+    tags?: string[]
   } = {}
 ): SavedTabList | null {
   const normalizedItems = options.preserveDuplicates
@@ -269,6 +294,8 @@ export function createSavedTabList(
     updatedAt: now,
     items: normalizedItems,
     workspaceId: options.workspaceId ?? DEFAULT_WORKSPACE_ID,
+    ...(options.note?.trim() ? { note: options.note.trim().slice(0, 1000) } : {}),
+    ...(normalizeSavedTags(options.tags).length > 0 ? { tags: normalizeSavedTags(options.tags) } : {}),
     ...(options.kind === 'session' ? { kind: 'session' as const, windows: options.windows ?? [] } : {})
   }
 }

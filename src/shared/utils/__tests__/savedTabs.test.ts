@@ -57,7 +57,7 @@ describe('saved tab data', () => {
       ]
     }, 99)
 
-    expect(migrated.version).toBe(3)
+    expect(migrated.version).toBe(4)
     expect(migrated.lists.map(list => list.name)).toEqual([
       'Duplicate id',
       'Newer',
@@ -89,6 +89,37 @@ describe('saved tab data', () => {
       'https://example.org'
     ])
     expect(createSavedTabList([], 'Nothing')).toBeNull()
+  })
+
+  it('normalizes list notes, tags, and favorite links', () => {
+    const migrated = normalizeSavedTabsData({
+      version: 3,
+      lists: [{
+        id: 'annotated',
+        name: 'Annotated',
+        note: '  Follow up tomorrow  ',
+        tags: ['Research', 'research', '  reading  ', '', 'x'.repeat(40), ...Array.from({ length: 14 }, (_, index) => `tag-${index}`)],
+        items: [{ ...item('https://example.com'), favorite: true }]
+      }]
+    })
+
+    expect(migrated.lists[0]).toMatchObject({
+      note: 'Follow up tomorrow',
+      tags: ['Research', 'reading', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'tag-0', 'tag-1', 'tag-2', 'tag-3', 'tag-4', 'tag-5', 'tag-6', 'tag-7', 'tag-8']
+    })
+    expect(migrated.lists[0].items[0].favorite).toBe(true)
+  })
+
+  it('includes notes and tags in saved-list search', () => {
+    const lists = normalizeSavedTabsData({
+      lists: [{
+        id: 'annotated', name: 'Reading', note: 'Follow up', tags: ['research'],
+        items: [item('https://example.com')]
+      }]
+    }).lists
+
+    expect(filterSavedTabLists(lists, 'follow')).toHaveLength(1)
+    expect(filterSavedTabLists(lists, 'research')).toHaveLength(1)
   })
 
   it('preserves duplicate URLs and window metadata in session snapshots', () => {
